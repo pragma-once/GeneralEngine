@@ -1,0 +1,770 @@
+#ifndef ENGINE_LIST_INCLUDED
+
+#ifdef ENGINE_LIST_USE_MUTEX
+    #define ENGINE_LIST_INCLUDED
+#endif
+
+#include "../../Engine.dec.h"
+#include "ResizableArray.h"
+
+#ifdef ENGINE_LIST_USE_MUTEX
+    #include "../HandledMutex.h"
+    #define ENGINE_LIST_CLASS_NAME List<ItemsType, true>
+#else
+    #define ENGINE_LIST_CLASS_NAME List<ItemsType, false>
+#endif
+
+namespace Engine
+{
+    namespace Data
+    {
+        namespace Collections
+        {
+            template <typename ItemsType>
+            class ENGINE_LIST_CLASS_NAME // TODO: change expansion and freeing space in all collections and add Mutex locking to all the collections
+            {
+            public:
+                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
+                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
+                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
+                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent)> OnClearCallback;
+                typedef std::function<bool(const ItemsType Item)> Predicate;
+                typedef std::function<void(ItemsType Value)> ForEachBody1;
+                typedef std::function<void(ItemsType Value, bool& BreakLoop)> ForEachBody2;
+
+                List(const List&) = delete;
+                List& operator=(const List&) = delete;
+
+                List(int InitialCapacity = 0);
+                List(
+                    OnAddCallback OnAdd,
+                    OnRemoveCallback OnRemove,
+                    OnSetItemCallback OnSetItem,
+                    OnClearCallback OnClear
+                );
+                ~List();
+
+                ENGINE_LIST_CLASS_NAME * GetChild(
+                    OnAddCallback OnAdd,
+                    OnRemoveCallback OnRemove,
+                    OnSetItemCallback OnSetItem,
+                    OnClearCallback OnClear
+                );
+
+                bool Add(ItemsType Item, int Index = -1);
+                bool Remove(int Index = -1);
+                bool SetItem(int Index, ItemsType Value);
+                bool Clear();
+
+                void Expand(int Space);
+                void Shrink(int AdditionalSpace = 0);
+
+                ItemsType GetItem(int Index);
+                int Find(ItemsType Item, int FromIndex = 0);
+                bool Exists(ItemsType Item);
+                int Find(Predicate, int FromIndex = 0);
+                bool Exists(Predicate);
+                int GetCount();
+                int GetCapacity();
+                void ForEach(ForEachBody1 Body);
+                void ForEach(ForEachBody2 Body);
+            private:
+#ifdef ENGINE_LIST_USE_MUTEX
+                HandledMutex Mutex;
+#endif
+                ResizableArray<ItemsType, false> * Items;
+                int * CountRef;
+
+                ENGINE_LIST_CLASS_NAME * Parent;
+                ResizableArray<ENGINE_LIST_CLASS_NAME*, false> * Children; // Objects to destruct when destructed
+                bool IsParentDestructed;
+
+                OnAddCallback OnAdd;
+                OnRemoveCallback OnRemove;
+                OnClearCallback OnClear;
+                OnSetItemCallback OnSetItem;
+
+                List(
+                    ENGINE_LIST_CLASS_NAME * Parent,
+                    OnAddCallback OnAdd,
+                    OnRemoveCallback OnRemove,
+                    OnSetItemCallback OnSetItem,
+                    OnClearCallback OnClear);
+                void DestructChidren();
+            };
+        }
+    }
+}
+
+// DEFINITION ----------------------------------------------------------------
+
+#ifdef ENGINE_LIST_USE_MUTEX
+    #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS auto guard = Mutex.GetLock();
+    #define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock(); if (IsParentDestructed) throw std::exception("The parent is destructed!");
+    #define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock(); if (IsParentDestructed) throw std::exception("The parent is destructed!");
+#else
+    #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS ;
+    #define ENGINE_COLLECTION_WRITE_ACCESS if (IsParentDestructed) throw std::exception("The parent is destructed!");
+    #define ENGINE_COLLECTION_READ_ACCESS if (IsParentDestructed) throw std::exception("The parent is destructed!");
+#endif
+
+namespace Engine
+{
+    namespace Data
+    {
+        namespace Collections
+        {
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::List(int InitialCapacity)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                Parent = nullptr;
+                Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>();
+                IsParentDestructed = false;
+
+                Items = new ResizableArray<ItemsType, false>(InitialCapacity);
+                CountRef = new int(0);
+
+                OnAdd = [this](ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index) -> bool {
+                    while (*CountRef >= Items->GetLength())
+                        if (Items->GetLength() > 0)
+                            Items->Resize(Items->GetLength() * 2);
+                        else
+                            Items->Resize(1);
+
+                    Index = Index % *CountRef + 1;
+                    for (int i = *CountRef; i > Index; i--)
+                        Items->SetItem(Index, Items->GetItem(Index - 1));
+                    Items->SetItem(Index, Item);
+
+                    (*CountRef)++;
+
+                    return true;
+                };
+
+                OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
+                    Index = Index % *CountRef;
+                    *CountRef--;
+                    for (int i = Index; i < *CountRef; i++)
+                        Items->SetItem(i, Items->GetItem(i + 1));
+
+                    if (*CountRef < Items->GetLength() / 2)
+                        Items->Resize(Items->GetLength() / 2);
+
+                    return true;
+                };
+
+                OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
+                    Index = Index % *CountRef;
+                    Items->SetItem(Index, Value);
+                    return true;
+                };
+
+                OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
+                    Count = 0;
+                    Items->Resize(0);
+                    return true;
+                };
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::List(
+                OnAddCallback OnAdd,
+                OnRemoveCallback OnRemove,
+                OnSetItemCallback OnSetItem,
+                OnClearCallback OnClear)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                if (OnAdd == nullptr)
+                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
+                if (OnRemove == nullptr)
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
+                if (OnSetItem == nullptr)
+                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                if (OnClear == nullptr)
+                    OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
+
+                Parent = new ENGINE_LIST_CLASS_NAME();
+                Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(1);
+                Children->SetItem(0, Parent); // To destruct the parent when destructed
+
+                Items = Parent->Items;
+                CountRef = Parent->CountRef;
+
+                IsParentDestructed = false;
+
+                this->OnAdd = OnAdd;
+                this->OnRemove = OnRemove;
+                this->OnSetItem = OnSetItem;
+                this->OnClear = OnClear;
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::~List()
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                if (Parent != nullptr) for (int i = 0; i < Parent->Children->GetLength(); i++) if (Parent->Children->GetItem(i) == this)
+                {
+                    for (int j = i; j < Parent->Children->GetLength(); j++)
+                        Parent->SetItem(j, Parent->GetItem(j + 1));
+                    Parent->Resize(Parent->GetLength() - 1);
+                }
+                DestructChildren();
+                if (Parent != nullptr)
+                {
+                    delete Items;
+                    delete Count;
+                }
+                delete Children;
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::GetChild(
+                OnAddCallback OnAdd,
+                OnRemoveCallback OnRemove,
+                OnSetItemCallback OnSetItem,
+                OnClearCallback OnClear)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                if (OnAdd == nullptr)
+                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
+                if (OnRemove == nullptr)
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
+                if (OnSetItem == nullptr)
+                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                if (OnClear == nullptr)
+                    OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
+
+                ENGINE_LIST_CLASS_NAME * Child = new ENGINE_LIST_CLASS_NAME(this, OnAdd, OnRemove, OnSetItem, OnClear);
+
+                Children->Resize(Children->GetLength() + 1);
+                Children->SetItem(Children->GetLength() - 1, Child);
+
+                return Child;
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Add(ItemsType Item, int Index)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnAdd(Parent, Item, Index);
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Remove(int Index)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnRemove(Parent, Index);
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::SetItem(int Index, ItemsType Value)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnSetItem(Parent, Index, Value);
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Clear()
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnClear(Parent);
+            }
+
+
+
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::Expand(int Space)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                if (Space >= 0)
+                    Items->Resize(Items->GetLength() + Space);
+                else
+                    throw std::out_of_range("Space is less than zero.");
+            }
+
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::Shrink(int AdditionalSpace)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                if (AdditionalSpace >= 0)
+                    Items->Resize(*CountRef + AdditionalSpace);
+                else
+                    throw std::out_of_range("AdditionalSpace is less than zero.");
+            }
+
+
+
+            template <typename ItemsType>
+            ItemsType ENGINE_LIST_CLASS_NAME::GetItem(int Index)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                return Items->GetItem(Index % *CountRef);
+            }
+            template <typename ItemsType>
+            int ENGINE_LIST_CLASS_NAME::Find(ItemsType Item, int FromIndex)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                for (int i = FromIndex; i < *CountRef; i++)
+                    if (Items->GetItem(i) == Item)
+                        return i;
+                return -1;
+            }
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Exists(ItemsType Item)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                for (int i = 0; i < *CountRef; i++)
+                    if (Items->GetItem(i) == Item)
+                        return true;
+                return false;
+            }
+            template <typename ItemsType>
+            int ENGINE_LIST_CLASS_NAME::Find(Predicate P, int FromIndex)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                for (int i = FromIndex; i < *CountRef; i++)
+                    if (P(Items->GetItem(i))
+                        return i;
+                return -1;
+            }
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Exists(Predicate P)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                for (int i = 0; i < *CountRef; i++)
+                    if (P(Items->GetItem(i))
+                        return true;
+                return false;
+            }
+            template <typename ItemsType>
+            int ENGINE_LIST_CLASS_NAME::GetCount()
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                return *CountRef;
+            }
+            template <typename ItemsType>
+            int ENGINE_LIST_CLASS_NAME::GetCapacity()
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                return Items->GetLength();
+            }
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody1 Body)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+
+                for (int i = 0; i < *CountRef; i++)
+                    Body(Items->GetItem(i));
+            }
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody2 Body)
+            {
+                ENGINE_COLLECTION_READ_ACCESS
+                
+                bool Break = false;
+                for (int i = 0; i < *CountRef; i++)
+                {
+                    Body(Items->GetItem(i), Break);
+                    if (Break) break;
+                }
+            }
+
+
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::List(
+                ENGINE_LIST_CLASS_NAME * Parent,
+                OnAddCallback OnAdd,
+                OnRemoveCallback OnRemove,
+                OnSetItemCallback OnSetItem,
+                OnClearCallback OnClear)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                this->Parent = Parent;
+                Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(0);
+
+                Items = Parent->Items;
+                CountRef = Parent->CountRef;
+
+                IsParentDestructed = false;
+
+                this->OnAdd = OnAdd;
+                this->OnRemove = OnRemove;
+                this->OnSetItem = OnSetItem;
+                this->OnClear = OnClear;
+            }
+
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::DestructChildren()
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+
+                for (int i = 0; i < Children->GetLength(); i++)
+                    if (Children->GetItem(i)->Parent == nullptr)
+                        delete Children->GetItem(i);
+                    else
+                        Children->GetItem(i)->DestructChildren();
+                IsParentDestructed = true;
+            }
+
+            /*
+            template <class T>
+			ENGINE_LIST_CLASS_NAME::List(
+				OnAddCallback OnAddAllowance,
+				OnRemoveCallback OnRemoveAllowance,
+				OnClearCallback OnClearAllowance,
+				OnSetItemCallback OnSetItemAllowance)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				Count = 0;
+				FindNextPointer = 0;
+				Items = new ResizableArray<T, false>();
+
+				OnAdd = OnAddAllowance;
+				OnRemove = OnRemoveAllowance;
+				OnClear = OnClearAllowance;
+				OnSetItem = OnSetItemAllowance;
+			}
+
+			template <class T>
+			ENGINE_LIST_CLASS_NAME::~List()
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				delete Items;
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::Add(T Item)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (OnAdd != nullptr)
+					if (!OnAdd(this, Item))
+						return false;
+
+				while (Items->GetLength() <= Count)
+				{
+					if (Items->GetLength() > 0)
+						Items->Resize(Items->GetLength() * 2);
+					else
+						Items->Resize(4);
+				}
+
+				Items->SetItem(Count, Item);
+				Count++;
+
+				return true;
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::Remove(T Item)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					if (GetItem(i) == Item)
+						return RemoveByIndex(i);
+
+				return false;
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::RemoveByIndex(int Index)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (Index >= 0 && Index < Count)
+				{
+					if (OnRemove != nullptr)
+						if (!OnRemove(this, Index))
+							return false;
+
+					Count--;
+					for (int i = Index; i < Count; i++)
+						Items->SetItem(i, Items->GetItem(i + 1));
+
+					if (Count < Items->GetLength() / 2)
+						Items->Resize(Items->GetLength() / 2);
+
+					return true;
+				}
+
+				throw std::out_of_range("Index is out of range.");
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::Clear()
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (OnClear != nullptr)
+					if (!OnClear(this))
+						return false;
+
+				Count = 0;
+				Items->Resize(0);
+
+				return true;
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::GetIndexOf(T Item)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					if (Items->GetItem(i) == Item)
+						return i;
+
+				return -1;
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::FindNext(T Item)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				if (FindNextPointer >= Count) { FindNextPointer = 0; }
+				else if (FindNextPointer < 0) { FindNextPointer = 0; }
+				for (int i = FindNextPointer; i < Count; i++)
+				{
+					if (Items->GetItem(i) == Item)
+					{
+						FindNextPointer = i + 1; // i + 1 < Count ? (i + 1) : 0;
+						return i;
+					}
+				}
+				for (int i = 0; i < FindNextPointer; i++)
+				{
+					if (Items->GetItem(i) == Item)
+					{
+						FindNextPointer = i + 1; // i + 1 < Count ? (i + 1) : 0;
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::Exists(T Item)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					if (Items->GetItem(i) == Item)
+						return true;
+
+				return false;
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::GetIndexOf(Predicate P)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					if (P(Items->GetItem(i)))
+						return i;
+
+				return -1;
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::FindNext(Predicate P)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				if (FindNextPointer >= Count) { FindNextPointer = 0; }
+				else if (FindNextPointer < 0) { FindNextPointer = 0; }
+				for (int i = FindNextPointer; i < Count; i++)
+				{
+					if (P(Items->GetItem(i)))
+					{
+						FindNextPointer = i + 1; // i + 1 < Count ? (i + 1) : 0;
+						return i;
+					}
+				}
+				for (int i = 0; i < FindNextPointer; i++)
+				{
+					if (P(Items->GetItem(i)))
+					{
+						FindNextPointer = i + 1; // i + 1 < Count ? (i + 1) : 0;
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::Exists(Predicate P)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					if (P(Items->GetItem(i)))
+						return true;
+
+				return false;
+			}
+
+			template <class T>
+			void ENGINE_LIST_CLASS_NAME::Expand(int Space)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (Space > 0)
+					Items->Resize(Items->GetLength() + Space);
+			}
+
+			template <class T>
+			void ENGINE_LIST_CLASS_NAME::Shrink(int AdditionalSpace)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (AdditionalSpace >= 0)
+					Items->Resize(Count + AdditionalSpace);
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::GetCount()
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				return Count;
+			}
+
+			template <class T>
+			int ENGINE_LIST_CLASS_NAME::GetCapacity()
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				return Items->GetLength();
+			}
+
+			template <class T>
+			bool ENGINE_LIST_CLASS_NAME::SetItem(int Index, T Value)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetLock();
+#endif
+
+				if (Index >= 0 && Index < Count)
+				{
+					if (OnSetItem != nullptr)
+						if (!OnSetItem(this, Index, Value))
+							return false;
+
+					Items->SetItem(Index, Value);
+
+					return true;
+				}
+
+				throw std::out_of_range("Index is out of range.");
+			}
+
+			template <class T>
+			T ENGINE_LIST_CLASS_NAME::GetItem(int Index)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				if (Index >= 0 && Index < Count)
+					return Items->GetItem(Index);
+
+				throw std::out_of_range("Index is out of range.");
+			}
+
+			template <class T>
+			void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody1 Body)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				for (int i = 0; i < Count; i++)
+					Body(Items->GetItem(i));
+			}
+
+			template <class T>
+			void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody2 Body)
+			{
+#ifdef ENGINE_LIST_USE_MUTEX
+				auto guard = Mutex.GetSharedLock();
+#endif
+
+				bool Break = false;
+				for (int i = 0; i < Count; i++)
+				{
+					Body(Items->GetItem(i), Break);
+					if (Break)
+						break;
+				}
+			}
+            */
+        }
+    }
+}
+
+#undef ENGINE_LIST_CLASS_NAME
+
+#ifndef ENGINE_LIST_USE_MUTEX
+    #define ENGINE_LIST_USE_MUTEX
+    #include "List.h"
+    #undef ENGINE_LIST_USE_MUTEX
+#endif
+
+#endif // Include Guard
