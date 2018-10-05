@@ -154,7 +154,7 @@ namespace Engine
 
 #ifndef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
 #define ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-#include "resizablearray.h"
+#include "ResizableArray.h"
 #undef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
 #endif
 
