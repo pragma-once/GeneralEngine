@@ -1,5 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <mutex>
+#include <shared_mutex>
+
 namespace Engine
 {
     namespace Data
