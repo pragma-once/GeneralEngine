@@ -1,15 +1,15 @@
 #ifndef ENGINE_RESIZABLE_ARRAY_INCLUDED
 
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-#define ENGINE_RESIZABLE_ARRAY_INCLUDED
+    #define ENGINE_RESIZABLE_ARRAY_INCLUDED
 #endif
 
 #include "../../Engine.dec.h"
 
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-#define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, true>
+    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, true>
 #else
-#define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, false>
+    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, false>
 #endif
 
 namespace Engine
@@ -153,9 +153,9 @@ namespace Engine
 #undef ENGINE_RESIZABLE_ARRAY_CLASS_NAME
 
 #ifndef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-#define ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-#include "ResizableArray.h"
-#undef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+    #define ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+    #include "ResizableArray.h"
+    #undef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
 #endif
 
 #endif // Include Guard
