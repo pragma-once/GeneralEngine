@@ -51,8 +51,9 @@ namespace Engine
                     OnClearCallback OnClear
                 );
 
-                bool Add(ItemsType Item, int Index = -1);
-                bool Remove(int Index = -1);
+                bool Add(ItemsType Item);
+                bool Add(ItemsType Item, int Index);
+                bool Remove(int Index);
                 bool SetItem(int Index, ItemsType Value);
                 bool Clear();
 
@@ -133,7 +134,6 @@ namespace Engine
                         else
                             Items->Resize(1);
 
-                    Index = Index % (*CountRef + 1);
                     for (int i = *CountRef; i > Index; i--)
                         Items->SetItem(i, Items->GetItem(i - 1));
                     Items->SetItem(Index, Item);
@@ -144,7 +144,6 @@ namespace Engine
                 };
 
                 OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
-                    Index = Index % *CountRef;
                     *CountRef--;
                     for (int i = Index; i < *CountRef; i++)
                         Items->SetItem(i, Items->GetItem(i + 1));
@@ -156,7 +155,6 @@ namespace Engine
                 };
 
                 OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) -> bool {
-                    Index = Index % *CountRef;
                     Items->SetItem(Index, Value);
                     return true;
                 };
@@ -247,6 +245,16 @@ namespace Engine
                 return Child;
             }
 
+
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Add(ItemsType Item)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnAdd(Parent, Item, *CountRef);
+            }
+
             template <typename ItemsType>
             bool ENGINE_LIST_CLASS_NAME::Add(ItemsType Item, int Index)
             {
@@ -310,8 +318,9 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS
 
-                return Items->GetItem(Index % *CountRef);
+                return Items->GetItem(Index);
             }
+
             template <typename ItemsType>
             int ENGINE_LIST_CLASS_NAME::Find(ItemsType Item, int FromIndex)
             {
@@ -322,6 +331,7 @@ namespace Engine
                         return i;
                 return -1;
             }
+
             template <typename ItemsType>
             bool ENGINE_LIST_CLASS_NAME::Exists(ItemsType Item)
             {
@@ -332,6 +342,7 @@ namespace Engine
                         return true;
                 return false;
             }
+
             template <typename ItemsType>
             int ENGINE_LIST_CLASS_NAME::Find(Predicate P, int FromIndex)
             {
@@ -342,6 +353,7 @@ namespace Engine
                         return i;
                 return -1;
             }
+
             template <typename ItemsType>
             bool ENGINE_LIST_CLASS_NAME::Exists(Predicate P)
             {
@@ -352,6 +364,7 @@ namespace Engine
                         return true;
                 return false;
             }
+
             template <typename ItemsType>
             int ENGINE_LIST_CLASS_NAME::GetCount()
             {
@@ -359,6 +372,7 @@ namespace Engine
 
                 return *CountRef;
             }
+
             template <typename ItemsType>
             int ENGINE_LIST_CLASS_NAME::GetCapacity()
             {
@@ -366,6 +380,7 @@ namespace Engine
 
                 return Items->GetLength();
             }
+
             template <typename ItemsType>
             void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody1 Body)
             {
@@ -374,6 +389,7 @@ namespace Engine
                 for (int i = 0; i < *CountRef; i++)
                     Body(Items->GetItem(i));
             }
+
             template <typename ItemsType>
             void ENGINE_LIST_CLASS_NAME::ForEach(ForEachBody2 Body)
             {
