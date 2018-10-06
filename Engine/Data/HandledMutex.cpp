@@ -153,7 +153,7 @@ namespace Engine
             {
                 if (!(HasOwner && (Owner == std::this_thread::get_id())))
                     Mutex.unlock_shared();
-                SharedOwners->Remove(std::this_thread::get_id());
+                SharedOwners->Remove(SharedOwners->Find(std::this_thread::get_id()));
                 return true;
             }
             return false;
