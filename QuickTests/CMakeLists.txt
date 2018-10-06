@@ -1,0 +1,2 @@
+add_executable(ListTest Collections/ListTest.cpp)
+target_link_libraries(ListTest GeneralEngine)
