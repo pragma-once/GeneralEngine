@@ -90,7 +90,7 @@ namespace Engine
                     OnRemoveCallback OnRemove,
                     OnSetItemCallback OnSetItem,
                     OnClearCallback OnClear);
-                void DestructChidren();
+                void DestructChildren();
             };
         }
     }
@@ -133,9 +133,9 @@ namespace Engine
                         else
                             Items->Resize(1);
 
-                    Index = Index % *CountRef + 1;
+                    Index = Index % (*CountRef + 1);
                     for (int i = *CountRef; i > Index; i--)
-                        Items->SetItem(Index, Items->GetItem(Index - 1));
+                        Items->SetItem(i, Items->GetItem(i - 1));
                     Items->SetItem(Index, Item);
 
                     (*CountRef)++;
@@ -155,14 +155,14 @@ namespace Engine
                     return true;
                 };
 
-                OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
+                OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) -> bool {
                     Index = Index % *CountRef;
                     Items->SetItem(Index, Value);
                     return true;
                 };
 
                 OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
-                    Count = 0;
+                    *CountRef = 0;
                     Items->Resize(0);
                     return true;
                 };
@@ -209,14 +209,14 @@ namespace Engine
                 if (Parent != nullptr) for (int i = 0; i < Parent->Children->GetLength(); i++) if (Parent->Children->GetItem(i) == this)
                 {
                     for (int j = i; j < Parent->Children->GetLength(); j++)
-                        Parent->SetItem(j, Parent->GetItem(j + 1));
-                    Parent->Resize(Parent->GetLength() - 1);
+                        Parent->Children->SetItem(j, Parent->Children->GetItem(j + 1));
+                    Parent->Children->Resize(Parent->Children->GetLength() - 1);
                 }
                 DestructChildren();
                 if (Parent != nullptr)
                 {
                     delete Items;
-                    delete Count;
+                    delete CountRef;
                 }
                 delete Children;
             }
@@ -338,7 +338,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS
 
                 for (int i = FromIndex; i < *CountRef; i++)
-                    if (P(Items->GetItem(i))
+                    if (P(Items->GetItem(i)))
                         return i;
                 return -1;
             }
@@ -348,7 +348,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS
 
                 for (int i = 0; i < *CountRef; i++)
-                    if (P(Items->GetItem(i))
+                    if (P(Items->GetItem(i)))
                         return true;
                 return false;
             }
