@@ -144,7 +144,7 @@ namespace Engine
                 };
 
                 OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
-                    *CountRef--;
+                    (*CountRef)--;
                     for (int i = Index; i < *CountRef; i++)
                         Items->SetItem(i, Items->GetItem(i + 1));
 
