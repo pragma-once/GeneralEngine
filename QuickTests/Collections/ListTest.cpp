@@ -23,20 +23,20 @@ int main()
         case 'a':
             input(arg_str);
             input(arg_int);
-            list.Add(arg_str, arg_int);
+            print(list.Add(arg_str, arg_int));
             break;
         case 'r':
             input(arg_int);
-            list.Remove(arg_int);
+            print(list.Remove(arg_int));
             break;
         case 's':
             input(arg_int);
             input(arg_str);
-            list.SetItem(arg_int, arg_str);
+            print(list.SetItem(arg_int, arg_str));
             break;
         case 'g':
             input(arg_int);
-            list.GetItem(arg_int);
+            print(list.GetItem(arg_int));
             break;
         default:
             break;
