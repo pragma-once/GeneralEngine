@@ -7,7 +7,7 @@
 
 int main()
 {
-    Engine::Data::Collections::List<std::string> list;
+    Engine::Data::Collections::List<std::string> * list = new Engine::Data::Collections::List<std::string>();
     while (true)
     {
         print("");
@@ -22,6 +22,9 @@ int main()
         print("e Item        => Exists(Item)");
         print("F             => ForEach([](Item) { print(Item); }");
         print("");
+        print("A Item Times  => for Times: Add(Item)");
+        print("d             => delete list; list = new List");
+        print("");
         char func;
         int arg_int;
         std::string arg_str;
@@ -30,43 +33,52 @@ int main()
         {
         case 'a':
             input(arg_str);
-            print(list.Add(arg_str));
+            print(list->Add(arg_str));
             break;
         case 'p':
             input(arg_str);
             input(arg_int);
-            print(list.Add(arg_str, arg_int));
+            print(list->Add(arg_str, arg_int));
             break;
         case 'r':
             input(arg_int);
-            print(list.Remove(arg_int));
+            print(list->Remove(arg_int));
             break;
         case 's':
             input(arg_int);
             input(arg_str);
-            print(list.SetItem(arg_int, arg_str));
+            print(list->SetItem(arg_int, arg_str));
             break;
         case 'c':
-            print(list.Clear());
+            print(list->Clear());
             break;
         case 'g':
             input(arg_int);
-            print(list.GetItem(arg_int));
+            print(list->GetItem(arg_int));
             break;
         case 'C':
-            print(list.GetCount());
+            print(list->GetCount());
             break;
         case 'f':
             input(arg_str);
             input(arg_int);
-            print(list.Find(arg_str, arg_int));
+            print(list->Find(arg_str, arg_int));
             break;
         case 'e':
             input(arg_str);
-            print(list.Exists(arg_str));
+            print(list->Exists(arg_str));
             break;
         case 'F':
-            list.ForEach([](std::string Item) { print(Item); });
+            list->ForEach([](std::string Item) { print(Item); });
+            break;
+        case 'A':
+            input(arg_str);
+            input(arg_int);
+            for (int i = 0; i < arg_int; i++) list->Add(arg_str);
+            break;
+        case 'd':
+            delete list;
+            list = new Engine::Data::Collections::List<std::string>();
             break;
         default:
             break;
