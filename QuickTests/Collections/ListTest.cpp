@@ -4,10 +4,11 @@
 
 #define print(context) (std::cout << context << '\n')
 #define input(var) (std::cin >> var)
+#define ITEMS_TYPE std::string
 
 int main()
 {
-    Engine::Data::Collections::List<std::string> * list = new Engine::Data::Collections::List<std::string>();
+    Engine::Data::Collections::List<ITEMS_TYPE> * list = new Engine::Data::Collections::List<ITEMS_TYPE>();
     while (true)
     {
         print("");
@@ -27,7 +28,7 @@ int main()
         print("");
         char func;
         int arg_int;
-        std::string arg_str;
+        ITEMS_TYPE arg_str;
         input(func);
         switch (func)
         {
@@ -69,7 +70,7 @@ int main()
             print(list->Exists(arg_str));
             break;
         case 'F':
-            list->ForEach([](std::string Item) { print(Item); });
+            list->ForEach([](ITEMS_TYPE Item) { print(Item); });
             break;
         case 'A':
             input(arg_str);
@@ -78,7 +79,7 @@ int main()
             break;
         case 'd':
             delete list;
-            list = new Engine::Data::Collections::List<std::string>();
+            list = new Engine::Data::Collections::List<ITEMS_TYPE>();
             break;
         default:
             break;
