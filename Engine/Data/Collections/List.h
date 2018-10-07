@@ -211,7 +211,7 @@ namespace Engine
                     Parent->Children->Resize(Parent->Children->GetLength() - 1);
                 }
                 DestructChildren();
-                if (Parent != nullptr)
+                if (Parent == nullptr)
                 {
                     delete Items;
                     delete CountRef;
