@@ -23,14 +23,14 @@ public:
     void SetSetter(std::function<void(Type)> Setter)
     {
         if (this->Setter != nullptr)
-            throw std::exception("Cannot set the Setter more than once.");
+            throw std::logic_error("Cannot set the Setter more than once.");
         this->Setter = Setter;
     }
 
     void SetGetter(std::function<void(Type)> Getter)
     {
         if (this->Getter != nullptr)
-            throw std::exception("Cannot set the Getter more than once.");
+            throw std::logic_error("Cannot set the Getter more than once.");
         this->Getter = Getter;
     }
 

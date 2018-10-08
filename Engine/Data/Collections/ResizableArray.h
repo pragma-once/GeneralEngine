@@ -68,7 +68,7 @@ namespace Engine
                     Array = nullptr;
                     this->Length = 0;
                 }
-                else throw std::out_of_range("Length is less than zero.");
+                else throw std::domain_error("Length is less than zero.");
             }
 
             template <typename T>
@@ -144,7 +144,7 @@ namespace Engine
                     Array = nullptr;
                     Length = 0;
                 }
-                else throw std::out_of_range("NewLength is less than zero.");
+                else throw std::domain_error("NewLength is less than zero.");
             }
         }
     }

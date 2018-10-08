@@ -297,7 +297,7 @@ namespace Engine
                 if (Space >= 0)
                     Items->Resize(Items->GetLength() + Space);
                 else
-                    throw std::out_of_range("Space is less than zero.");
+                    throw std::domain_error("Space is less than zero.");
             }
 
             template <typename ItemsType>
@@ -308,7 +308,7 @@ namespace Engine
                 if (AdditionalSpace >= 0)
                     Items->Resize(*CountRef + AdditionalSpace);
                 else
-                    throw std::out_of_range("AdditionalSpace is less than zero.");
+                    throw std::domain_error("AdditionalSpace is less than zero.");
             }
 
 
