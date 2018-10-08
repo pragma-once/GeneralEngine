@@ -16,7 +16,17 @@ public:
 
     Property() {}
 
-    Property(std::function<void(Type)> Setter, std::function<Type()> Getter)
+    Property(
+
+#ifndef ENGINE_PROPERTY_NO_SETTER
+        std::function<void(Type)> Setter
+#endif
+
+#ifndef ENGINE_PROPERTY_NO_GETTER
+        , std::function<Type()> Getter
+#endif
+
+    )
     {
 
 #ifndef ENGINE_PROPERTY_NO_SETTER
