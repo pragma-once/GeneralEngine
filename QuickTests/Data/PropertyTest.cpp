@@ -36,11 +36,29 @@ int main()
 {
     TestClass test("AA", "BB", "CC");
     test.A = test.B;
+    test.A = "AA";
     //test.A = test.C; //->error
     //test.B = test.A; //->error
     //test.B = test.C; //->error
     test.C = test.A;
     test.C = test.B;
+    std::string b = test.B;
+    //std::string c = test.C; //->error
+    //test.B = "hey!";        //->error
+    print(b);
+    print((std::string)test.B);
+
+    float f = 0;
+    Engine::Data::Property<float> F(
+        [&f](float val) { f = val; print("F set to " << val); },
+        [&f]() { print("Getting F: " << f); return f; }
+    );
+
+    F = 4;
+    F = F * 8;
+    print(F);
+
+    getchar();
 
     return 0;
 }
