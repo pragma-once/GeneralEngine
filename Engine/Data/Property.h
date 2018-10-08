@@ -81,9 +81,16 @@ namespace Engine
 
 #endif
 
-#ifndef defined(ENGINE_PROPERTY_NO_SETTER) && defined(ENGINE_PROPERTY_NO_GETTER)
+#ifndef ENGINE_PROPERTY_NO_SETTER
 
             int operator=(const Property& Operand)
+            {
+                Type Value = Operand.Getter();
+                Setter(Value);
+                return Value;
+            }
+
+            int operator=(const Property<Type, false, true>& Operand)
             {
                 Type Value = Operand.Getter();
                 Setter(Value);
