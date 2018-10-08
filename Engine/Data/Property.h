@@ -113,6 +113,10 @@ namespace Engine
                 return Value;
             }
 
+#else
+
+            Type operator=(const Type& Value) = delete;
+
 #endif
 
 #ifndef ENGINE_PROPERTY_NO_GETTER
@@ -121,6 +125,10 @@ namespace Engine
             {
                 return Getter();
             }
+
+#else
+
+            operator Type() = delete;
 
 #endif
 
