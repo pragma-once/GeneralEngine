@@ -8,6 +8,9 @@ namespace Engine
 {
     namespace Data
     {
+        class HandledMutex;
+        template <typename Type, bool HasSetter = true, bool HasGetter = true> class Property;
+
         namespace Collections
         {
             template <typename ItemsType, bool UseMutex = true> class ResizableArray;
