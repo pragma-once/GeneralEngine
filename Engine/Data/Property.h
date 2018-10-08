@@ -21,7 +21,7 @@ namespace Engine
             true,
 #endif
 
-#ifdef ENGINE_PROPERTY_NO_SETTER
+#ifdef ENGINE_PROPERTY_NO_GETTER
             false
 #else
             true
@@ -38,10 +38,13 @@ namespace Engine
 
 #ifndef ENGINE_PROPERTY_NO_SETTER
                 std::function<void(Type)> Setter
+#ifndef ENGINE_PROPERTY_NO_GETTER
+                ,
+#endif
 #endif
 
 #ifndef ENGINE_PROPERTY_NO_GETTER
-                , std::function<Type()> Getter
+                std::function<Type()> Getter
 #endif
 
             )
