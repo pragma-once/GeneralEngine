@@ -29,6 +29,8 @@ namespace Engine
 
         >
         {
+            friend Property<Type, true, true>;
+            friend Property<Type, true, false>;
         public:
             Property(const Property&) = delete;
 
