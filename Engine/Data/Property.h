@@ -72,7 +72,7 @@ namespace Engine
 
 #ifndef ENGINE_PROPERTY_NO_GETTER
 
-            void SetGetter(std::function<void(Type)> Getter)
+            void SetGetter(std::function<Type()> Getter)
             {
                 if (this->Getter != nullptr)
                     throw std::logic_error("Cannot set the Getter more than once.");
