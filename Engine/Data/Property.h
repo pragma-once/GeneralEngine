@@ -83,14 +83,14 @@ namespace Engine
 
 #ifndef ENGINE_PROPERTY_NO_SETTER
 
-            int operator=(const Property& Operand)
+            Type operator=(const Property& Operand)
             {
                 Type Value = Operand.Getter();
                 Setter(Value);
                 return Value;
             }
 
-            int operator=(const Property<Type, false, true>& Operand)
+            Type operator=(const Property<Type, false, true>& Operand)
             {
                 Type Value = Operand.Getter();
                 Setter(Value);
@@ -105,7 +105,7 @@ namespace Engine
 
 #ifndef ENGINE_PROPERTY_NO_SETTER
 
-            int operator=(const Type& Value)
+            Type operator=(const Type& Value)
             {
                 Setter(Value);
                 return Value;
