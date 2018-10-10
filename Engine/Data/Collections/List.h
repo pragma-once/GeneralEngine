@@ -128,6 +128,9 @@ namespace Engine
                 CountRef = new int(0);
 
                 OnAdd = [this](ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index) -> bool {
+                    if (Index > *CountRef || Index < 0)
+                        throw std::out_of_range("Index is out of range.");
+
                     while (*CountRef >= Items->GetLength())
                         if (Items->GetLength() > 0)
                             Items->Resize(Items->GetLength() * 2);
@@ -144,6 +147,9 @@ namespace Engine
                 };
 
                 OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
+                    if (Index >= *CountRef || Index < 0)
+                        throw std::out_of_range("Index is out of range.");
+
                     (*CountRef)--;
                     for (int i = Index; i < *CountRef; i++)
                         Items->SetItem(i, Items->GetItem(i + 1));
@@ -155,6 +161,9 @@ namespace Engine
                 };
 
                 OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) -> bool {
+                    if (Index >= *CountRef || Index < 0)
+                        throw std::out_of_range("Index is out of range.");
+
                     Items->SetItem(Index, Value);
                     return true;
                 };
@@ -316,7 +325,10 @@ namespace Engine
             template <typename ItemsType>
             ItemsType ENGINE_LIST_CLASS_NAME::GetItem(int Index)
             {
-                ENGINE_COLLECTION_READ_ACCESS
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                if (Index >= *CountRef || Index < 0)
+                    throw std::out_of_range("Index is out of range.");
 
                 return Items->GetItem(Index);
             }
