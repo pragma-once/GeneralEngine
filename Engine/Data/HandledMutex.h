@@ -6,7 +6,7 @@ namespace Engine
 {
     namespace Data
     {
-        struct HandledMutex
+        class HandledMutex
         {
         public:
             struct LockGuard
