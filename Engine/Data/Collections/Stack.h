@@ -198,7 +198,7 @@ namespace Engine
 
                 for (int i = Count - 1; i >= 0; i--)
                     if (Items->GetItem(i) == Item)
-                        return Count - i;
+                        return (Count - 1) - i;
 
                 return -1;
             }
