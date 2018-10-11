@@ -181,7 +181,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 if (Count <= 0)
-                    throw std::logic_error("Cannot get the top element of an empty queue.");
+                    throw std::logic_error("Cannot get the first element of an empty queue.");
 
                 return Items->GetItem(First);
             }
