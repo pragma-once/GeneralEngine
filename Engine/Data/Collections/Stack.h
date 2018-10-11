@@ -78,7 +78,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Items = new ResizableArray<ItemsType, false>(InitialCapacity);
-                Count = InitialCapacity;
+                Count = 0;
             }
 
             template <typename ItemsType>
