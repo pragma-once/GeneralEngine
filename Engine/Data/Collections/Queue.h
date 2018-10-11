@@ -45,7 +45,7 @@ namespace Engine
                 bool IsEmpty();
                 int GetCapacity();
             private:
-#ifdef ENGINE_STACK_USE_MUTEX
+#ifdef ENGINE_QUEUE_USE_MUTEX
                 HandledMutex Mutex;
 #endif
                 int First;
