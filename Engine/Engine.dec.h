@@ -17,7 +17,7 @@ namespace Engine
             template <typename ItemsType, bool UseMutex = true> class List;
             template <typename ItemsType, bool UseMutex = true> class Stack;
             template <typename ItemsType, bool UseMutex = true> class Queue;
-            template <typename ItemsType, typename PriorityType = int, bool LessPriorityFirst = false, bool UseMutex = true> class PriorityQueue;
+            template <typename ItemsType, typename PriorityType = int, bool LessPriorityFirst = true, bool UseMutex = true> class PriorityQueue;
             template <typename ValuesType, bool UseMutex = true> class Dictionary;
         }
     }
