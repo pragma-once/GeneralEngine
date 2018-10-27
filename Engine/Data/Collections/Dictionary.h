@@ -5,7 +5,7 @@
 #endif
 
 #include "../../Engine.dec.h"
-//#include "ResizableArray.h"
+#include "ResizableArray.h"
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
 #include "../HandledMutex.h"
