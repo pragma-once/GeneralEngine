@@ -25,8 +25,8 @@ namespace Engine
             {
             public:
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
-                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
+                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent)> OnClearCallback;
                 typedef std::function<bool(const ItemsType Item)> Predicate;
                 typedef std::function<void(ItemsType Value)> ForEachBody1;
@@ -38,23 +38,24 @@ namespace Engine
                 List(int InitialCapacity = 0);
                 List(
                     OnAddCallback OnAdd,
-                    OnRemoveCallback OnRemove,
                     OnSetItemCallback OnSetItem,
+                    OnRemoveCallback OnRemove,
                     OnClearCallback OnClear
                 );
                 ~List();
 
                 ENGINE_LIST_CLASS_NAME * GetChild(
                     OnAddCallback OnAdd,
-                    OnRemoveCallback OnRemove,
                     OnSetItemCallback OnSetItem,
+                    OnRemoveCallback OnRemove,
                     OnClearCallback OnClear
                 );
 
                 bool Add(ItemsType Item);
                 bool Add(ItemsType Item, int Index);
-                bool Remove(int Index);
                 bool SetItem(int Index, ItemsType Value);
+                bool Remove(ItemsType Item);
+                bool RemoveByIndex(int Index);
                 bool Clear();
 
                 void Expand(int Space);
@@ -146,25 +147,25 @@ namespace Engine
                     return true;
                 };
 
-                OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
-                    if (Index >= *CountRef || Index < 0)
-                        throw std::out_of_range("Index is out of range.");
-
-                    (*CountRef)--;
-                    for (int i = Index; i < *CountRef; i++)
-                        Items->SetItem(i, Items->GetItem(i + 1));
-
-                    if (*CountRef < Items->GetLength() / 2)
-                        Items->Resize(Items->GetLength() / 2);
-
-                    return true;
-                };
-
                 OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) -> bool {
                     if (Index >= *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
                     Items->SetItem(Index, Value);
+                    return true;
+                };
+
+                OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
+                    if (Index >= *CountRef || Index < 0)
+                        throw std::out_of_range("Index is out of range.");
+
+                    for (int i = Index + 1; i < *CountRef; i++)
+                        Items->SetItem(i - 1, Items->GetItem(i));
+                    (*CountRef)--;
+
+                    if (*CountRef < Items->GetLength() / 2)
+                        Items->Resize(Items->GetLength() / 2);
+
                     return true;
                 };
 
@@ -178,8 +179,8 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(
                 OnAddCallback OnAdd,
-                OnRemoveCallback OnRemove,
                 OnSetItemCallback OnSetItem,
+                OnRemoveCallback OnRemove,
                 OnClearCallback OnClear)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
@@ -231,8 +232,8 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::GetChild(
                 OnAddCallback OnAdd,
-                OnRemoveCallback OnRemove,
                 OnSetItemCallback OnSetItem,
+                OnRemoveCallback OnRemove,
                 OnClearCallback OnClear)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
@@ -273,19 +274,30 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Remove(int Index)
-            {
-                ENGINE_COLLECTION_WRITE_ACCESS
-
-                return OnRemove(Parent, Index);
-            }
-
-            template <typename ItemsType>
             bool ENGINE_LIST_CLASS_NAME::SetItem(int Index, ItemsType Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS
 
                 return OnSetItem(Parent, Index, Value);
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::Remove(ItemsType Item)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                for (int i = 0; i < *CountRef; i++)
+                    if (Items->GetItem(i) == Item)
+                        return OnRemove(Parent, i);
+                return false;
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::RemoveByIndex(int Index)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS
+
+                return OnRemove(Parent, Index);
             }
 
             template <typename ItemsType>
