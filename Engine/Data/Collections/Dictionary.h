@@ -197,6 +197,8 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody1 Body)
             {
+                ENGINE_COLLECTION_READ_ACCESS;
+
                 for (int i = 0; i < Count; i++)
                     Body(Pairs->GetItem(i).Key);
             }
@@ -204,6 +206,8 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody2 Body)
             {
+                ENGINE_COLLECTION_READ_ACCESS;
+
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
@@ -215,6 +219,8 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody3 Body)
             {
+                ENGINE_COLLECTION_READ_ACCESS;
+
                 for (int i = 0; i < Count; i++)
                     Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value);
             }
@@ -222,6 +228,8 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody4 Body)
             {
+                ENGINE_COLLECTION_READ_ACCESS;
+
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
