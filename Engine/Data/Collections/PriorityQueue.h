@@ -103,16 +103,22 @@ namespace Engine
                     else
                         Items->Resize(1);
 
+                while (Count >= Priorities->GetLength())
+                    if (Priorities->GetLength() > 0)
+                        Priorities->Resize(Priorities->GetLength() * 2);
+                    else
+                        Priorities->Resize(1);
+
                 int s = 0;
                 int e = Count - 1;
                 while (s < e)
                 {
                     int c = (s + e) / 2;
                     if (LessPriorityFirst)
-                        if (Priority < Priorities[c]) s = c + 1;
+                        if (Priority < Priorities->GetItems(c)) s = c + 1;
                         else e = c;
                     else
-                        if (Priority > Priorities[c]) s = c + 1;
+                        if (Priorities->GetItems(c) < Priority) s = c + 1;
                         else e = c;
                 }
 
