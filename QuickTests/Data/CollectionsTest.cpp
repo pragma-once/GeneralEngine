@@ -1,4 +1,4 @@
-#include "../../../Engine/Engine.h"
+#include "../../Engine/Engine.h"
 #include <iostream>
 #include <string>
 
@@ -16,11 +16,13 @@ int main()
 {
     while (true)
     {
+        print("");
         print("L => Test List");
         print("S => Test Stack");
         print("Q => Test Queue");
         print("P => Test PriorityQueue");
         print("D => Test Dictionary");
+        print("");
         char option;
         input(option);
 
@@ -30,12 +32,16 @@ int main()
             TestList();
             break;
         case 'S':
+            TestStack();
             break;
         case 'Q':
+            TestQueue();
             break;
         case 'P':
+            TestPriorityQueue();
             break;
         case 'D':
+            TestDictionary();
             break;
         default:
             break;
@@ -47,6 +53,7 @@ int main()
 
 void TestList()
 {
+    
     Engine::Data::Collections::List<ITEMS_TYPE> * list = new Engine::Data::Collections::List<ITEMS_TYPE>();
     while (true)
     {
@@ -71,9 +78,10 @@ void TestList()
         print("S AdditionalSpace => Shrink(AdditionalSpace)");
         print("L                 => GetCapacity()");
         print("");
+
         char func;
         int arg_int;
-        ITEMS_TYPE arg_str;
+        ITEMS_TYPE arg_item;
         input(func);
 
         try
@@ -82,26 +90,26 @@ void TestList()
             switch (func)
             {
             case 'a':
-                input(arg_str);
-                print(list->Add(arg_str));
+                input(arg_item);
+                print(list->Add(arg_item));
                 break;
             case 'p':
-                input(arg_str);
+                input(arg_item);
                 input(arg_int);
-                print(list->Add(arg_str, arg_int));
+                print(list->Add(arg_item, arg_int));
                 break;
             case 'r':
                 input(arg_int);
                 print(list->RemoveByIndex(arg_int));
                 break;
             case 'R':
-                input(arg_str);
-                print(list->Remove(arg_str));
+                input(arg_item);
+                print(list->Remove(arg_item));
                 break;
             case 's':
                 input(arg_int);
-                input(arg_str);
-                print(list->SetItem(arg_int, arg_str));
+                input(arg_item);
+                print(list->SetItem(arg_int, arg_item));
                 break;
             case 'c':
                 print(list->Clear());
@@ -114,21 +122,21 @@ void TestList()
                 print(list->GetCount());
                 break;
             case 'f':
-                input(arg_str);
+                input(arg_item);
                 input(arg_int);
-                print(list->Find(arg_str, arg_int));
+                print(list->Find(arg_item, arg_int));
                 break;
             case 'e':
-                input(arg_str);
-                print(list->Exists(arg_str));
+                input(arg_item);
+                print(list->Exists(arg_item));
                 break;
             case 'F':
                 list->ForEach([](ITEMS_TYPE Item) { print(Item); });
                 break;
             case 'A':
-                input(arg_str);
+                input(arg_item);
                 input(arg_int);
-                for (int i = 0; i < arg_int; i++) list->Add(arg_str);
+                for (int i = 0; i < arg_int; i++) list->Add(arg_item);
                 break;
             case 'd':
                 delete list;
@@ -159,3 +167,68 @@ void TestList()
         }
     }
 }
+
+void TestStack()
+{
+    Engine::Data::Collections::Stack<ITEMS_TYPE> * stack = new Engine::Data::Collections::Stack<ITEMS_TYPE>();
+    while (true) try
+    {
+        print("");
+        print("p Item => Push(Item)");
+        print("P      => Pop(Item)");
+        print("s Item => SetTop(Item)");
+        print("c      => Clear()");
+        print("");
+        print("g      => GetTop()");
+        print("d Item => GetDepthOf(Item)");
+        print("e Item => Exists(Item)");
+        print("C      => GetCount()");
+        print("E      => IsEmpty()");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg);
+            stack->Push(arg);
+            break;
+        case 'P':
+            print(stack->Pop());
+            break;
+        case 's':
+            input(arg);
+            stack->SetTop(arg);
+            break;
+        case 'c':
+            stack->Clear();
+            break;
+        case 'g':
+            print(stack->GetTop());
+            break;
+        case 'd':
+            input(arg);
+            print(stack->GetDepthOf(arg));
+            break;
+        case 'e':
+            input(arg);
+            print(stack->Exists(arg));
+            break;
+        case 'C':
+            print(stack->GetCount());
+            break;
+        case 'E':
+            print(stack->IsEmpty());
+            break;
+        default:
+            break;
+        }
+    } catch(std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestQueue() { print("Nothing yet!"); }
+void TestPriorityQueue() { print("Nothing yet!"); }
+void TestDictionary() { print("Nothing yet!"); }
