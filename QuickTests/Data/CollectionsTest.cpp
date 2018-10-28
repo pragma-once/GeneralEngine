@@ -6,7 +6,46 @@
 #define input(var) (std::cin >> var)
 #define ITEMS_TYPE std::string
 
+void TestList();
+void TestStack();
+void TestQueue();
+void TestPriorityQueue();
+void TestDictionary();
+
 int main()
+{
+    while (true)
+    {
+        print("L => Test List");
+        print("S => Test Stack");
+        print("Q => Test Queue");
+        print("P => Test PriorityQueue");
+        print("D => Test Dictionary");
+        char option;
+        input(option);
+
+        switch (option)
+        {
+        case 'L':
+            TestList();
+            break;
+        case 'S':
+            break;
+        case 'Q':
+            break;
+        case 'P':
+            break;
+        case 'D':
+            break;
+        default:
+            break;
+        }
+    }
+
+    return 0;
+}
+
+void TestList()
 {
     Engine::Data::Collections::List<ITEMS_TYPE> * list = new Engine::Data::Collections::List<ITEMS_TYPE>();
     while (true)
@@ -14,7 +53,8 @@ int main()
         print("");
         print("a Item        => Add(Item)");
         print("p Item Index  => Add(Item, Index)");
-        print("r Index       => Remove(Index)");
+        print("r Index       => RemoveByIndex(Index)");
+        print("R Item        => Remove(Item)");
         print("s Index Value => SetItem(Index, Value)");
         print("c             => Clear()");
         print("g Index       => GetItem(Index)");
@@ -52,7 +92,11 @@ int main()
                 break;
             case 'r':
                 input(arg_int);
-                print(list->Remove(arg_int));
+                print(list->RemoveByIndex(arg_int));
+                break;
+            case 'R':
+                input(arg_str);
+                print(list->Remove(arg_str));
                 break;
             case 's':
                 input(arg_int);
@@ -114,6 +158,4 @@ int main()
             print("Exception: " << e.what());
         }
     }
-
-    return 0;
 }

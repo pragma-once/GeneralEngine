@@ -1,4 +1,4 @@
-add_executable(ListTest Data/Collections/ListTest.cpp)
+add_executable(CollectionsTest Data/CollectionsTest.cpp)
 target_link_libraries(ListTest GeneralEngine)
 
 add_executable(PropertyTest Data/PropertyTest.cpp)
