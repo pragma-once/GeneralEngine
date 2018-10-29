@@ -23,6 +23,7 @@ int main()
         print("P => Test PriorityQueue");
         print("D => Test Dictionary");
         print("");
+
         char option;
         input(option);
 
@@ -41,6 +42,21 @@ int main()
             TestPriorityQueue();
             break;
         case 'D':
+            TestDictionary();
+            break;
+        case 'l':
+            TestList();
+            break;
+        case 's':
+            TestStack();
+            break;
+        case 'q':
+            TestQueue();
+            break;
+        case 'p':
+            TestPriorityQueue();
+            break;
+        case 'd':
             TestDictionary();
             break;
         default:
@@ -77,6 +93,8 @@ void TestList()
         print("E Space           => Expand(Space)");
         print("S AdditionalSpace => Shrink(AdditionalSpace)");
         print("L                 => GetCapacity()");
+        print("");
+        print("q => Quit List Test");
         print("");
 
         char func;
@@ -157,6 +175,10 @@ void TestList()
                 break;
             case 'L':
                 print(list->GetCapacity());
+                break;
+            case 'q':
+                delete list;
+                return;
             default:
                 break;
             }
@@ -184,6 +206,8 @@ void TestStack()
         print("e Item => Exists(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
+        print("");
+        print("q => Quit Stack Test");
         print("");
 
         char func;
@@ -223,6 +247,9 @@ void TestStack()
         case 'E':
             print(stack->IsEmpty());
             break;
+        case 'q':
+            delete stack;
+            return;
         default:
             break;
         }
@@ -245,6 +272,8 @@ void TestQueue()
         print("e Item => Exists(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
+        print("");
+        print("q => Quit Queue Test");
         print("");
 
         char func;
@@ -280,6 +309,9 @@ void TestQueue()
         case 'E':
             print(queue->IsEmpty());
             break;
+        case 'q':
+            delete queue;
+            return;
         default:
             break;
         }
@@ -302,6 +334,8 @@ void TestPriorityQueue()
         print("e Item => Exists(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
+        print("");
+        print("q => Quit PriorityQueue Test");
         print("");
 
         char func;
@@ -341,6 +375,9 @@ void TestPriorityQueue()
         case 'E':
             print(queue->IsEmpty());
             break;
+        case 'q':
+            delete queue;
+            return;
         default:
             break;
         }
@@ -364,7 +401,9 @@ void TestDictionary()
         print("g Key => GetValue(Key)");
         print("e     => IsEmpty()");
         print("f     => ForEach([](Key) { print(Key); })");
-        print("F     => ForEach([](Key, Value) { print(Key); print(Value); })");
+        print("F     => ForEach([](Key, Value) { print(Key => Value); })");
+        print("");
+        print("q => Quit Dictionary Test");
         print("");
 
         char func;
@@ -397,8 +436,11 @@ void TestDictionary()
             dict->ForEach([](KEY_TYPE Key) { print(Key); });
             break;
         case 'F':
-            dict->ForEach([](KEY_TYPE Key, VALUE_TYPE Value) { print(Key); print(Value); });
+            dict->ForEach([](KEY_TYPE Key, VALUE_TYPE Value) { print(Key << "\t=>\t" << Value); });
             break;
+        case 'q':
+            delete dict;
+            return;
         default:
             break;
         }
