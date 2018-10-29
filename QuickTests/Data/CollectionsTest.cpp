@@ -356,10 +356,11 @@ void TestPriorityQueue()
             if (func == 'r')
                 print(queue->Pop());
             else if (func == 'o')
-            {
-                print("return value: " << queue->Pop(arg, arg_int));
-                print("ItemOut=" << arg << "\nPriorityOut=" << arg_int);
-            }
+                print(
+                    "return value: " << queue->Pop(arg, arg_int)
+                    << "\nItemOut=" << arg
+                    << "\nPriorityOut=" << arg_int
+                );
             break;
         case 'c':
             queue->Clear();
