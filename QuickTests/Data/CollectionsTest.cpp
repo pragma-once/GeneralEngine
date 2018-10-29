@@ -175,7 +175,7 @@ void TestStack()
     {
         print("");
         print("p Item => Push(Item)");
-        print("P      => Pop(Item)");
+        print("P      => Pop()");
         print("s Item => SetTop(Item)");
         print("c      => Clear()");
         print("");
@@ -226,9 +226,182 @@ void TestStack()
         default:
             break;
         }
-    } catch(std::exception& e) { print("Exception: " << e.what()); }
+    }
+    catch(std::exception& e) { print("Exception: " << e.what()); }
 }
 
-void TestQueue() { print("Nothing yet!"); }
-void TestPriorityQueue() { print("Nothing yet!"); }
-void TestDictionary() { print("Nothing yet!"); }
+void TestQueue()
+{
+    Engine::Data::Collections::Queue<ITEMS_TYPE> * queue = new Engine::Data::Collections::Queue<ITEMS_TYPE>();
+    while (true) try
+    {
+        print("");
+        print("p Item => Push(Item)");
+        print("P      => Pop()");
+        print("c      => Clear()");
+        print("");
+        print("g      => GetFirst()");
+        print("d Item => GetDepthOf(Item)");
+        print("e Item => Exists(Item)");
+        print("C      => GetCount()");
+        print("E      => IsEmpty()");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg);
+            queue->Push(arg);
+            break;
+        case 'P':
+            print(queue->Pop());
+            break;
+        case 'c':
+            queue->Clear();
+            break;
+        case 'g':
+            print(queue->GetFirst());
+            break;
+        case 'd':
+            input(arg);
+            print(queue->GetDepthOf(arg));
+            break;
+        case 'e':
+            input(arg);
+            print(queue->Exists(arg));
+            break;
+        case 'C':
+            print(queue->GetCount());
+            break;
+        case 'E':
+            print(queue->IsEmpty());
+            break;
+        default:
+            break;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestPriorityQueue()
+{
+    Engine::Data::Collections::PriorityQueue<ITEMS_TYPE> * queue = new Engine::Data::Collections::PriorityQueue<ITEMS_TYPE>();
+    while (true) try
+    {
+        print("");
+        print("p Item Priority => Push(Item, Priority)");
+        print("P               => Pop(); Pop(ItemOut, PriorityOut)");
+        print("c               => Clear()");
+        print("");
+        print("g      => GetFirst()");
+        print("d Item => GetDepthOf(Item)");
+        print("e Item => Exists(Item)");
+        print("C      => GetCount()");
+        print("E      => IsEmpty()");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        int arg_int;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg);
+            input(arg_int);
+            queue->Push(arg, arg_int);
+            break;
+        case 'P':
+            print(queue->Pop());
+            queue->Pop(arg, arg_int);
+            print("ItemOut=" << arg << "\nPriorityOut=" << arg_int);
+            break;
+        case 'c':
+            queue->Clear();
+            break;
+        case 'g':
+            print(queue->GetFirst());
+            break;
+        case 'd':
+            input(arg);
+            print(queue->GetDepthOf(arg));
+            break;
+        case 'e':
+            input(arg);
+            print(queue->Exists(arg));
+            break;
+        case 'C':
+            print(queue->GetCount());
+            break;
+        case 'E':
+            print(queue->IsEmpty());
+            break;
+        default:
+            break;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+#define KEY_TYPE std::string
+#define VALUE_TYPE std::string
+
+void TestDictionary()
+{
+    Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> * dict = new Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE>();
+    while (true) try
+    {
+        print("");
+        print("s Key Value => SetValue(Key, Value)");
+        print("r Key       => Remove(Key)");
+        print("c           => Clear()");
+        print("");
+        print("g Key => GetValue(Key)");
+        print("e     => IsEmpty()");
+        print("f     => ForEach([](Key) { print(Key); })");
+        print("F     => ForEach([](Key, Value) { print(Key); print(Value); })");
+        print("");
+
+        char func;
+        KEY_TYPE arg_key;
+        VALUE_TYPE arg_value;
+        input(func);
+
+        switch (func)
+        {
+        case 's':
+            input(arg_key);
+            input(arg_value);
+            dict->SetValue(arg_key, arg_value);
+            break;
+        case 'r':
+            input(arg_key);
+            dict->Remove(arg_key);
+            break;
+        case 'c':
+            dict->Clear();
+            break;
+        case 'g':
+            input(arg_key);
+            print(dict->GetValue(arg_key));
+            break;
+        case 'e':
+            print(dict->IsEmpty());
+            break;
+        case 'f':
+            dict->ForEach([](KEY_TYPE Key) { print(Key); });
+            break;
+        case 'F':
+            dict->ForEach([](KEY_TYPE Key, VALUE_TYPE Value) { print(Key); print(Value); });
+            break;
+        default:
+            break;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
