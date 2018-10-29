@@ -135,12 +135,9 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key < Pairs->GetItem(c).Key) e = c - 1;
-                    else
-                    {
-                        s = c;
-                        if (Pairs->GetItem(c).Key == Key) break;
-                    }
+                    if (Key == Pairs->GetItem(c).Key) { s = c; break; }
+                    else if (Key < Pairs->GetItem(c).Key) e = c - 1;
+                    else s = c + 1;
                 }
 
                 if (Pairs->GetItem(s).Key != Key)
