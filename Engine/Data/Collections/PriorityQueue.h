@@ -110,7 +110,7 @@ namespace Engine
                         Priorities->Resize(1);
 
                 int s = 0;
-                int e = Count - 1;
+                int e = Count;
                 while (s < e)
                 {
                     int c = (s + e) / 2;
