@@ -326,7 +326,8 @@ void TestPriorityQueue()
     {
         print("");
         print("p Item Priority => Push(Item, Priority)");
-        print("P               => Pop(); Pop(ItemOut, PriorityOut)");
+        print("Pr              => Pop()");
+        print("Po              => Pop(ItemOut, PriorityOut)");
         print("c               => Clear()");
         print("");
         print("g      => GetFirst()");
@@ -351,9 +352,14 @@ void TestPriorityQueue()
             queue->Push(arg, arg_int);
             break;
         case 'P':
-            print(queue->Pop());
-            queue->Pop(arg, arg_int);
-            print("ItemOut=" << arg << "\nPriorityOut=" << arg_int);
+            input(func);
+            if (func == 'r')
+                print(queue->Pop());
+            else if (func == 'o')
+            {
+                print("return value: " << queue->Pop(arg, arg_int));
+                print("ItemOut=" << arg << "\nPriorityOut=" << arg_int);
+            }
             break;
         case 'c':
             queue->Clear();
