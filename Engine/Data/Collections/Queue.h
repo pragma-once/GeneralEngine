@@ -277,9 +277,9 @@ namespace Engine
                     Items->Resize(NewCapacity);
                 else
                 {
-                    ResizableArray<T, false> * PrevItems = Items;
-                    int prev_capacity = PrevItems->GetCapacity();
-                    Items = new ResizableArray<T, false>(NewCapacity);
+                    ResizableArray<ItemsType, false> * PrevItems = Items;
+                    int prev_capacity = PrevItems->GetLength();
+                    Items = new ResizableArray<ItemsType, false>(NewCapacity);
                     for (int i = 0; i < Count; i++)
                         Items->SetItem(i, PrevItems->GetItem((First + i) % prev_capacity));
                     First = 0;

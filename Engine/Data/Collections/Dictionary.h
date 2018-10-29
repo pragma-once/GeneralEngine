@@ -49,6 +49,7 @@ namespace Engine
             private:
                 struct Pair
                 {
+                    Pair() {}
                     Pair(KeyType Key, ValueType Value) : Key(Key), Value(Value) {}
                     KeyType Key;
                     ValueType Value;
@@ -110,7 +111,7 @@ namespace Engine
                         Pairs->Resize(1);
 
                 int s = 0;
-                int e = Count - 1;
+                int e = Count;
                 while (s < e)
                 {
                     int c = (s + e) / 2;
@@ -149,8 +150,8 @@ namespace Engine
                     Pairs->SetItem(i - 1, Pairs->GetItem(i));
                 Count--;
 
-                if (Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (Count < Pairs->GetLength() / 2)
+                    Pairs->Resize(Pairs->GetLength() / 2);
             }
 
             template <typename KeyType, typename ValueType>
@@ -172,12 +173,9 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key < Pairs->GetItem(c).Key) e = c - 1;
-                    else
-                    {
-                        s = c;
-                        if (Pairs->GetItem(c).Key == Key) break;
-                    }
+                    if (Key == Pairs->GetItem(c).Key) { s = c; break; }
+                    else if (Key < Pairs->GetItem(c).Key) e = c - 1;
+                    else s = c + 1;
                 }
 
                 if (Pairs->GetItem(s).Key != Key)

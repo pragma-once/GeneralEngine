@@ -115,10 +115,10 @@ namespace Engine
                 {
                     int c = (s + e) / 2;
                     if (LessPriorityFirst)
-                        if (Priority < Priorities->GetItems(c)) s = c + 1;
+                        if (Priority < Priorities->GetItem(c)) s = c + 1;
                         else e = c;
                     else
-                        if (Priorities->GetItems(c) < Priority) s = c + 1;
+                        if (Priorities->GetItem(c) < Priority) s = c + 1;
                         else e = c;
                 }
 
