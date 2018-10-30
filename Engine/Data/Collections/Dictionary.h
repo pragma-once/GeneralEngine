@@ -24,10 +24,12 @@ namespace Engine
             class ENGINE_DICTIONARY_CLASS_NAME
             {
             public:
-                typedef std::function<void(KeyType Key)> ForEachBody1;
-                typedef std::function<void(KeyType Key, bool& BreakLoop)> ForEachBody2;
-                typedef std::function<void(KeyType Key, ValueType Value)> ForEachBody3;
-                typedef std::function<void(KeyType Key, ValueType Value, bool& BreakLoop)> ForEachBody4;
+                typedef std::function<void(KeyType Key)> ForEachBody;
+                typedef std::function<void(KeyType Key, bool& BreakLoop)> ForEachBodyWithBreakBool;
+                typedef std::function<void(KeyType Key, void(*Break)())> ForEachBodyWithBreakFunction;
+                typedef std::function<void(KeyType Key, ValueType Value)> ForEachBodyWithValue;
+                typedef std::function<void(KeyType Key, ValueType Value, bool& BreakLoop)> ForEachBodyWithValueWithBreakBool;
+                typedef std::function<void(KeyType Key, ValueType Value, void(*Break)())> ForEachBodyWithValueWithBreakFunction;
 
                 Dictionary(const Dictionary&) = delete;
                 Dictionary& operator=(const Dictionary&) = delete;
@@ -42,10 +44,12 @@ namespace Engine
                 ValueType GetValue(KeyType Key);
                 bool IsEmpty();
 
-                void ForEach(ForEachBody1 Body);
-                void ForEach(ForEachBody2 Body);
-                void ForEach(ForEachBody3 Body);
-                void ForEach(ForEachBody4 Body);
+                void ForEach(ForEachBody Body);
+                void ForEach(ForEachBodyWithBreakBool Body);
+                void ForEach(ForEachBodyWithBreakFunction Body);
+                void ForEach(ForEachBodyWithValue Body);
+                void ForEach(ForEachBodyWithValueWithBreakBool Body);
+                void ForEach(ForEachBodyWithValueWithBreakFunction Body);
             private:
                 struct Pair
                 {
@@ -54,6 +58,8 @@ namespace Engine
                     KeyType Key;
                     ValueType Value;
                 };
+
+                class LoopBreaker {};
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
                 HandledMutex Mutex;
@@ -190,7 +196,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody1 Body)
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody Body)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -199,7 +205,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody2 Body)
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBodyWithBreakBool Body)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -212,7 +218,20 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody3 Body)
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBodyWithBreakFunction Body)
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                void(*BreakFunction)() = []() { throw LoopBreaker() };
+                for (int i = 0; i < Count; i++) try
+                {
+                    Body(Pairs->GetItem(i).Key, BreakFunction);
+                }
+                catch (LoopBreaker&) { break; }
+            }
+
+            template <typename KeyType, typename ValueType>
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBodyWithValue Body)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -221,7 +240,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBody4 Body)
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBodyWithValueWithBreakBool Body)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -231,6 +250,19 @@ namespace Engine
                     Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, ShouldBreak);
                     if (ShouldBreak) break;
                 }
+            }
+
+            template <typename KeyType, typename ValueType>
+            void ENGINE_DICTIONARY_CLASS_NAME::ForEach(ForEachBodyWithValueWithBreakFunction Body)
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                void(*BreakFunction)() = []() { throw LoopBreaker() };
+                for (int i = 0; i < Count; i++) try
+                {
+                    Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, BreakFunction);
+                }
+                catch (LoopBreaker&) { break; }
             }
         }
     }
