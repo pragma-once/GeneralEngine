@@ -31,7 +31,7 @@ namespace Engine
                 typedef std::function<bool(const ItemsType Item)> Predicate;
                 typedef std::function<void(ItemsType Item)> ForEachBody;
                 typedef std::function<void(ItemsType Item, bool& BreakLoop)> ForEachBodyWithBreakBool;
-                typedef std::function<void(ItemsType Item, void(*Break)())> ForEachBodyWithBreakFunction;
+                typedef std::function<void(ItemsType Item, std::function<void()> Break)> ForEachBodyWithBreakFunction;
 
                 List(const List&) = delete;
                 List& operator=(const List&) = delete;
@@ -436,7 +436,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                void(*BreakFunction)() = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
                 for (int i = 0; i < *CountRef; i++) try
                 {
                     Body(Items->GetItem(i), BreakFunction);

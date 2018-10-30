@@ -26,10 +26,10 @@ namespace Engine
             public:
                 typedef std::function<void(KeyType Key)> ForEachBody;
                 typedef std::function<void(KeyType Key, bool& BreakLoop)> ForEachBodyWithBreakBool;
-                typedef std::function<void(KeyType Key, void(*Break)())> ForEachBodyWithBreakFunction;
+                typedef std::function<void(KeyType Key, std::function<void()> Break)> ForEachBodyWithBreakFunction;
                 typedef std::function<void(KeyType Key, ValueType Value)> ForEachBodyWithValue;
                 typedef std::function<void(KeyType Key, ValueType Value, bool& BreakLoop)> ForEachBodyWithValueWithBreakBool;
-                typedef std::function<void(KeyType Key, ValueType Value, void(*Break)())> ForEachBodyWithValueWithBreakFunction;
+                typedef std::function<void(KeyType Key, ValueType Value, std::function<void()> Break)> ForEachBodyWithValueWithBreakFunction;
 
                 Dictionary(const Dictionary&) = delete;
                 Dictionary& operator=(const Dictionary&) = delete;
@@ -222,7 +222,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                void(*BreakFunction)() = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
                 for (int i = 0; i < Count; i++) try
                 {
                     Body(Pairs->GetItem(i).Key, BreakFunction);
@@ -257,7 +257,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                void(*BreakFunction)() = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
                 for (int i = 0; i < Count; i++) try
                 {
                     Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, BreakFunction);
