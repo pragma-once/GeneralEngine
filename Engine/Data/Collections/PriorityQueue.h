@@ -39,7 +39,8 @@ namespace Engine
                 void Expand(int Space);
                 void Shrink(int AdditionalSpace = 0);
 
-                ItemsType GetFirst();
+                ItemsType GetFirstItem();
+                PriorityType GetFirstPriority();
                 int GetDepthOf(ItemsType Item);
                 bool Exists(ItemsType Item);
                 int GetCount();
@@ -216,14 +217,25 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            ItemsType ENGINE_PRIORITY_QUEUE_CLASS_NAME::GetFirst()
+            ItemsType ENGINE_PRIORITY_QUEUE_CLASS_NAME::GetFirstItem()
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 if (Count <= 0)
-                    throw std::logic_error("Cannot get the first element of an empty priority queue.");
+                    throw std::logic_error("Cannot get the first item of an empty priority queue.");
 
                 return Items->GetItem(Count - 1);
+            }
+
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
+            PriorityType ENGINE_PRIORITY_QUEUE_CLASS_NAME::GetFirstPriority()
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                if (Count <= 0)
+                    throw std::logic_error("Cannot get the first priority of an empty priority queue.");
+
+                return Priorities->GetItem(Count - 1);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>

@@ -330,7 +330,8 @@ void TestPriorityQueue()
         print("Po              => Pop(ItemOut, PriorityOut)");
         print("c               => Clear()");
         print("");
-        print("g      => GetFirst()");
+        print("g      => GetFirstItem()");
+        print("G      => GetFirstPriority()");
         print("d Item => GetDepthOf(Item)");
         print("e Item => Exists(Item)");
         print("C      => GetCount()");
@@ -366,7 +367,10 @@ void TestPriorityQueue()
             queue->Clear();
             break;
         case 'g':
-            print(queue->GetFirst());
+            print(queue->GetFirstItem());
+            break;
+        case 'G':
+            print(queue->GetFirstPriority());
             break;
         case 'd':
             input(arg);
