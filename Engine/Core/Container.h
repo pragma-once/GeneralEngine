@@ -15,7 +15,6 @@ namespace Engine
             ~Container();
 
             void Start();
-            //void Update(); // only accessible through the thread that is running the behaviours, update all others. NO IT'S BAD! UPDATE INSIDE UPDATE CASE! any solutions?
             void End(bool EndNow = false);
 
             void Schedule(std::function<void()> Func, double Time = 0, bool Async = false);
