@@ -3,6 +3,7 @@
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
+#include <chrono>
 
 namespace Engine
 {
@@ -20,5 +21,11 @@ namespace Engine
             template <typename ItemsType, typename PriorityType = int, bool LessPriorityFirst = true, bool UseMutex = true> class PriorityQueue;
             template <typename KeyType, typename ValueType, bool UseMutex = true> class Dictionary;
         }
+    }
+
+    namespace Core
+    {
+        class Container;
+        class Behavior;
     }
 }
