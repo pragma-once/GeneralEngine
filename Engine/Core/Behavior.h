@@ -17,7 +17,7 @@ namespace Engine
             virtual void End() = 0;
             virtual void OnActivate() = 0;
             virtual void OnDeactivate() = 0;
-            std::string GetName() = 0;
+            virtual std::string GetName() = 0;
         };
     }
 }
