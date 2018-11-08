@@ -9,7 +9,7 @@ namespace Engine
         class Container
         {
         public:
-            const Data::Collections::List<Behavior*> * Behaviors;
+            Data::Collections::List<Behavior*> * const Behaviors;
 
             Container();
             ~Container();
