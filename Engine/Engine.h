@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Data/HandledMutex.h"
 #include "Data/Property.h"
 
