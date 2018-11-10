@@ -6,7 +6,7 @@ namespace Engine
 {
     namespace Core
     {
-        class Behavior
+        class Behavior // TODO: Rename
         {
             friend Container;
         public:

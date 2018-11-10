@@ -6,7 +6,7 @@ namespace Engine
 {
     namespace Core
     {
-        class Container
+        class Container // TODO: Rename
         {
         public:
             Data::Collections::List<Behavior*> * const Behaviors;
