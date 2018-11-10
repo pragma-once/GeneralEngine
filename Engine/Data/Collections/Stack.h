@@ -41,7 +41,7 @@ namespace Engine
 
                 ItemsType GetTop();
                 int GetDepthOf(ItemsType Item);
-                bool Exists(ItemsType Item);
+                bool Contains(ItemsType Item);
                 int GetCount();
                 bool IsEmpty();
                 int GetCapacity();
@@ -204,7 +204,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            bool ENGINE_STACK_CLASS_NAME::Exists(ItemsType Item)
+            bool ENGINE_STACK_CLASS_NAME::Contains(ItemsType Item)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 

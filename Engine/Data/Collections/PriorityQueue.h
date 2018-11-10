@@ -42,7 +42,7 @@ namespace Engine
                 ItemsType GetFirstItem();
                 PriorityType GetFirstPriority();
                 int GetDepthOf(ItemsType Item);
-                bool Exists(ItemsType Item);
+                bool Contains(ItemsType Item);
                 int GetCount();
                 bool IsEmpty();
                 int GetCapacity();
@@ -251,7 +251,7 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            bool ENGINE_PRIORITY_QUEUE_CLASS_NAME::Exists(ItemsType Item)
+            bool ENGINE_PRIORITY_QUEUE_CLASS_NAME::Contains(ItemsType Item)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 

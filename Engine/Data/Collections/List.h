@@ -64,9 +64,9 @@ namespace Engine
 
                 ItemsType GetItem(int Index);
                 int Find(ItemsType Item, int FromIndex = 0);
-                bool Exists(ItemsType Item);
+                bool Contains(ItemsType Item);
                 int Find(Predicate, int FromIndex = 0);
-                bool Exists(Predicate);
+                bool Contains(Predicate);
                 int GetCount();
                 int GetCapacity();
                 void ForEach(ForEachBody Body);
@@ -361,7 +361,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Exists(ItemsType Item)
+            bool ENGINE_LIST_CLASS_NAME::Contains(ItemsType Item)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -383,7 +383,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Exists(Predicate P)
+            bool ENGINE_LIST_CLASS_NAME::Contains(Predicate P)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 

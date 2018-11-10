@@ -53,7 +53,7 @@ namespace Engine
             if (HasOwner && (Owner == std::this_thread::get_id()))
                 return false;
 
-            bool IsSharedOwner = SharedOwners->Exists(std::this_thread::get_id());
+            bool IsSharedOwner = SharedOwners->Contains(std::this_thread::get_id());
 
             while (HasOwner || SharedOwners->GetCount() > (IsSharedOwner ? 1 : 0))
             {
@@ -87,7 +87,7 @@ namespace Engine
             if (HasOwner && (Owner == std::this_thread::get_id()))
             {
                 Mutex.unlock();
-                if (SharedOwners->Exists(std::this_thread::get_id()))
+                if (SharedOwners->Contains(std::this_thread::get_id()))
                     Mutex.lock_shared();
                 HasOwner = false;
                 return true;
@@ -117,7 +117,7 @@ namespace Engine
         {
             std::unique_lock<std::mutex> m(OwnerMutex);
 
-            if (SharedOwners->Exists(std::this_thread::get_id()) || (HasOwner && (Owner == std::this_thread::get_id())))
+            if (SharedOwners->Contains(std::this_thread::get_id()) || (HasOwner && (Owner == std::this_thread::get_id())))
                 return false;
 
             while (HasOwner)
@@ -135,7 +135,7 @@ namespace Engine
         {
             std::lock_guard<std::mutex> guard(OwnerMutex);
 
-            if (SharedOwners->Exists(std::this_thread::get_id()))
+            if (SharedOwners->Contains(std::this_thread::get_id()))
                 return false;
 
             if (Mutex.try_lock_shared())
@@ -149,7 +149,7 @@ namespace Engine
         bool HandledMutex::UnlockShared()
         {
             std::lock_guard<std::mutex> guard(OwnerMutex);
-            if (SharedOwners->Exists(std::this_thread::get_id()))
+            if (SharedOwners->Contains(std::this_thread::get_id()))
             {
                 if (!(HasOwner && (Owner == std::this_thread::get_id())))
                     Mutex.unlock_shared();

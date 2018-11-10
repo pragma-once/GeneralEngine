@@ -83,7 +83,7 @@ void TestList()
         print("g Index       => GetItem(Index)");
         print("C             => GetCount()");
         print("f Item From   => Find(Item, FromIndex=0)");
-        print("e Item        => Exists(Item)");
+        print("e Item        => Contains(Item)");
         print("F             => ForEach([](Item) { print(Item); }");
         print("");
         print("A Item Times      => for Times: Add(Item)");
@@ -146,7 +146,7 @@ void TestList()
                 break;
             case 'e':
                 input(arg_item);
-                print(list->Exists(arg_item));
+                print(list->Contains(arg_item));
                 break;
             case 'F':
                 list->ForEach([](ITEMS_TYPE Item) { print(Item); });
@@ -203,7 +203,7 @@ void TestStack()
         print("");
         print("g      => GetTop()");
         print("d Item => GetDepthOf(Item)");
-        print("e Item => Exists(Item)");
+        print("e Item => Contains(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
         print("");
@@ -239,7 +239,7 @@ void TestStack()
             break;
         case 'e':
             input(arg);
-            print(stack->Exists(arg));
+            print(stack->Contains(arg));
             break;
         case 'C':
             print(stack->GetCount());
@@ -269,7 +269,7 @@ void TestQueue()
         print("");
         print("g      => GetFirst()");
         print("d Item => GetDepthOf(Item)");
-        print("e Item => Exists(Item)");
+        print("e Item => Contains(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
         print("");
@@ -301,7 +301,7 @@ void TestQueue()
             break;
         case 'e':
             input(arg);
-            print(queue->Exists(arg));
+            print(queue->Contains(arg));
             break;
         case 'C':
             print(queue->GetCount());
@@ -333,7 +333,7 @@ void TestPriorityQueue()
         print("g      => GetFirstItem()");
         print("G      => GetFirstPriority()");
         print("d Item => GetDepthOf(Item)");
-        print("e Item => Exists(Item)");
+        print("e Item => Contains(Item)");
         print("C      => GetCount()");
         print("E      => IsEmpty()");
         print("");
@@ -378,7 +378,7 @@ void TestPriorityQueue()
             break;
         case 'e':
             input(arg);
-            print(queue->Exists(arg));
+            print(queue->Contains(arg));
             break;
         case 'C':
             print(queue->GetCount());
