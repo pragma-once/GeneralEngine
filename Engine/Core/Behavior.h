@@ -12,10 +12,8 @@ namespace Engine
         public:
             Behavior();
 
-            double GetTime();
-            double GetTimeDiff();
-            float GetTimeFloat();
-            float GetTimeDiffFloat();
+            void Activate();
+            void Deactivate();
 
             virtual int GetPriority();
         protected:
@@ -25,6 +23,11 @@ namespace Engine
             virtual void OnActivate() = 0;
             virtual void OnDeactivate() = 0;
             virtual std::string GetName() = 0;
+
+            double GetTime();
+            double GetTimeDiff();
+            float GetTimeFloat();
+            float GetTimeDiffFloat();
         private:
             Container * Owner;
         };
