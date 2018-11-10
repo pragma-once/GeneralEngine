@@ -10,6 +10,13 @@ namespace Engine
         {
             friend Container;
         public:
+            Behavior();
+
+            double GetTime();
+            double GetTimeDiff();
+            float GetTimeFloat();
+            float GetTimeDiffFloat();
+
             virtual int GetPriority();
         protected:
             virtual void Start() = 0;
@@ -18,6 +25,8 @@ namespace Engine
             virtual void OnActivate() = 0;
             virtual void OnDeactivate() = 0;
             virtual std::string GetName() = 0;
+        private:
+            Container * Owner;
         };
     }
 }
