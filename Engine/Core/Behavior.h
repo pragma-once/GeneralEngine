@@ -11,11 +11,12 @@ namespace Engine
             friend Container;
         public:
             Behavior();
+            Behavior(int Priority);
 
             void Activate();
             void Deactivate();
 
-            virtual int GetPriority();
+            int GetPriority();
         protected:
             virtual void Start() = 0;
             virtual void Update() = 0;
@@ -30,6 +31,7 @@ namespace Engine
             float GetTimeDiffFloat();
         private:
             Container * Owner;
+            const int Priority;
         };
     }
 }
