@@ -21,7 +21,9 @@ namespace Engine
             void Schedule(double Time, std::function<void()> Func, bool Async = false);
             void Schedule(double Time, bool Async, std::function<void()> Func);
         private:
-            Data::Collections::PriorityQueue<std::function<void()>, double> * Schedules;
+            Data::Collections::PriorityQueue<std::function<void()>, double> Schedules;
+            int ZeroPriorityBehaviorsStartIndex;
+            int ZeroPriorityBehaviorsEndIndex;
         };
     }
 }
