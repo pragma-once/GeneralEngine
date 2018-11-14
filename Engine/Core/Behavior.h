@@ -16,7 +16,7 @@ namespace Engine
             void Activate();
             void Deactivate();
 
-            int GetPriority();
+            int GetPriority(); // TODO: Rename Priority, including: Container's member variables, Container::Behaviors::OnRemove's local variable
         protected:
             virtual void Start() = 0;
             virtual void Update() = 0;
