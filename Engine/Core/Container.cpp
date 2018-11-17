@@ -91,6 +91,7 @@ namespace Engine
                     try
                     {
                         int Priority = Parent->GetItem(Index)->GetPriority();
+                        Parent->RemoveByIndex(Index);
                         if (Priority <= 0)
                             ZeroPriorityBehaviorsEndIndex--;
                         if (Priority < 0)
