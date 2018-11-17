@@ -113,6 +113,12 @@ namespace Engine
                 return Value;
             }
 
+            Type Set(const Type& Value)
+            {
+                Setter(Value);
+                return Value;
+            }
+
 #else
 
             Type operator=(const Type& Value) = delete;
@@ -122,6 +128,11 @@ namespace Engine
 #ifndef ENGINE_PROPERTY_NO_GETTER
 
             operator Type()
+            {
+                return Getter();
+            }
+
+            Type Get()
             {
                 return Getter();
             }
