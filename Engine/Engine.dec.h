@@ -11,6 +11,7 @@ namespace Engine
     {
         class HandledMutex;
         template <typename Type, bool HasSetter = true, bool HasGetter = true> class Property;
+        template <typename Type> class Shared;
 
         namespace Collections
         {
