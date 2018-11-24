@@ -22,11 +22,13 @@ namespace Engine
             class ENGINE_RESIZABLE_ARRAY_CLASS_NAME
             {
             public:
-                ResizableArray(const ResizableArray&) = delete;
-                ResizableArray& operator=(const ResizableArray&) = delete;
-
                 ResizableArray(int Length = 0);
                 ~ResizableArray();
+
+                ResizableArray(const ResizableArray<T, true>&);
+                ResizableArray& operator=(const ResizableArray<T, true>&);
+                ResizableArray(const ResizableArray<T, false>&);
+                ResizableArray& operator=(const ResizableArray<T, false>&);
 
                 T GetItem(int Index);
                 void SetItem(int Index, T Value);
@@ -80,6 +82,82 @@ namespace Engine
 
                 if (Array != nullptr)
                     delete[] Array;
+            }
+
+            template <typename T>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, true>& Op)
+            {
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+                std::lock_guard<std::shared_mutex> guard(Mutex);
+#endif
+                std::shared_lock<std::shared_mutex> guard(Op.Mutex);
+                Length = Op.Length;
+                if (Op.Length == 0) Array = nullptr;
+                else
+                {
+                    Array = new T[Op.Length]
+                    std::copy(Op.Array, Op.Array + Op.Length, Array);
+                }
+            }
+
+            template <typename T>
+            ResizableArray& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, true>& Op)
+            {
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+                std::lock_guard<std::shared_mutex> guard(Mutex);
+#endif
+                std::shared_lock<std::shared_mutex> guard(Op.Mutex);
+                if (Op.Length == 0) Array = nullptr;
+                else
+                {
+                    if (Length != Op.Length)
+                    {
+                        Length = Op.Length;
+                        if (Array != nullptr)
+                            delete[] Array;
+                        Array = new T[Op.Length];
+                    }
+
+                    Array = new T[Op.Length]
+                    std::copy(Op.Array, Op.Array + Op.Length, Array);
+                }
+            }
+
+            template <typename T>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, false>& Op)
+            {
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+                std::lock_guard<std::shared_mutex> guard(Mutex);
+#endif
+                Length = Op.Length;
+                if (Op.Length == 0) Array = nullptr;
+                else
+                {
+                    Array = new T[Op.Length]
+                    std::copy(Op.Array, Op.Array + Op.Length, Array);
+                }
+            }
+
+            template <typename T>
+            ResizableArray& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
+            {
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+                std::lock_guard<std::shared_mutex> guard(Mutex);
+#endif
+                if (Op.Length == 0) Array = nullptr;
+                else
+                {
+                    if (Length != Op.Length)
+                    {
+                        Length = Op.Length;
+                        if (Array != nullptr)
+                            delete[] Array;
+                        Array = new T[Op.Length];
+                    }
+
+                    Array = new T[Op.Length]
+                    std::copy(Op.Array, Op.Array + Op.Length, Array);
+                }
             }
 
             template <typename T>
