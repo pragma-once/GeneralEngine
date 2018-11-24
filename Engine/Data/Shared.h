@@ -12,8 +12,8 @@ namespace Engine
         public:
             Shared(const Shared&);
             Shared(const Type&);
-            Type operator=(const Shared&);
-            Type operator=(const Type&);
+            Type& operator=(const Shared&);
+            Type& operator=(const Type&);
             operator Type();
 
             Type Set(const Type&);
@@ -49,7 +49,7 @@ namespace Engine
         }
 
         template <typename Type>
-        Type Shared<Type>::operator=(const Shared& Operand)
+        Type& Shared<Type>::operator=(const Shared& Operand)
         {
             std::shared_lock<std::shared_mutex> guard(Operand.Mutex);
             Type Value = Operand.Value;
@@ -60,7 +60,7 @@ namespace Engine
         }
 
         template <typename Type>
-        Type Shared<Type>::operator=(const Type& Value)
+        Type& Shared<Type>::operator=(const Type& Value)
         {
             std::lock_guard<std::shared_mutex> guard(Mutex);
             this->Value = Value;
