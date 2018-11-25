@@ -33,6 +33,11 @@ namespace Engine
             return isActive;
         }
 
+        bool Behavior::IsRunning()
+        {
+            return container != nullptr && isActive && container->isRunning;
+        }
+
         int Behavior::GetPriority()
         {
             return Priority;

@@ -18,6 +18,7 @@ namespace Engine
             void Deactivate();
 
             bool IsActive();
+            bool IsRunning();
 
             int GetPriority(); // TODO: Rename Priority, including: Container's member variables, Container::Behaviors::OnRemove's local variable
         protected:
@@ -37,7 +38,7 @@ namespace Engine
         private:
             const int Priority;
             Data::Shared<bool> isActive;
-            Container * container;
+            Data::Shared<Container*> container;
 
             void Acquire(Container*);
             void Release();
