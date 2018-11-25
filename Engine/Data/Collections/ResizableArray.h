@@ -101,7 +101,7 @@ namespace Engine
             }
 
             template <typename T>
-            ResizableArray& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, true>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, true>& Op)
             {
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
                 std::lock_guard<std::shared_mutex> guard(Mutex);
@@ -139,7 +139,7 @@ namespace Engine
             }
 
             template <typename T>
-            ResizableArray& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
             {
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
                 std::lock_guard<std::shared_mutex> guard(Mutex);
