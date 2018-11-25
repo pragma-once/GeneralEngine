@@ -1,9 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
-#include <chrono>
+#include <string>
 
 namespace Engine
 {
