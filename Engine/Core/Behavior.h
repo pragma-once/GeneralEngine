@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Engine.dec.h"
+#include "../Data/Shared.h"
 
 namespace Engine
 {
@@ -16,6 +17,8 @@ namespace Engine
             void Activate();
             void Deactivate();
 
+            bool IsActive();
+
             int GetPriority(); // TODO: Rename Priority, including: Container's member variables, Container::Behaviors::OnRemove's local variable
         protected:
             virtual void Start() = 0;
@@ -29,9 +32,17 @@ namespace Engine
             double GetTimeDiff();
             float GetTimeFloat();
             float GetTimeDiffFloat();
+
+            Container * GetContainer();
         private:
-            Container * Owner;
             const int Priority;
+            Data::Shared<bool> isActive;
+            Container * container;
+
+            void Acquire(Container*);
+            void Release();
+            void _Start();
+            void _End();
         };
     }
 }

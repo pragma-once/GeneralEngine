@@ -1,11 +1,17 @@
 #include "../Engine.h"
+#include <chrono>
+#include <thread>
 
 namespace Engine
 {
     namespace Core
     {
-        Container::Container() : ZeroPriorityBehaviorsStartIndex(0), ZeroPriorityBehaviorsEndIndex(0), Behaviors(
-            new Data::Collections::List<Behavior*>(
+        class ContainerEndNowException {};
+
+        Container::Container() : ZeroPriorityBehaviorsStartIndex(0), ZeroPriorityBehaviorsEndIndex(0),
+                                 isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
+                                 ShouldEnd(false),
+                                 Behaviors(
 
                 // OnAdd
                 [this](Data::Collections::List<Behavior*> * Parent, Behavior *& Item, int& Index)->bool
@@ -15,12 +21,10 @@ namespace Engine
 
                     if (Item->GetPriority() == 0)
                     {
-                        if (Index >= ZeroPriorityBehaviorsEndIndex)
-                            Parent->Add(Item, ZeroPriorityBehaviorsEndIndex);
-                        else if (Index <= ZeroPriorityBehaviorsStartIndex)
-                            Parent->Add(Item, ZeroPriorityBehaviorsStartIndex);
-                        else
-                            Parent->Add(Item, Index);
+                        if (Index > ZeroPriorityBehaviorsEndIndex)
+                            Index = ZeroPriorityBehaviorsEndIndex;
+                        else if (Index < ZeroPriorityBehaviorsStartIndex)
+                            Index = ZeroPriorityBehaviorsStartIndex;
 
                         ZeroPriorityBehaviorsEndIndex++;
                     }
@@ -58,14 +62,18 @@ namespace Engine
                             Index = s;
                         }
 
-                        Parent->Add(Item, Index);
-
                         if (Item->GetPriority() < 0)
                         {
                             ZeroPriorityBehaviorsStartIndex++;
                             ZeroPriorityBehaviorsEndIndex++;
                         }
                     }
+
+                    Item->Acquire(this);
+                    if (isRunning)
+                        Item->_Start();
+
+                    Parent->Add(Item, Index);
 
                     return true;
                 },
@@ -78,6 +86,14 @@ namespace Engine
                         if ((Index == 0 || Parent->GetItem(Index - 1)->GetPriority() <= Value->GetPriority())
                             && (Index == Parent->GetCount() - 1 || Value->GetPriority() <= Parent->GetItem(Index + 1)->GetPriority()))
                         {
+                            if (isRunning)
+                                Parent->GetItem(Index)->_End();
+                            Parent->GetItem(Index)->Release();
+
+                            Value->Acquire(this);
+                            if (isRunning)
+                                Value->_Start();
+
                             Parent->SetItem(Index, Value);
                             return true;
                         }
@@ -90,7 +106,13 @@ namespace Engine
                 {
                     try
                     {
-                        int Priority = Parent->GetItem(Index)->GetPriority();
+                        Behavior * Item = Parent->GetItem(Index);
+
+                        if (isRunning)
+                            Item->_End;
+                        Item->Release();
+
+                        int Priority = Item->GetPriority();
                         Parent->RemoveByIndex(Index);
                         if (Priority <= 0)
                             ZeroPriorityBehaviorsEndIndex--;
@@ -104,14 +126,107 @@ namespace Engine
                 // OnClear
                 [this](Data::Collections::List<Behavior*> * Parent)->bool
                 {
+                    if (isRunning) Parent->ForEach([](Behavior * Item) {
+                        Item->_End();
+                        Item->Release();
+                    });
+                    else Parent->ForEach([](Behavior * Item) {
+                        Item->Release();
+                    });
+
                     Parent->Clear();
                     ZeroPriorityBehaviorsStartIndex = 0;
                     ZeroPriorityBehaviorsEndIndex = 0;
                     return true;
                 }
-            ))
+            )
         {
 
+        }
+
+        void Container::Start()
+        {
+            auto StartTime = std::chrono::steady_clock::now();
+            double PreviousTime = 0;
+            Time = 0;
+            TimeDiff = 0;
+            TimeFloat = 0;
+            TimeDiffFloat = 0;
+
+            ShouldEnd = false;
+            Schedules.Clear();
+            AsyncSchedules.Clear();
+            
+            Data::Collections::List<Behavior*> copy_list = Behaviors;
+            isRunning = true;
+            copy_list.ForEach([](Behavior * Item) { Item->_Start(); });
+            copy_list.Clear();
+            
+            while (!ShouldEnd)
+            {
+                auto duration = std::chrono::steady_clock::now() - StartTime;
+                PreviousTime = Time;
+                Time = (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
+                TimeDiff = Time - PreviousTime;
+                TimeFloat = (float)Time;
+                TimeDiffFloat = (float)TimeDiff;
+
+                while (!AsyncSchedules.IsEmpty())
+                    if (AsyncSchedules.GetFirstPriority() <= Time)
+                        std::thread(
+                            [](Data::Collections::PriorityQueue<std::function<void()>, double> * AsyncSchedules) { AsyncSchedules->Pop()(); }
+                            , &AsyncSchedules
+                            ).detach();
+                    else break;
+
+                while (!Schedules.IsEmpty())
+                    if (Schedules.GetFirstPriority() <= Time)
+                        Schedules.Pop()();
+                    else break;
+                
+                try { Behaviors.ForEach([](Behavior * Item) { Item->Update(); }); }
+                catch (const ContainerEndNowException&) { break; }
+            }
+
+            copy_list = Behaviors;
+            isRunning = false;
+            copy_list.ForEach([](Behavior * Item) { Item->_End(); });
+            copy_list.Clear();
+
+            Time = 0;
+            TimeDiff = 0;
+            TimeFloat = 0;
+            TimeDiffFloat = 0;
+        }
+
+        void Container::End(bool EndNow)
+        {
+            ShouldEnd = true;
+            if (EndNow)
+                throw ContainerEndNowException();
+        }
+
+        bool Container::IsRunning()
+        {
+            return isRunning;
+        }
+
+        void Container::Schedule(std::function<void()> Func, double Time, bool Async)
+        {
+            if (Async) AsyncSchedules.Push(Func, Time);
+            else Schedules.Push(Func, Time);
+        }
+
+        void Container::Schedule(double Time, std::function<void()> Func, bool Async)
+        {
+            if (Async) AsyncSchedules.Push(Func, Time);
+            else Schedules.Push(Func, Time);
+        }
+
+        void Container::Schedule(double Time, bool Async, std::function<void()> Func)
+        {
+            if (Async) AsyncSchedules.Push(Func, Time);
+            else Schedules.Push(Func, Time);
         }
     }
 }
