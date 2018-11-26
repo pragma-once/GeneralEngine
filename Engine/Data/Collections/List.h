@@ -240,7 +240,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(const List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
-                auto Guard = Op.Mutex.GetSharedLock();
+                auto OpGuard = Op.Mutex.GetSharedLock();
 
                 List(*(Op.CountRef));
                 *Items = *Op.Items;
@@ -250,7 +250,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(const List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
-                auto Guard = Op.Mutex.GetSharedLock();
+                auto OpGuard = Op.Mutex.GetSharedLock();
 
                 if (IsRoot)
                 {
@@ -262,6 +262,8 @@ namespace Engine
                     Clear();
                     Op.ForEach([this](ItemsType Item) { Add(Item); });
                 }
+
+                return *this;
             }
 
             template <typename ItemsType>
@@ -288,6 +290,8 @@ namespace Engine
                     Clear();
                     Op.ForEach([this](ItemsType Item) { Add(Item); });
                 }
+
+                return *this;
             }
 
             template <typename ItemsType>
