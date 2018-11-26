@@ -31,11 +31,13 @@ namespace Engine
                 typedef std::function<void(KeyType Key, ValueType Value, bool& BreakLoop)> ForEachBodyWithValueWithBreakBool;
                 typedef std::function<void(KeyType Key, ValueType Value, std::function<void()> Break)> ForEachBodyWithValueWithBreakFunction;
 
-                Dictionary(const Dictionary&) = delete;
-                Dictionary& operator=(const Dictionary&) = delete;
-
                 Dictionary();
                 ~Dictionary();
+
+                Dictionary(const Dictionary<KeyType, ValueType, true>&);
+                Dictionary& operator=(const Dictionary<KeyType, ValueType, true>&);
+                Dictionary(const Dictionary<KeyType, ValueType, false>&);
+                Dictionary& operator=(const Dictionary<KeyType, ValueType, false>&);
 
                 void SetValue(KeyType Key, ValueType Value);
                 void Remove(KeyType Key);
@@ -65,7 +67,6 @@ namespace Engine
                 HandledMutex Mutex;
 #endif
                 int Count;
-                //ResizableArray<int, false> * SortedIndexes;
                 ResizableArray<Pair, false> * Pairs;
             };
         }
@@ -103,6 +104,48 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 delete Pairs;
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(const Dictionary<KeyType, ValueType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Pairs = *(Op.Pairs);
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(const Dictionary<KeyType, ValueType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Pairs = *(Op.Pairs);
+
+                return *this;
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(const Dictionary<KeyType, ValueType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Pairs = *(Op.Pairs);
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(const Dictionary<KeyType, ValueType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Pairs = *(Op.Pairs);
+
+                return *this;
             }
 
             template <typename KeyType, typename ValueType>

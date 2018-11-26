@@ -24,11 +24,13 @@ namespace Engine
             class ENGINE_STACK_CLASS_NAME
             {
             public:
-                Stack(const Stack&) = delete;
-                Stack& operator=(const Stack&) = delete;
-
                 Stack(int InitialCapacity = 0);
                 ~Stack();
+
+                Stack(const Stack<ItemsType, true>&);
+                Stack& operator=(const Stack<ItemsType, true>&);
+                Stack(const Stack<ItemsType, false>&);
+                Stack& operator=(const Stack<ItemsType, false>&);
 
                 void Push(ItemsType Item);
                 ItemsType Pop();
@@ -87,6 +89,48 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 delete Items;
+            }
+
+            template <typename ItemsType>
+            ENGINE_STACK_CLASS_NAME::Stack(const Stack<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+            }
+
+            template <typename ItemsType>
+            ENGINE_STACK_CLASS_NAME& ENGINE_STACK_CLASS_NAME::operator=(const Stack<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+
+                return *this;
+            }
+
+            template <typename ItemsType>
+            ENGINE_STACK_CLASS_NAME::Stack(const Stack<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+            }
+
+            template <typename ItemsType>
+            ENGINE_STACK_CLASS_NAME& ENGINE_STACK_CLASS_NAME::operator=(const Stack<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+
+                return *this;
             }
 
             template <typename ItemsType>

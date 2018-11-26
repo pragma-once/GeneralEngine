@@ -24,11 +24,13 @@ namespace Engine
             class ENGINE_PRIORITY_QUEUE_CLASS_NAME
             {
             public:
-                PriorityQueue(const PriorityQueue&) = delete;
-                PriorityQueue& operator=(const PriorityQueue&) = delete;
-
                 PriorityQueue(int InitialCapacity = 0);
                 ~PriorityQueue();
+
+                PriorityQueue(const PriorityQueue<ItemsType, PriorityType, true>&);
+                PriorityQueue& operator=(const PriorityQueue<ItemsType, PriorityType, true>&);
+                PriorityQueue(const PriorityQueue<ItemsType, PriorityType, false>&);
+                PriorityQueue& operator=(const PriorityQueue<ItemsType, PriorityType, false>&);
 
                 void Push(ItemsType Item, PriorityType Priority);
                 ItemsType Pop();
@@ -91,6 +93,52 @@ namespace Engine
 
                 delete Items;
                 delete Priorities;
+            }
+
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME::PriorityQueue(const PriorityQueue<ItemsType, PriorityType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+                *Priorities = *(Op.Priorities);
+            }
+
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME& ENGINE_PRIORITY_QUEUE_CLASS_NAME::operator=(const PriorityQueue<ItemsType, PriorityType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+                *Priorities = *(Op.Priorities);
+
+                return *this;
+            }
+
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME::PriorityQueue(const PriorityQueue<ItemsType, PriorityType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+                *Priorities = *(Op.Priorities);
+            }
+            
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME& ENGINE_PRIORITY_QUEUE_CLASS_NAME::operator=(const PriorityQueue<ItemsType, PriorityType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                Count = Op.Count;
+                *Items = *(Op.Items);
+                *Priorities = *(Op.Priorities);
+
+                return *this;
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>

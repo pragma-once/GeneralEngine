@@ -24,11 +24,13 @@ namespace Engine
             class ENGINE_QUEUE_CLASS_NAME
             {
             public:
-                Queue(const Queue&) = delete;
-                Queue& operator=(const Queue&) = delete;
-
                 Queue(int InitialCapacity = 0);
                 ~Queue();
+
+                Queue(const Queue<ItemsType, true>&);
+                Queue& operator=(const Queue<ItemsType, true>&);
+                Queue(const Queue<ItemsType, false>&);
+                Queue& operator=(const Queue<ItemsType, false>&);
 
                 void Push(ItemsType Item);
                 ItemsType Pop();
@@ -90,6 +92,52 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 delete Items;
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME::Queue(const Queue<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                First = Op.First;
+                Count = Op.Count;
+                *Items = *(Op.Items);
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(const Queue<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                First = Op.First;
+                Count = Op.Count;
+                *Items = *(Op.Items);
+
+                return *this;
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME::Queue(const Queue<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                First = Op.First;
+                Count = Op.Count;
+                *Items = *(Op.Items);
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(const Queue<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                First = Op.First;
+                Count = Op.Count;
+                *Items = *(Op.Items);
+
+                return *this;
             }
 
             template <typename ItemsType>
