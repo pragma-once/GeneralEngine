@@ -33,9 +33,6 @@ namespace Engine
                 typedef std::function<void(ItemsType Item, bool& BreakLoop)> ForEachBodyWithBreakBool;
                 typedef std::function<void(ItemsType Item, std::function<void()> Break)> ForEachBodyWithBreakFunction;
 
-                List(const List&) = delete;
-                List& operator=(const List&) = delete;
-
                 List(int InitialCapacity = 0);
                 List(
                     OnAddCallback OnAdd,
@@ -45,7 +42,12 @@ namespace Engine
                 );
                 ~List();
 
-                ENGINE_LIST_CLASS_NAME * GetChild(
+                List(const List<ItemsType, true>&);
+                List& operator=(const List<ItemsType, true>&);
+                List(const List<ItemsType, false>&);
+                List& operator=(const List<ItemsType, false>&);
+
+                ENGINE_LIST_CLASS_NAME * GetChild( // TODO: Rename, including "Parent"
                     OnAddCallback OnAdd,
                     OnSetItemCallback OnSetItem,
                     OnRemoveCallback OnRemove,
@@ -84,17 +86,18 @@ namespace Engine
                 ENGINE_LIST_CLASS_NAME * Parent;
                 ResizableArray<ENGINE_LIST_CLASS_NAME*, false> * Children; // Objects to destruct when destructed
                 bool IsParentDestructed;
+                const bool IsRoot;
 
                 OnAddCallback OnAdd;
+                OnSetItemCallback OnSetItem;
                 OnRemoveCallback OnRemove;
                 OnClearCallback OnClear;
-                OnSetItemCallback OnSetItem;
-
+                
                 List(
                     ENGINE_LIST_CLASS_NAME * Parent,
                     OnAddCallback OnAdd,
-                    OnRemoveCallback OnRemove,
                     OnSetItemCallback OnSetItem,
+                    OnRemoveCallback OnRemove,
                     OnClearCallback OnClear);
                 void DestructChildren();
             };
@@ -121,7 +124,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(int InitialCapacity)
+            ENGINE_LIST_CLASS_NAME::List(int InitialCapacity) : IsRoot(true)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
@@ -185,16 +188,16 @@ namespace Engine
                 OnAddCallback OnAdd,
                 OnSetItemCallback OnSetItem,
                 OnRemoveCallback OnRemove,
-                OnClearCallback OnClear)
+                OnClearCallback OnClear) : IsRoot(false)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
                 if (OnAdd == nullptr)
                     OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
-                if (OnRemove == nullptr)
-                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
                 if (OnSetItem == nullptr)
                     OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                if (OnRemove == nullptr)
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
                 if (OnClear == nullptr)
                     OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
 
@@ -208,8 +211,8 @@ namespace Engine
                 IsParentDestructed = false;
 
                 this->OnAdd = OnAdd;
-                this->OnRemove = OnRemove;
                 this->OnSetItem = OnSetItem;
+                this->OnRemove = OnRemove;
                 this->OnClear = OnClear;
             }
 
@@ -234,6 +237,60 @@ namespace Engine
             }
 
             template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::List(const List<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                auto Guard = Op.Mutex.GetSharedLock();
+
+                List(*(Op.CountRef));
+                *Items = *Op.Items;
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(const List<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                auto Guard = Op.Mutex.GetSharedLock();
+
+                if (IsRoot)
+                {
+                    List(*(Op.CountRef));
+                    *Items = *(Op.Items);
+                }
+                else
+                {
+                    Clear();
+                    Op.ForEach([this](ItemsType Item) { Add(Item); });
+                }
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME::List(const List<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+
+                List(*(Op.CountRef));
+                *Items = *(Op.Items);
+            }
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(const List<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+
+                if (IsRoot)
+                {
+                    List(*(Op.CountRef));
+                    *Items = *(Op.Items);
+                }
+                else
+                {
+                    Clear();
+                    Op.ForEach([this](ItemsType Item) { Add(Item); });
+                }
+            }
+
+            template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::GetChild(
                 OnAddCallback OnAdd,
                 OnSetItemCallback OnSetItem,
@@ -244,14 +301,14 @@ namespace Engine
 
                 if (OnAdd == nullptr)
                     OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
-                if (OnRemove == nullptr)
-                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
                 if (OnSetItem == nullptr)
                     OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                if (OnRemove == nullptr)
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
                 if (OnClear == nullptr)
                     OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
 
-                ENGINE_LIST_CLASS_NAME * Child = new ENGINE_LIST_CLASS_NAME(this, OnAdd, OnRemove, OnSetItem, OnClear);
+                ENGINE_LIST_CLASS_NAME * Child = new ENGINE_LIST_CLASS_NAME(this, OnAdd, OnSetItem, OnRemove, OnClear);
 
                 Children->Resize(Children->GetLength() + 1);
                 Children->SetItem(Children->GetLength() - 1, Child);
@@ -450,9 +507,9 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(
                 ENGINE_LIST_CLASS_NAME * Parent,
                 OnAddCallback OnAdd,
-                OnRemoveCallback OnRemove,
                 OnSetItemCallback OnSetItem,
-                OnClearCallback OnClear)
+                OnRemoveCallback OnRemove,
+                OnClearCallback OnClear) : IsRoot(false)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
 
@@ -465,8 +522,8 @@ namespace Engine
                 IsParentDestructed = false;
 
                 this->OnAdd = OnAdd;
-                this->OnRemove = OnRemove;
                 this->OnSetItem = OnSetItem;
+                this->OnRemove = OnRemove;
                 this->OnClear = OnClear;
             }
 
