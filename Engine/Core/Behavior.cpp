@@ -13,7 +13,7 @@ namespace Engine
             if (!isActive)
             {
                 isActive = true;
-                if (container != nullptr && container->isRunning)
+                if (container != nullptr && container.Get()->isRunning)
                     OnActivate();
             }
         }
@@ -22,7 +22,7 @@ namespace Engine
         {
             if (isActive)
             {
-                if (container != nullptr && container->isRunning)
+                if (container != nullptr && container.Get()->isRunning)
                     OnDeactivate();
                 isActive = false;
             }
@@ -35,7 +35,7 @@ namespace Engine
 
         bool Behavior::IsRunning()
         {
-            return container != nullptr && isActive && container->isRunning;
+            return container != nullptr && isActive && container.Get()->isRunning;
         }
 
         int Behavior::GetPriority()
@@ -47,28 +47,28 @@ namespace Engine
         {
             if (container == nullptr)
                 return 0;
-            return container->Time;
+            return container.Get()->Time;
         }
 
         double Behavior::GetTimeDiff()
         {
             if (container == nullptr)
                 return 0;
-            return container->TimeDiff;
+            return container.Get()->TimeDiff;
         }
 
         float Behavior::GetTimeFloat()
         {
             if (container == nullptr)
                 return 0;
-            return container->TimeFloat;
+            return container.Get()->TimeFloat;
         }
 
         float Behavior::GetTimeDiffFloat()
         {
             if (container == nullptr)
                 return 0;
-            return container->TimeDiffFloat;
+            return container.Get()->TimeDiffFloat;
         }
 
         Container * Behavior::GetContainer()
