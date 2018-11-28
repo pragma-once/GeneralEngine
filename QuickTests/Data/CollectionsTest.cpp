@@ -5,6 +5,8 @@
 #define print(context) (std::cout << context << '\n')
 #define input(var) (std::cin >> var)
 #define ITEMS_TYPE std::string
+#define KEY_TYPE std::string
+#define VALUE_TYPE std::string
 
 void TestList();
 void TestStack();
@@ -12,16 +14,28 @@ void TestQueue();
 void TestPriorityQueue();
 void TestDictionary();
 
+void TestMultipleLists();
+void TestMultipleStacks();
+void TestMultipleQueues();
+void TestMultiplePriorityQueues();
+void TestMultipleDictionaries();
+
 int main()
 {
     while (true)
     {
         print("");
-        print("L => Test List");
-        print("S => Test Stack");
-        print("Q => Test Queue");
-        print("P => Test PriorityQueue");
-        print("D => Test Dictionary");
+        print("l => Test List");
+        print("s => Test Stack");
+        print("q => Test Queue");
+        print("p => Test PriorityQueue");
+        print("d => Test Dictionary");
+        print("");
+        print("L => Test Multiple Lists");
+        print("S => Test Multiple Stacks");
+        print("Q => Test Multiple Queues");
+        print("P => Test Multiple PriorityQueues");
+        print("D => Test Multiple Dictionaries");
         print("");
 
         char option;
@@ -29,21 +43,6 @@ int main()
 
         switch (option)
         {
-        case 'L':
-            TestList();
-            break;
-        case 'S':
-            TestStack();
-            break;
-        case 'Q':
-            TestQueue();
-            break;
-        case 'P':
-            TestPriorityQueue();
-            break;
-        case 'D':
-            TestDictionary();
-            break;
         case 'l':
             TestList();
             break;
@@ -58,6 +57,21 @@ int main()
             break;
         case 'd':
             TestDictionary();
+            break;
+        case 'L':
+            TestMultipleLists();
+            break;
+        case 'S':
+            TestMultipleStacks();
+            break;
+        case 'Q':
+            TestMultipleQueues();
+            break;
+        case 'P':
+            TestMultiplePriorityQueues();
+            break;
+        case 'D':
+            TestMultipleDictionaries();
             break;
         default:
             break;
@@ -396,9 +410,6 @@ void TestPriorityQueue()
     catch (std::exception& e) { print("Exception: " << e.what()); }
 }
 
-#define KEY_TYPE std::string
-#define VALUE_TYPE std::string
-
 void TestDictionary()
 {
     Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> * dict = new Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE>();
@@ -454,6 +465,369 @@ void TestDictionary()
             return;
         default:
             break;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestMultipleLists()
+{
+    Engine::Data::Collections::List<ITEMS_TYPE> lists[4];
+    while (true) try
+    {
+        print("");
+        print("a Index Item    => lists[Index].Add(Item)");
+        print("c Index         => lists[Index].Clear()");
+        print("f Index         => lists[Index].ForEach([](Item) { print(Item); })");
+        print("s Index1 Index2 => lists[Index1] = lists[Index2]");
+        print("");
+        print("q => Quit Multiple Lists Test");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        int arg_int1;
+        int arg_int2;
+        input(func);
+
+        switch (func)
+        {
+        case 'a':
+            input(arg_int1);
+            input(arg);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                lists[arg_int1].Add(arg);
+            break;
+        case 'c':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                lists[arg_int1].Clear();
+            break;
+        case 'f':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                lists[arg_int1].ForEach([](ITEMS_TYPE Item) { print(Item); });
+            break;
+        case 's':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                lists[arg_int1] = lists[arg_int2];
+            break;
+        case 'q':
+            return;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestMultipleStacks()
+{
+    Engine::Data::Collections::Stack<ITEMS_TYPE> stacks[5];
+    while (true) try
+    {
+        print("");
+        print("p Index Item    => stacks[Index].Push(Item)");
+        print("c Index         => stacks[Index].Clear()");
+        print("P Index         => stacks[Index].Pop()");
+        print("f Index         => print all items in stacks[Index]");
+        print("s Index1 Index2 => stacks[Index1] = stacks[Index2]");
+        print("");
+        print("q => Quit Multiple Stacks Test");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        int arg_int1;
+        int arg_int2;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg_int1);
+            input(arg);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                stacks[arg_int1].Push(arg);
+            break;
+        case 'c':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                stacks[arg_int1].Clear();
+            break;
+        case 'P':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                stacks[arg_int1].Pop();
+            break;
+        case 'f':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+            {
+                while (!stacks[arg_int1].IsEmpty())
+                    stacks[4].Push(stacks[arg_int1].Pop());
+                while (!stacks[4].IsEmpty())
+                {
+                    print(stacks[4].GetTop());
+                    stacks[arg_int1].Push(stacks[4].Pop());
+                }
+            }
+            break;
+        case 's':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                stacks[arg_int1] = stacks[arg_int2];
+            break;
+        case 'q':
+            return;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestMultipleQueues()
+{
+    Engine::Data::Collections::Queue<ITEMS_TYPE> queues[5];
+    while (true) try
+    {
+        print("");
+        print("p Index Item    => queues[Index].Push(Item)");
+        print("c Index         => queues[Index].Clear()");
+        print("P Index         => queues[Index].Pop()");
+        print("f Index         => print all items in queues[Index]");
+        print("s Index1 Index2 => queues[Index1] = queues[Index2]");
+        print("");
+        print("q => Quit Multiple Queues Test");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        int arg_int1;
+        int arg_int2;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg_int1);
+            input(arg);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                queues[arg_int1].Push(arg);
+            break;
+        case 'c':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                queues[arg_int1].Clear();
+            break;
+        case 'P':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                print(queues[arg_int1].Pop());
+            break;
+        case 'f':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+            {
+                while (!queues[arg_int1].IsEmpty())
+                    queues[4].Push(queues[arg_int1].Pop());
+                while (!queues[4].IsEmpty())
+                {
+                    print(queues[4].GetFirst());
+                    queues[arg_int1].Push(queues[4].Pop());
+                }
+            }
+            break;
+        case 's':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                queues[arg_int1] = queues[arg_int2];
+            break;
+        case 'q':
+            return;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestMultiplePriorityQueues()
+{
+    Engine::Data::Collections::PriorityQueue<ITEMS_TYPE> queues[5];
+    while (true) try
+    {
+        print("");
+        print("p Index Item Priority => queues[Index].Push(Item, Priority)");
+        print("c Index               => queues[Index].Clear()");
+        print("P Index               => queues[Index].Pop()");
+        print("f Index               => print all items and priorities in queues[Index]");
+        print("s Index1 Index2       => queues[Index1] = queues[Index2]");
+        print("");
+        print("q => Quit Multiple PriorityQueues Test");
+        print("");
+
+        char func;
+        ITEMS_TYPE arg;
+        int arg_int1;
+        int arg_int2;
+        input(func);
+
+        switch (func)
+        {
+        case 'p':
+            input(arg_int1);
+            input(arg);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                queues[arg_int1].Push(arg, arg_int2);
+            break;
+        case 'c':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                queues[arg_int1].Clear();
+            break;
+        case 'P':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+            {
+                print(queues[arg_int1].GetFirstItem() << "/Priority=" << queues[arg_int1].GetFirstPriority());
+                queues[arg_int1].Pop();
+            }
+            break;
+        case 'f':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+            {
+                while (!queues[arg_int1].IsEmpty())
+                {
+                    queues[4].Push(queues[arg_int1].GetFirstItem(), queues[arg_int1].GetFirstPriority());
+                    queues[arg_int1].Pop();
+                }
+                while (!queues[4].IsEmpty())
+                {
+                    print(queues[4].GetFirstItem() << "/Priority=" << queues[4].GetFirstPriority());
+                    queues[arg_int1].Push(queues[4].GetFirstItem(), queues[4].GetFirstPriority());
+                    queues[4].Pop();
+                }
+            }
+            break;
+        case 's':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                queues[arg_int1] = queues[arg_int2];
+            break;
+        case 'q':
+            return;
+        }
+    }
+    catch (std::exception& e) { print("Exception: " << e.what()); }
+}
+
+void TestMultipleDictionaries()
+{
+    Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> dicts[4];
+    while (true) try
+    {
+        print("");
+        print("a Index Key Value => dicts[Index].SetValue(Key, Value)");
+        print("c Index           => dicts[Index].Clear()");
+        print("f Index           => dicts[Index].ForEach([](Item) { print(Item); })");
+        print("s Index1 Index2   => dicts[Index1] = dicts[Index2]");
+        print("");
+        print("q => Quit Multiple Dictionaries Test");
+        print("");
+
+        char func;
+        KEY_TYPE arg_key;
+        VALUE_TYPE arg_value;
+        int arg_int1;
+        int arg_int2;
+        input(func);
+
+        switch (func)
+        {
+        case 'a':
+            input(arg_int1);
+            input(arg_key);
+            input(arg_value);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                dicts[arg_int1].SetValue(arg_key, arg_value);
+            break;
+        case 'c':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                dicts[arg_int1].Clear();
+            break;
+        case 'f':
+            input(arg_int1);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index should be between 0-3");
+            else
+                dicts[arg_int1].ForEach([](KEY_TYPE Key, VALUE_TYPE Value) { print(Key << "\t=>\t" << Value); });
+            break;
+        case 's':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                dicts[arg_int1] = dicts[arg_int2];
+            break;
+        case 'q':
+            return;
         }
     }
     catch (std::exception& e) { print("Exception: " << e.what()); }
