@@ -27,8 +27,8 @@ namespace Engine
                 PriorityQueue(int InitialCapacity = 0);
                 ~PriorityQueue();
 
-                PriorityQueue(const PriorityQueue<ItemsType, PriorityType, true>&);
-                PriorityQueue& operator=(const PriorityQueue<ItemsType, PriorityType, true>&);
+                PriorityQueue(PriorityQueue<ItemsType, PriorityType, true>&);
+                PriorityQueue& operator=(PriorityQueue<ItemsType, PriorityType, true>&);
                 PriorityQueue(const PriorityQueue<ItemsType, PriorityType, false>&);
                 PriorityQueue& operator=(const PriorityQueue<ItemsType, PriorityType, false>&);
 
@@ -96,7 +96,7 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            ENGINE_PRIORITY_QUEUE_CLASS_NAME::PriorityQueue(const PriorityQueue<ItemsType, PriorityType, true>& Op)
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME::PriorityQueue(PriorityQueue<ItemsType, PriorityType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -107,7 +107,7 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            ENGINE_PRIORITY_QUEUE_CLASS_NAME& ENGINE_PRIORITY_QUEUE_CLASS_NAME::operator=(const PriorityQueue<ItemsType, PriorityType, true>& Op)
+            ENGINE_PRIORITY_QUEUE_CLASS_NAME& ENGINE_PRIORITY_QUEUE_CLASS_NAME::operator=(PriorityQueue<ItemsType, PriorityType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();

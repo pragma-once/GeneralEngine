@@ -27,8 +27,8 @@ namespace Engine
                 Stack(int InitialCapacity = 0);
                 ~Stack();
 
-                Stack(const Stack<ItemsType, true>&);
-                Stack& operator=(const Stack<ItemsType, true>&);
+                Stack(Stack<ItemsType, true>&);
+                Stack& operator=(Stack<ItemsType, true>&);
                 Stack(const Stack<ItemsType, false>&);
                 Stack& operator=(const Stack<ItemsType, false>&);
 
@@ -92,7 +92,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME::Stack(const Stack<ItemsType, true>& Op)
+            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -102,7 +102,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME& ENGINE_STACK_CLASS_NAME::operator=(const Stack<ItemsType, true>& Op)
+            ENGINE_STACK_CLASS_NAME& ENGINE_STACK_CLASS_NAME::operator=(Stack<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();

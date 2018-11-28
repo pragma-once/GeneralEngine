@@ -27,8 +27,8 @@ namespace Engine
                 Queue(int InitialCapacity = 0);
                 ~Queue();
 
-                Queue(const Queue<ItemsType, true>&);
-                Queue& operator=(const Queue<ItemsType, true>&);
+                Queue(Queue<ItemsType, true>&);
+                Queue& operator=(Queue<ItemsType, true>&);
                 Queue(const Queue<ItemsType, false>&);
                 Queue& operator=(const Queue<ItemsType, false>&);
 
@@ -95,7 +95,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(const Queue<ItemsType, true>& Op)
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -106,7 +106,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(const Queue<ItemsType, true>& Op)
+            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(Queue<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();

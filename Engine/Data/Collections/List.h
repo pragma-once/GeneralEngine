@@ -242,7 +242,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
-                List(*(Op.CountRef));
+                *CountRef = *(Op.CountRef);
                 *Items = *Op.Items;
             }
 
@@ -254,7 +254,7 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    List(*(Op.CountRef));
+                    *CountRef = *(Op.CountRef);
                     *Items = *(Op.Items);
                 }
                 else
@@ -271,7 +271,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
-                List(*(Op.CountRef));
+                *CountRef = *(Op.CountRef);
                 *Items = *(Op.Items);
             }
 
@@ -282,7 +282,7 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    List(*(Op.CountRef));
+                    *CountRef = *(Op.CountRef);
                     *Items = *(Op.Items);
                 }
                 else

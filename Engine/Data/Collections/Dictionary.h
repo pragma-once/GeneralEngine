@@ -34,8 +34,8 @@ namespace Engine
                 Dictionary();
                 ~Dictionary();
 
-                Dictionary(const Dictionary<KeyType, ValueType, true>&);
-                Dictionary& operator=(const Dictionary<KeyType, ValueType, true>&);
+                Dictionary(Dictionary<KeyType, ValueType, true>&);
+                Dictionary& operator=(Dictionary<KeyType, ValueType, true>&);
                 Dictionary(const Dictionary<KeyType, ValueType, false>&);
                 Dictionary& operator=(const Dictionary<KeyType, ValueType, false>&);
 
@@ -107,7 +107,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(const Dictionary<KeyType, ValueType, true>& Op)
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -117,7 +117,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(const Dictionary<KeyType, ValueType, true>& Op)
+            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(Dictionary<KeyType, ValueType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
