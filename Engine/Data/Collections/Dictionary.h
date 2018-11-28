@@ -265,7 +265,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
                     Body(Pairs->GetItem(i).Key, BreakFunction);
@@ -300,7 +300,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
                     Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, BreakFunction);

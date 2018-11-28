@@ -181,7 +181,7 @@ namespace Engine
                 if (Count <= 0)
                     return false;
 
-                ItemsType ItemOut = Items->GetItem(First);
+                ItemOut = Items->GetItem(First);
                 First = (First + 1) % Items->GetLength();
                 Count--;
 

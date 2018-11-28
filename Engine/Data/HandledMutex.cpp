@@ -46,6 +46,11 @@ namespace Engine
             SharedOwners = new Collections::List<std::thread::id, false>();
         }
 
+        HandledMutex::~HandledMutex()
+        {
+            delete SharedOwners;
+        }
+
         bool HandledMutex::Lock()
         {
             std::unique_lock<std::mutex> m(OwnerMutex);

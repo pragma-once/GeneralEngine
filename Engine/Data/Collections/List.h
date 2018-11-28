@@ -42,10 +42,10 @@ namespace Engine
                 );
                 ~List();
 
-                List(const List<ItemsType, true>&);
-                List& operator=(const List<ItemsType, true>&);
-                List(const List<ItemsType, false>&);
-                List& operator=(const List<ItemsType, false>&);
+                List(List<ItemsType, true>&);
+                List& operator=(List<ItemsType, true>&);
+                List(List<ItemsType, false>&);
+                List& operator=(List<ItemsType, false>&);
 
                 ENGINE_LIST_CLASS_NAME * GetChild( // TODO: Rename, including "Parent"
                     OnAddCallback OnAdd,
@@ -109,12 +109,12 @@ namespace Engine
 
 #ifdef ENGINE_LIST_USE_MUTEX
     #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS auto guard = Mutex.GetLock();
-    #define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock(); if (IsParentDestructed) throw std::exception("The parent is destructed!");
-    #define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock(); if (IsParentDestructed) throw std::exception("The parent is destructed!");
+    #define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock(); if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
+    #define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock(); if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
 #else
     #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS ;
-    #define ENGINE_COLLECTION_WRITE_ACCESS if (IsParentDestructed) throw std::exception("The parent is destructed!");
-    #define ENGINE_COLLECTION_READ_ACCESS if (IsParentDestructed) throw std::exception("The parent is destructed!");
+    #define ENGINE_COLLECTION_WRITE_ACCESS if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
+    #define ENGINE_COLLECTION_READ_ACCESS if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
 #endif
 
 namespace Engine
@@ -237,7 +237,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(const List<ItemsType, true>& Op)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>& Op) : IsRoot(true)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -247,7 +247,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(const List<ItemsType, true>& Op)
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -267,7 +267,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(const List<ItemsType, false>& Op)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : IsRoot(true)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
@@ -276,7 +276,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(const List<ItemsType, false>& Op)
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>& Op)
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
@@ -497,7 +497,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                std::function<void()> BreakFunction = []() { throw LoopBreaker() };
+                std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < *CountRef; i++) try
                 {
                     Body(Items->GetItem(i), BreakFunction);

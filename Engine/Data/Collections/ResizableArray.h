@@ -90,12 +90,12 @@ namespace Engine
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
                 std::lock_guard<std::shared_mutex> guard(Mutex);
 #endif
-                std::shared_lock<std::shared_mutex> guard(Op.Mutex);
+                std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
                 Length = Op.Length;
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
-                    Array = new T[Op.Length]
+                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }
@@ -106,7 +106,7 @@ namespace Engine
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
                 std::lock_guard<std::shared_mutex> guard(Mutex);
 #endif
-                std::shared_lock<std::shared_mutex> guard(Op.Mutex);
+                std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
@@ -118,7 +118,7 @@ namespace Engine
                         Array = new T[Op.Length];
                     }
 
-                    Array = new T[Op.Length]
+                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }
@@ -133,7 +133,7 @@ namespace Engine
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
-                    Array = new T[Op.Length]
+                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }
@@ -155,7 +155,7 @@ namespace Engine
                         Array = new T[Op.Length];
                     }
 
-                    Array = new T[Op.Length]
+                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }

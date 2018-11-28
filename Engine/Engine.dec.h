@@ -5,6 +5,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <thread>
 
 namespace Engine
 {

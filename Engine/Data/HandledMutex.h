@@ -34,6 +34,7 @@ namespace Engine
             };
 
             HandledMutex();
+            ~HandledMutex();
             bool Lock();
             bool TryLock();
             bool Unlock();

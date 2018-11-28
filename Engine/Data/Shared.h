@@ -12,11 +12,11 @@ namespace Engine
         public:
             Shared(const Shared&);
             Shared(const Type&);
-            Type& operator=(const Shared&);
-            Type& operator=(const Type&);
+            Shared<Type>& operator=(const Shared&);
+            Shared<Type>& operator=(const Type&);
             operator Type();
 
-            Type Set(const Type&);
+            void Set(const Type&);
             Type Get();
         private:
             Type Value;
@@ -34,37 +34,37 @@ namespace Engine
         template <typename Type>
         Shared<Type>::Shared(const Shared& Operand)
         {
-            std::shared_lock<std::shared_mutex> guard(Operand.Mutex);
+            std::shared_lock<std::shared_mutex> guard1(Operand.Mutex);
             Type Value = Operand.Value;
-            guard.unlock();
-            std::lock_guard<std::shared_mutex> guard(Mutex);
+            guard1.unlock();
+            std::lock_guard<std::shared_mutex> guard2(Mutex);
             this->Value = Value;
         }
 
         template <typename Type>
         Shared<Type>::Shared(const Type& Value)
         {
-            std::lock_guard<std::shared_mutex> Guard(Mutex);
+            std::lock_guard<std::shared_mutex> guard(Mutex);
             this->Value = Value;
         }
 
         template <typename Type>
-        Type& Shared<Type>::operator=(const Shared& Operand)
+        Shared<Type>& Shared<Type>::operator=(const Shared& Operand)
         {
-            std::shared_lock<std::shared_mutex> guard(Operand.Mutex);
+            std::shared_lock<std::shared_mutex> guard1(Operand.Mutex);
             Type Value = Operand.Value;
-            guard.unlock();
-            std::lock_guard<std::shared_mutex> guard(Mutex);
+            guard1.unlock();
+            std::lock_guard<std::shared_mutex> guard2(Mutex);
             this->Value = Value;
-            return Value;
+            return *this;
         }
 
         template <typename Type>
-        Type& Shared<Type>::operator=(const Type& Value)
+        Shared<Type>& Shared<Type>::operator=(const Type& Value)
         {
             std::lock_guard<std::shared_mutex> guard(Mutex);
             this->Value = Value;
-            return Value;
+            return *this;
         }
 
         template <typename Type>
@@ -75,11 +75,10 @@ namespace Engine
         }
 
         template <typename Type>
-        Type Shared<Type>::Set(const Type& Value)
+        void Shared<Type>::Set(const Type& Value)
         {
             std::lock_guard<std::shared_mutex> guard(Mutex);
             this->Value = Value;
-            return Value;
         }
 
         template <typename Type>

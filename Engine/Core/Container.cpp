@@ -1,6 +1,5 @@
 #include "../Engine.h"
 #include <chrono>
-#include <thread>
 
 namespace Engine
 {
@@ -109,7 +108,7 @@ namespace Engine
                         Behavior * Item = Parent->GetItem(Index);
 
                         if (isRunning)
-                            Item->_End;
+                            Item->_End();
                         Item->Release();
 
                         int Priority = Item->GetPriority();
