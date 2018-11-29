@@ -145,6 +145,9 @@ namespace Engine
 
         void Container::Start()
         {
+            if (isRunning)
+                throw std::logic_error("Cannot start twice.");
+
             auto StartTime = std::chrono::steady_clock::now();
             double PreviousTime = 0;
             Time = 0;
