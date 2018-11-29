@@ -18,7 +18,7 @@ namespace Engine
             Container();
 
             void Start();
-            void End(bool EndNow = false);
+            void End();
 
             bool IsRunning();
 

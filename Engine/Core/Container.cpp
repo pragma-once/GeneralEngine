@@ -183,8 +183,7 @@ namespace Engine
                         Schedules.Pop()();
                     else break;
                 
-                try { Behaviors.ForEach([](Behavior * Item) { Item->Update(); }); }
-                catch (const ContainerEndNowException&) { break; }
+                Behaviors.ForEach([](Behavior * Item) { Item->Update(); });
             }
 
             copy_list = Behaviors;
@@ -198,11 +197,9 @@ namespace Engine
             TimeDiffFloat = 0;
         }
 
-        void Container::End(bool EndNow)
+        void Container::End()
         {
             ShouldEnd = true;
-            if (EndNow)
-                throw ContainerEndNowException();
         }
 
         bool Container::IsRunning()
