@@ -28,7 +28,7 @@ namespace Engine
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent)> OnClearCallback;
-                typedef std::function<bool(const ItemsType Item)> Predicate;
+                typedef std::function<bool(ItemsType Item)> Predicate;
                 typedef std::function<void(ItemsType Item)> ForEachBody;
                 typedef std::function<void(ItemsType Item, bool& BreakLoop)> ForEachBodyWithBreakBool;
                 typedef std::function<void(ItemsType Item, std::function<void()> Break)> ForEachBodyWithBreakFunction;
@@ -237,13 +237,13 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>& Op) : IsRoot(true)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 *CountRef = *(Op.CountRef);
-                *Items = *Op.Items;
+                *Items = *(Op.Items);
             }
 
             template <typename ItemsType>
@@ -267,7 +267,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : IsRoot(true)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
@@ -327,7 +327,8 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                return OnAdd(Parent, Item, *CountRef);
+                int Index = *CountRef;
+                return OnAdd(Parent, Item, Index);
             }
 
             template <typename ItemsType>

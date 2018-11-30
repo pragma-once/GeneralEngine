@@ -68,11 +68,11 @@ namespace Engine
                         }
                     }
 
+                    Parent->Add(Item, Index);
+
                     Item->Acquire(this);
                     if (isRunning)
                         Item->_Start();
-
-                    Parent->Add(Item, Index);
 
                     return true;
                 },
@@ -89,11 +89,12 @@ namespace Engine
                                 Parent->GetItem(Index)->_End();
                             Parent->GetItem(Index)->Release();
 
+                            Parent->SetItem(Index, Value);
+
                             Value->Acquire(this);
                             if (isRunning)
                                 Value->_Start();
 
-                            Parent->SetItem(Index, Value);
                             return true;
                         }
                     }
@@ -158,7 +159,7 @@ namespace Engine
             ShouldEnd = false;
             Schedules.Clear();
             AsyncSchedules.Clear();
-            
+
             Data::Collections::List<Behavior*> copy_list = Behaviors;
             isRunning = true;
             copy_list.ForEach([](Behavior * Item) { Item->_Start(); });
@@ -185,8 +186,11 @@ namespace Engine
                     if (Schedules.GetFirstPriority() <= Time)
                         Schedules.Pop()();
                     else break;
-                
-                Behaviors.ForEach([](Behavior * Item) { Item->Update(); });
+
+                Behaviors.ForEach([](Behavior * Item) { if (Item->isActive) Item->Update(); });
+
+                if (Behaviors.GetCount() == 0)
+                    break;
             }
 
             copy_list = Behaviors;
