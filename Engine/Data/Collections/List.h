@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_LIST_CLASS_NAME // TODO: change expansion and freeing space in all collections and add Mutex locking to all the collections
+            class ENGINE_LIST_CLASS_NAME // TODO: bool AutoShrink for all collections
             {
             public:
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
@@ -47,7 +47,7 @@ namespace Engine
                 List(List<ItemsType, false>&);
                 List& operator=(List<ItemsType, false>&);
 
-                ENGINE_LIST_CLASS_NAME * GetChild( // TODO: Rename, including "Parent"
+                ENGINE_LIST_CLASS_NAME * CreateInterface(
                     OnAddCallback OnAdd,
                     OnSetItemCallback OnSetItem,
                     OnRemoveCallback OnRemove,
@@ -295,7 +295,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::GetChild(
+            ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::CreateInterface(
                 OnAddCallback OnAdd,
                 OnSetItemCallback OnSetItem,
                 OnRemoveCallback OnRemove,
