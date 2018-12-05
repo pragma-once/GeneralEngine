@@ -12,4 +12,4 @@
 #include "Data/Collections/Dictionary.h"
 
 #include "Core/Container.h"
-#include "Core/Behavior.h"
+#include "Core/Module.h"

@@ -7,30 +7,30 @@ namespace Engine
     {
         class ContainerEndNowException {};
 
-        Container::Container() : ZeroPriorityBehaviorsStartIndex(0), ZeroPriorityBehaviorsEndIndex(0),
+        Container::Container() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
                                  isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
                                  ShouldEnd(false),
-                                 Behaviors(
+                                 Modules(
 
                 // OnAdd
-                [this](Data::Collections::List<Behavior*> * Parent, Behavior *& Item, int& Index)->bool
+                [this](Data::Collections::List<Module*> * Parent, Module *& Item, int& Index)->bool
                 {
                     if (Parent->Contains(Item))
                         return false;
 
                     if (Item->GetPriority() == 0)
                     {
-                        if (Index > ZeroPriorityBehaviorsEndIndex)
-                            Index = ZeroPriorityBehaviorsEndIndex;
-                        else if (Index < ZeroPriorityBehaviorsStartIndex)
-                            Index = ZeroPriorityBehaviorsStartIndex;
+                        if (Index > ZeroPriorityModulesEndIndex)
+                            Index = ZeroPriorityModulesEndIndex;
+                        else if (Index < ZeroPriorityModulesStartIndex)
+                            Index = ZeroPriorityModulesStartIndex;
 
-                        ZeroPriorityBehaviorsEndIndex++;
+                        ZeroPriorityModulesEndIndex++;
                     }
                     else
                     {
-                        int s = Item->GetPriority() < 0 ? 0 : ZeroPriorityBehaviorsEndIndex;
-                        int e = Item->GetPriority() < 0 ? ZeroPriorityBehaviorsStartIndex : Parent->GetCount();
+                        int s = Item->GetPriority() < 0 ? 0 : ZeroPriorityModulesEndIndex;
+                        int e = Item->GetPriority() < 0 ? ZeroPriorityModulesStartIndex : Parent->GetCount();
 
                         if (Index < s || Index > e
                             || (Index != s && Parent->GetItem(Index - 1)->GetPriority() > Item->GetPriority())
@@ -63,8 +63,8 @@ namespace Engine
 
                         if (Item->GetPriority() < 0)
                         {
-                            ZeroPriorityBehaviorsStartIndex++;
-                            ZeroPriorityBehaviorsEndIndex++;
+                            ZeroPriorityModulesStartIndex++;
+                            ZeroPriorityModulesEndIndex++;
                         }
                     }
 
@@ -78,7 +78,7 @@ namespace Engine
                 },
 
                 // OnSetItem
-                [this](Data::Collections::List<Behavior*> * Parent, int& Index, Behavior *& Value)->bool
+                [this](Data::Collections::List<Module*> * Parent, int& Index, Module *& Value)->bool
                 {
                     try
                     {
@@ -102,11 +102,11 @@ namespace Engine
                 },
 
                 // OnRemove
-                [this](Data::Collections::List<Behavior*> * Parent, int& Index)->bool
+                [this](Data::Collections::List<Module*> * Parent, int& Index)->bool
                 {
                     try
                     {
-                        Behavior * Item = Parent->GetItem(Index);
+                        Module * Item = Parent->GetItem(Index);
 
                         if (isRunning)
                             Item->_End();
@@ -115,28 +115,28 @@ namespace Engine
                         int Priority = Item->GetPriority();
                         Parent->RemoveByIndex(Index);
                         if (Priority <= 0)
-                            ZeroPriorityBehaviorsEndIndex--;
+                            ZeroPriorityModulesEndIndex--;
                         if (Priority < 0)
-                            ZeroPriorityBehaviorsStartIndex--;
+                            ZeroPriorityModulesStartIndex--;
                         return true;
                     }
                     catch (std::exception& e) { throw e; }
                 },
 
                 // OnClear
-                [this](Data::Collections::List<Behavior*> * Parent)->bool
+                [this](Data::Collections::List<Module*> * Parent)->bool
                 {
-                    if (isRunning) Parent->ForEach([](Behavior * Item) {
+                    if (isRunning) Parent->ForEach([](Module * Item) {
                         Item->_End();
                         Item->Release();
                     });
-                    else Parent->ForEach([](Behavior * Item) {
+                    else Parent->ForEach([](Module * Item) {
                         Item->Release();
                     });
 
                     Parent->Clear();
-                    ZeroPriorityBehaviorsStartIndex = 0;
-                    ZeroPriorityBehaviorsEndIndex = 0;
+                    ZeroPriorityModulesStartIndex = 0;
+                    ZeroPriorityModulesEndIndex = 0;
                     return true;
                 }
             )
@@ -160,9 +160,9 @@ namespace Engine
             Schedules.Clear();
             AsyncSchedules.Clear();
 
-            Data::Collections::List<Behavior*> copy_list = Behaviors;
+            Data::Collections::List<Module*> copy_list = Modules;
             isRunning = true;
-            copy_list.ForEach([](Behavior * Item) { Item->_Start(); });
+            copy_list.ForEach([](Module * Item) { Item->_Start(); });
             copy_list.Clear();
             
             while (!ShouldEnd)
@@ -187,15 +187,15 @@ namespace Engine
                         Schedules.Pop()();
                     else break;
 
-                Behaviors.ForEach([](Behavior * Item) { if (Item->isActive) Item->Update(); });
+                Modules.ForEach([](Module * Item) { if (Item->isActive) Item->Update(); });
 
-                if (Behaviors.GetCount() == 0)
+                if (Modules.GetCount() == 0)
                     break;
             }
 
-            copy_list = Behaviors;
+            copy_list = Modules;
             isRunning = false;
-            copy_list.ForEach([](Behavior * Item) { Item->_End(); });
+            copy_list.ForEach([](Module * Item) { Item->_End(); });
             copy_list.Clear();
 
             Time = 0;

@@ -9,12 +9,12 @@ class QuitException {};
 
 void Prompt(Engine::Core::Container&);
 
-class TestBehavior : public Engine::Core::Behavior
+class TestModule : public Engine::Core::Module
 {
 public:
     std::string Name;
 
-    TestBehavior(std::string Name, int Priority) : Behavior(Priority)
+    TestModule(std::string Name, int Priority) : Module(Priority)
     {
         this->Name = Name;
     }
@@ -54,13 +54,13 @@ public:
 void Prompt(Engine::Core::Container& container)
 {
     print("");
-    print("add Name Priority       => Add behavior with Name and Priority");
-    print("ADD Name Priority Index => Add behavior with Name and Priority and Index");
-    print("rem Name                => Remove behavior with Name");
-    print("a   Name                => Activate behavior with Name");
-    print("d   Name                => Deactivate behavior with Name");
+    print("add Name Priority       => Add Module with Name and Priority");
+    print("ADD Name Priority Index => Add Module with Name and Priority and Index");
+    print("rem Name                => Remove Module with Name");
+    print("a   Name                => Activate Module with Name");
+    print("d   Name                => Deactivate Module with Name");
     print("");
-    print("f => Container.Behaviors.ForEach([](Item) { print(Item.GetName()); })");
+    print("f => Container.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
     print("s => Container.Start()");
     print("e => Container.End()");
@@ -77,41 +77,41 @@ void Prompt(Engine::Core::Container& container)
         {
             int arg;
             input(option >> arg);
-            container.Behaviors.Add(new TestBehavior(option, arg));
+            container.Modules.Add(new TestModule(option, arg));
         }
         else if (option == "ADD")
         {
             int arg1, arg2;
             input(option >> arg1 >> arg2);
-            container.Behaviors.Add(new TestBehavior(option, arg1), arg2);
+            container.Modules.Add(new TestModule(option, arg1), arg2);
         }
         else if (option == "rem")
         {
             input(option);
-            try { container.Behaviors.RemoveByIndex(container.Behaviors.Find(
-                [option](Engine::Core::Behavior * Item)->bool { return option == Item->GetName(); }
+            try { container.Modules.RemoveByIndex(container.Modules.Find(
+                [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 )); }
-            catch (std::out_of_range&) { print("Behavior with name '" << option << "' doesn't exist."); }
+            catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "a")
         {
             input(option);
-            try{ container.Behaviors.GetItem(container.Behaviors.Find(
-                [option](Engine::Core::Behavior * Item)->bool { return option == Item->GetName(); }
+            try{ container.Modules.GetItem(container.Modules.Find(
+                [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 ))->Activate(); }
-            catch (std::out_of_range&) { print("Behavior with name '" << option << "' doesn't exist."); }
+            catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "d")
         {
             input(option);
-            try{ container.Behaviors.GetItem(container.Behaviors.Find(
-                [option](Engine::Core::Behavior * Item)->bool { return option == Item->GetName(); }
+            try{ container.Modules.GetItem(container.Modules.Find(
+                [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 ))->Deactivate(); }
-            catch (std::out_of_range&) { print("Behavior with name '" << option << "' doesn't exist."); }
+            catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "f")
         {
-            container.Behaviors.ForEach([](Engine::Core::Behavior * Item) { print(Item->GetName()); });
+            container.Modules.ForEach([](Engine::Core::Module * Item) { print(Item->GetName()); });
         }
         else if (option == "s")
         {

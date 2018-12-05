@@ -11,9 +11,9 @@ namespace Engine
     {
         class Container // TODO: Rename
         {
-            friend Behavior;
+            friend Module;
         public:
-            Data::Collections::List<Behavior*> Behaviors;
+            Data::Collections::List<Module*> Modules;
 
             Container();
 
@@ -26,8 +26,8 @@ namespace Engine
             void Schedule(double Time, std::function<void()> Func, bool Async = false);
             void Schedule(double Time, bool Async, std::function<void()> Func);
         private:
-            int ZeroPriorityBehaviorsStartIndex;
-            int ZeroPriorityBehaviorsEndIndex;
+            int ZeroPriorityModulesStartIndex;
+            int ZeroPriorityModulesEndIndex;
 
             Data::Shared<bool> isRunning;
             Data::Shared<double> Time;

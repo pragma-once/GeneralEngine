@@ -29,6 +29,6 @@ namespace Engine
     namespace Core
     {
         class Container;
-        class Behavior;
+        class Module;
     }
 }

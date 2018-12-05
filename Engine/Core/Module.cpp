@@ -4,11 +4,11 @@ namespace Engine
 {
     namespace Core
     {
-        Behavior::Behavior() : Priority(0), isActive(true), container(nullptr) {}
+        Module::Module() : Priority(0), isActive(true), container(nullptr) {}
 
-        Behavior::Behavior(int Priority) : Priority(Priority), isActive(true), container(nullptr) {}
+        Module::Module(int Priority) : Priority(Priority), isActive(true), container(nullptr) {}
 
-        void Behavior::Activate()
+        void Module::Activate()
         {
             if (!isActive)
             {
@@ -18,7 +18,7 @@ namespace Engine
             }
         }
 
-        void Behavior::Deactivate()
+        void Module::Deactivate()
         {
             if (isActive)
             {
@@ -28,74 +28,74 @@ namespace Engine
             }
         }
 
-        bool Behavior::IsActive()
+        bool Module::IsActive()
         {
             return isActive;
         }
 
-        bool Behavior::IsRunning()
+        bool Module::IsRunning()
         {
             return container != nullptr && isActive && container.Get()->isRunning;
         }
 
-        int Behavior::GetPriority()
+        int Module::GetPriority()
         {
             return Priority;
         }
 
-        double Behavior::GetTime()
+        double Module::GetTime()
         {
             if (container == nullptr)
                 return 0;
             return container.Get()->Time;
         }
 
-        double Behavior::GetTimeDiff()
+        double Module::GetTimeDiff()
         {
             if (container == nullptr)
                 return 0;
             return container.Get()->TimeDiff;
         }
 
-        float Behavior::GetTimeFloat()
+        float Module::GetTimeFloat()
         {
             if (container == nullptr)
                 return 0;
             return container.Get()->TimeFloat;
         }
 
-        float Behavior::GetTimeDiffFloat()
+        float Module::GetTimeDiffFloat()
         {
             if (container == nullptr)
                 return 0;
             return container.Get()->TimeDiffFloat;
         }
 
-        Container * Behavior::GetContainer()
+        Container * Module::GetContainer()
         {
             return container;
         }
 
-        void Behavior::Acquire(Container * container)
+        void Module::Acquire(Container * container)
         {
             if (this->container != nullptr)
-                throw std::logic_error("Cannot add one Behavior to multiple Container[s].");
+                throw std::logic_error("Cannot add one Module to multiple Container[s].");
             this->container = container;
         }
 
-        void Behavior::Release()
+        void Module::Release()
         {
             container = nullptr;
         }
 
-        void Behavior::_Start()
+        void Module::_Start()
         {
             Start();
             if (isActive)
                 OnActivate();
         }
 
-        void Behavior::_End()
+        void Module::_End()
         {
             if (isActive)
                 OnDeactivate();

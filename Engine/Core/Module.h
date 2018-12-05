@@ -7,19 +7,19 @@ namespace Engine
 {
     namespace Core
     {
-        class Behavior // TODO: Rename
+        class Module
         {
             friend Container;
         public:
-            Behavior();
-            Behavior(int Priority);
+            Module();
+            Module(int Priority);
 
             void Activate();
             void Deactivate();
 
             bool IsActive();
             bool IsRunning();
-            int GetPriority(); // TODO: Rename Priority, including: Container's member variables, Container::Behaviors::OnRemove's local variable
+            int GetPriority();
 
             virtual std::string GetName() = 0;
         protected:
