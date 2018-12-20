@@ -16,15 +16,13 @@ public:
     // Engine::Data::Property<TestType, false, false> D; //-> error
 
     TestClass(TestType A, TestType B, TestType C)
+        : A([this](TestType Value) { a = Value; print(Name << ".A set to " << Value); }, [this]() { print("Getting " << Name << ".A: " << a); return a; })
+        , B([this]() { print("Getting " << Name << ".B: " << b); return b; })
+        , C([this](TestType Value) { c = Value; print(Name << ".C set to " << Value); })
     {
         a = A;
         b = B;
         c = C;
-
-        this->A.SetSetter([this](TestType Value) { a = Value; print(Name << ".A set to " << Value); });
-        this->A.SetGetter([this]() { print("Getting " << Name << ".A: " << a); return a; });
-        this->B.SetGetter([this]() { print("Getting " << Name << ".B: " << b); return b; });
-        this->C.SetSetter([this](TestType Value) { c = Value; print(Name << ".C set to " << Value); });
     }
 private:
     TestType a;
