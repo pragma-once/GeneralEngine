@@ -40,6 +40,8 @@ namespace Engine
 
                 void Expand(int Space);
                 void Shrink(int AdditionalSpace = 0);
+                void ToggleAutoShrink(bool Value);
+                bool IsAutoShrink();
 
                 ItemsType GetFirstItem();
                 PriorityType GetFirstPriority();
@@ -52,9 +54,10 @@ namespace Engine
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                int Count;
                 ResizableArray<ItemsType, false> * Items;
                 ResizableArray<PriorityType, false> * Priorities;
+                int Count;
+                bool AutoShrink;
             };
         }
     }
@@ -84,6 +87,7 @@ namespace Engine
                 Items = new ResizableArray<ItemsType, false>(InitialCapacity);
                 Priorities = new ResizableArray<PriorityType, false>(InitialCapacity);
                 Count = 0;
+                AutoShrink = true;
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -104,6 +108,7 @@ namespace Engine
                 Count = Op.Count;
                 *Items = *(Op.Items);
                 *Priorities = *(Op.Priorities);
+                AutoShrink = true;
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -127,6 +132,7 @@ namespace Engine
                 Count = Op.Count;
                 *Items = *(Op.Items);
                 *Priorities = *(Op.Priorities);
+                AutoShrink = true;
             }
             
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -192,7 +198,7 @@ namespace Engine
                 Count--;
                 ItemsType Item = Items->GetItem(Count);
 
-                if (Count < Items->GetLength() / 2)
+                if (AutoShrink && Count < Items->GetLength() / 2)
                     Items->Resize(Items->GetLength() / 2);
 
                 return Item;
@@ -209,7 +215,7 @@ namespace Engine
                 Count--;
                 ItemOut = Items->GetItem(Count);
 
-                if (Count < Items->GetLength() / 2)
+                if (AutoShrink && Count < Items->GetLength() / 2)
                     Items->Resize(Items->GetLength() / 2);
 
                 return true;
@@ -227,7 +233,7 @@ namespace Engine
                 ItemOut = Items->GetItem(Count);
                 PriorityOut = Priorities->GetItem(Count);
 
-                if (Count < Items->GetLength() / 2)
+                if (AutoShrink && Count < Items->GetLength() / 2)
                     Items->Resize(Items->GetLength() / 2);
 
                 return true;
@@ -239,7 +245,8 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = 0;
-                Items->Resize(0);
+                if (AutoShrink)
+                    Items->Resize(0);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -262,6 +269,22 @@ namespace Engine
                     throw std::domain_error("AdditionalSpace is less than zero.");
 
                 Items->Resize(Count + AdditionalSpace);
+            }
+
+            template <typename ItemsType>
+            void ENGINE_PRIORITY_QUEUE_CLASS_NAME::ToggleAutoShrink(bool Value)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                AutoShrink = Value;
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_PRIORITY_QUEUE_CLASS_NAME::IsAutoShrink()
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                return AutoShrink;
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>

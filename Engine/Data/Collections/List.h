@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_LIST_CLASS_NAME // TODO: bool AutoShrink for all collections
+            class ENGINE_LIST_CLASS_NAME
             {
             public:
                 typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
@@ -63,6 +63,8 @@ namespace Engine
 
                 void Expand(int Space);
                 void Shrink(int AdditionalSpace = 0);
+                void ToggleAutoShrink(bool Value);
+                bool IsAutoShrink();
 
                 ItemsType GetItem(int Index);
                 int Find(ItemsType Item, int FromIndex = 0);
@@ -82,6 +84,7 @@ namespace Engine
 #endif
                 ResizableArray<ItemsType, false> * Items;
                 int * CountRef;
+                bool * AutoShrinkRef;
 
                 ENGINE_LIST_CLASS_NAME * Parent;
                 ResizableArray<ENGINE_LIST_CLASS_NAME*, false> * Children; // Objects to destruct when destructed
@@ -134,6 +137,7 @@ namespace Engine
 
                 Items = new ResizableArray<ItemsType, false>(InitialCapacity);
                 CountRef = new int(0);
+                AutoShrinkRef = new bool(true);
 
                 OnAdd = [this](ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index) -> bool {
                     if (Index > *CountRef || Index < 0)
@@ -170,7 +174,7 @@ namespace Engine
                         Items->SetItem(i - 1, Items->GetItem(i));
                     (*CountRef)--;
 
-                    if (*CountRef < Items->GetLength() / 2)
+                    if (*AutoShrinkRef && *CountRef < Items->GetLength() / 2)
                         Items->Resize(Items->GetLength() / 2);
 
                     return true;
@@ -178,7 +182,8 @@ namespace Engine
 
                 OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
                     *CountRef = 0;
-                    Items->Resize(0);
+                    if (*AutoShrinkRef)
+                        Items->Resize(0);
                     return true;
                 };
             }
@@ -207,6 +212,7 @@ namespace Engine
 
                 Items = Parent->Items;
                 CountRef = Parent->CountRef;
+                AutoShrinkRef = Parent->AutoShrinkRef;
 
                 IsParentDestructed = false;
 
@@ -232,6 +238,7 @@ namespace Engine
                 {
                     delete Items;
                     delete CountRef;
+                    delete AutoShrinkRef;
                 }
                 delete Children;
             }
@@ -398,6 +405,22 @@ namespace Engine
                     throw std::domain_error("AdditionalSpace is less than zero.");
             }
 
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::ToggleAutoShrink(bool Value)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                *AutoShrinkRef = Value;
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_LIST_CLASS_NAME::IsAutoShrink()
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                return *AutoShrinkRef;
+            }
+
 
 
             template <typename ItemsType>
@@ -523,6 +546,7 @@ namespace Engine
 
                 Items = Parent->Items;
                 CountRef = Parent->CountRef;
+                AutoShrinkRef = Parent->AutoShrinkRef;
 
                 IsParentDestructed = false;
 

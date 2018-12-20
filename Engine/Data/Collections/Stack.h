@@ -40,6 +40,8 @@ namespace Engine
 
                 void Expand(int Space);
                 void Shrink(int AdditionalSpace = 0);
+                void ToggleAutoShrink(bool Value);
+                bool IsAutoShrink();
 
                 ItemsType GetTop();
                 int GetDepthOf(ItemsType Item);
@@ -51,8 +53,9 @@ namespace Engine
 #ifdef ENGINE_STACK_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                int Count;
                 ResizableArray<ItemsType, false> * Items;
+                int Count;
+                bool AutoShrink;
             };
         }
     }
@@ -81,6 +84,7 @@ namespace Engine
 
                 Items = new ResizableArray<ItemsType, false>(InitialCapacity);
                 Count = 0;
+                AutoShrink = true;
             }
 
             template <typename ItemsType>
@@ -99,6 +103,7 @@ namespace Engine
 
                 Count = Op.Count;
                 *Items = *(Op.Items);
+                AutoShrink = true;
             }
 
             template <typename ItemsType>
@@ -120,6 +125,7 @@ namespace Engine
 
                 Count = Op.Count;
                 *Items = *(Op.Items);
+                AutoShrink = true;
             }
 
             template <typename ItemsType>
@@ -159,7 +165,7 @@ namespace Engine
                 Count--;
                 ItemsType Item = Items->GetItem(Count);
 
-                if (Count < Items->GetLength() / 2)
+                if (AutoShrink && Count < Items->GetLength() / 2)
                     Items->Resize(Items->GetLength() / 2);
 
                 return Item;
@@ -176,7 +182,7 @@ namespace Engine
                 Count--;
                 ItemOut = Items->GetItem(Count);
 
-                if (Count < Items->GetLength() / 2)
+                if (AutoShrink && Count < Items->GetLength() / 2)
                     Items->Resize(Items->GetLength() / 2);
 
                 return true;
@@ -199,7 +205,8 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = 0;
-                Items->Resize(0);
+                if (AutoShrink)
+                    Items->Resize(0);
             }
 
             template <typename ItemsType>
@@ -222,6 +229,22 @@ namespace Engine
                     throw std::domain_error("AdditionalSpace is less than zero.");
 
                 Items->Resize(Count + AdditionalSpace);
+            }
+
+            template <typename ItemsType>
+            void ENGINE_STACK_CLASS_NAME::ToggleAutoShrink(bool Value)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                AutoShrink = Value;
+            }
+
+            template <typename ItemsType>
+            bool ENGINE_STACK_CLASS_NAME::IsAutoShrink()
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                return AutoShrink;
             }
 
             template <typename ItemsType>
