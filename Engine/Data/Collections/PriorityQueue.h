@@ -271,7 +271,7 @@ namespace Engine
                 Items->Resize(Count + AdditionalSpace);
             }
 
-            template <typename ItemsType>
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
             void ENGINE_PRIORITY_QUEUE_CLASS_NAME::ToggleAutoShrink(bool Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
@@ -279,7 +279,7 @@ namespace Engine
                 AutoShrink = Value;
             }
 
-            template <typename ItemsType>
+            template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
             bool ENGINE_PRIORITY_QUEUE_CLASS_NAME::IsAutoShrink()
             {
                 ENGINE_COLLECTION_READ_ACCESS;
