@@ -7,7 +7,7 @@ namespace Engine
     {
         Container::Container() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
                                  isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
-                                 ShouldEnd(false),
+                                 ShouldStop(false),
                                  Modules(
 
                 // OnAdd
@@ -87,7 +87,7 @@ namespace Engine
                             && (Index == Parent->GetCount() - 1 || Value->GetPriority() <= Parent->GetItem(Index + 1)->GetPriority()))
                         {
                             if (isRunning)
-                                Parent->GetItem(Index)->_End();
+                                Parent->GetItem(Index)->_Stop();
                             Parent->GetItem(Index)->Release();
 
                             Parent->SetItem(Index, Value);
@@ -111,7 +111,7 @@ namespace Engine
                         Module * Item = Parent->GetItem(Index);
 
                         if (isRunning)
-                            Item->_End();
+                            Item->_Stop();
                         Item->Release();
 
                         int Priority = Item->GetPriority();
@@ -129,7 +129,7 @@ namespace Engine
                 [this](Data::Collections::List<Module*> * Parent)->bool
                 {
                     if (isRunning) Parent->ForEach([](Module * Item) {
-                        Item->_End();
+                        Item->_Stop();
                         Item->Release();
                     });
                     else Parent->ForEach([](Module * Item) {
@@ -158,7 +158,7 @@ namespace Engine
             TimeFloat = 0;
             TimeDiffFloat = 0;
 
-            ShouldEnd = false;
+            ShouldStop = false;
             Schedules.Clear();
             AsyncSchedules.Clear();
 
@@ -167,7 +167,7 @@ namespace Engine
             copy_list.ForEach([](Module * Item) { Item->_Start(); });
             copy_list.Clear();
             
-            while (!ShouldEnd)
+            while (!ShouldStop)
             {
                 auto duration = std::chrono::steady_clock::now() - StartTime;
                 PreviousTime = Time;
@@ -189,7 +189,7 @@ namespace Engine
                         Schedules.Pop()();
                     else break;
 
-                Modules.ForEach([](Module * Item) { if (Item->isActive) Item->Update(); });
+                Modules.ForEach([](Module * Item) { if (Item->isActive) Item->OnUpdate(); });
 
                 if (Modules.GetCount() == 0)
                     break;
@@ -197,7 +197,7 @@ namespace Engine
 
             copy_list = Modules;
             isRunning = false;
-            copy_list.ForEach([](Module * Item) { Item->_End(); });
+            copy_list.ForEach([](Module * Item) { Item->_Stop(); });
             copy_list.Clear();
 
             Time = 0;
@@ -206,9 +206,9 @@ namespace Engine
             TimeDiffFloat = 0;
         }
 
-        void Container::End()
+        void Container::Stop()
         {
-            ShouldEnd = true;
+            ShouldStop = true;
         }
 
         bool Container::IsRunning()

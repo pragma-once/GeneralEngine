@@ -90,16 +90,16 @@ namespace Engine
 
         void Module::_Start()
         {
-            Start();
+            OnStart();
             if (isActive)
                 OnActivate();
         }
 
-        void Module::_End()
+        void Module::_Stop()
         {
             if (isActive)
                 OnDeactivate();
-            End();
+            OnStop();
         }
     }
 }

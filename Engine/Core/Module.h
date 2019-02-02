@@ -23,11 +23,11 @@ namespace Engine
 
             virtual std::string GetName() = 0;
         protected:
-            virtual void Start() = 0;
-            virtual void Update() = 0;
-            virtual void End() = 0;
+            virtual void OnStart() = 0;
             virtual void OnActivate() = 0;
+            virtual void OnUpdate() = 0;
             virtual void OnDeactivate() = 0;
+            virtual void OnStop() = 0;
 
             double GetTime();
             double GetTimeDiff();
@@ -43,7 +43,7 @@ namespace Engine
             void Acquire(Container*);
             void Release();
             void _Start();
-            void _End();
+            void _Stop();
         };
     }
 }

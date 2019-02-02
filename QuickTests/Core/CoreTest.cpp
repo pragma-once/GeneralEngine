@@ -19,18 +19,18 @@ public:
         this->Name = Name;
     }
 
-    virtual void Start() override
+    virtual void OnStart() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Starting: " << Name);
     }
 
-    virtual void Update() override
+    virtual void OnUpdate() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Updating: " << Name);
         Prompt(*GetContainer());
     }
 
-    virtual void End() override
+    virtual void OnStop() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Ending: " << Name);
     }
@@ -63,7 +63,7 @@ void Prompt(Engine::Core::Container& container)
     print("f => Container.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
     print("s => Container.Start()");
-    print("e => Container.End()");
+    print("e => Container.Stop()");
     print("");
     print("[anything] => pass");
     print("q          => quit");
@@ -119,7 +119,7 @@ void Prompt(Engine::Core::Container& container)
         }
         else if (option == "e")
         {
-            container.End();
+            container.Stop();
         }
         else if (option == "q")
         {

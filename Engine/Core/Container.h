@@ -25,7 +25,7 @@ namespace Engine
             /// Note that it's not an async start.
             void Start();
             /// @brief Stops the loop.
-            void End();
+            void Stop();
 
             /// @brief Checks if the loop is running.
             bool IsRunning();
@@ -66,7 +66,7 @@ namespace Engine
             Data::Shared<double> TimeDiff;
             Data::Shared<float> TimeFloat;
             Data::Shared<float> TimeDiffFloat;
-            Data::Shared<bool> ShouldEnd;
+            Data::Shared<bool> ShouldStop;
 
             Data::Collections::PriorityQueue<std::function<void()>, double> Schedules;
             Data::Collections::PriorityQueue<std::function<void()>, double> AsyncSchedules;
