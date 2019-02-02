@@ -5,8 +5,6 @@ namespace Engine
 {
     namespace Core
     {
-        class ContainerEndNowException {};
-
         Container::Container() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
                                  isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
                                  ShouldEnd(false),
@@ -15,10 +13,12 @@ namespace Engine
                 // OnAdd
                 [this](Data::Collections::List<Module*> * Parent, Module *& Item, int& Index)->bool
                 {
+                    // Don't add a module if it already exists in the list
                     if (Parent->Contains(Item))
                         return false;
 
-                    if (Item->GetPriority() == 0)
+                    // Decide where to place the module in the list
+                    if (Item->GetPriority() == 0) // 0 priority is more common
                     {
                         if (Index > ZeroPriorityModulesEndIndex)
                             Index = ZeroPriorityModulesEndIndex;
@@ -27,7 +27,7 @@ namespace Engine
 
                         ZeroPriorityModulesEndIndex++;
                     }
-                    else
+                    else // binary search
                     {
                         int s = Item->GetPriority() < 0 ? 0 : ZeroPriorityModulesEndIndex;
                         int e = Item->GetPriority() < 0 ? ZeroPriorityModulesStartIndex : Parent->GetCount();
@@ -68,6 +68,7 @@ namespace Engine
                         }
                     }
 
+                    // Add the module
                     Parent->Add(Item, Index);
 
                     Item->Acquire(this);
@@ -97,8 +98,9 @@ namespace Engine
 
                             return true;
                         }
+                        else throw std::invalid_argument("Module's priority doesn't match the index.");
                     }
-                    catch (std::exception& e) { throw e; }
+                    catch (std::exception& e) { throw e; } // Out of range Index
                 },
 
                 // OnRemove
@@ -120,7 +122,7 @@ namespace Engine
                             ZeroPriorityModulesStartIndex--;
                         return true;
                     }
-                    catch (std::exception& e) { throw e; }
+                    catch (std::exception& e) { throw e; } // Out of range Index
                 },
 
                 // OnClear
