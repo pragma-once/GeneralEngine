@@ -34,6 +34,17 @@ namespace Engine
                 typedef std::function<void(ItemsType Item, std::function<void()> Break)> ForEachBodyWithBreakFunction;
 
                 List(int InitialCapacity = 0);
+                /// @brief Creates a list and provides a user-defined interface for that list.
+                ///
+                /// The first parameter of the parameter functions, is a pointer
+                /// to the main modifiable list.
+                /// It's developer's responsibility to implement the right functions.
+                ///
+                /// @param OnAdd What to do on add
+                /// @param OnSetItem What to do when setting an item
+                /// @param OnRemove What to do on remove
+                /// @param OnClear What to do on clear
+                /// @return The list interface
                 List(
                     OnAddCallback OnAdd,
                     OnSetItemCallback OnSetItem,
@@ -47,34 +58,108 @@ namespace Engine
                 List(List<ItemsType, false>&);
                 List& operator=(List<ItemsType, false>&);
 
+                /// @brief Creates an interface for this list.
+                ///
+                /// The first parameter of the parameter functions, is a pointer
+                /// to this list/interface.
+                /// It's developer's responsibility to implement the right functions.
+                ///
+                /// @param OnAdd What to do on add
+                /// @param OnSetItem What to do when setting an item
+                /// @param OnRemove What to do on remove
+                /// @param OnClear What to do on clear
+                /// @return The created list interface
                 ENGINE_LIST_CLASS_NAME * CreateInterface(
-                    OnAddCallback OnAdd,
-                    OnSetItemCallback OnSetItem,
-                    OnRemoveCallback OnRemove,
-                    OnClearCallback OnClear
+                    OnAddCallback OnAdd = nullptr,
+                    OnSetItemCallback OnSetItem = nullptr,
+                    OnRemoveCallback OnRemove = nullptr,
+                    OnClearCallback OnClear = nullptr
                 );
 
+                /// @brief Adds/appends an item to the end of the list by default.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool Add(ItemsType Item);
+                /// @brief Inserts an item to the list at a specified index.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool Add(ItemsType Item, int Index);
+                /// @brief Sets an item at a specified index.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool SetItem(int Index, ItemsType Value);
+                /// @brief Removes the first found item that is equal to the Item parameter.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool Remove(ItemsType Item);
+                /// @brief Removes an item at a specified index.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool RemoveByIndex(int Index);
+                /// @brief Clears the list's items.
+                ///        Behavior might vary based on the interface that is used to access the list.
+                /// @return Success
                 bool Clear();
 
+                /// @brief Expands the allocated memory.
+                /// @param Space the space to add to the allocated memory.
                 void Expand(int Space);
+                /// @brief Shrinks the allocated memory.
+                /// @param AdditionalSpace The space that must be left empty.
+                ///        0 will shrink the space to fit the items count.
                 void Shrink(int AdditionalSpace = 0);
+                /// @brief Sets whether the list must shrink automatically on removing.
+                ///
+                /// Shrinking can be manually controlled in quick add/remove situations.
+                /// It is recommended to leave the AutoShrink on.
                 void ToggleAutoShrink(bool Value);
+                /// @brief Gets whether the list shrinks automatically.
+                ///
+                /// Set the value using ToggleAutoShrink(bool).
                 bool IsAutoShrink();
 
+                /// @brief Gets an item at a specified index.
                 ItemsType GetItem(int Index);
+                /// @brief Finds the first matching item.
+                ///
+                /// Searches for the item until the last item and
+                /// doesn't return back to search all items if FromIndex > 0.
+                ///
+                /// @param Item The search subject.
+                /// @param FromIndex The start index for searching.
+                /// @return The index of the matching item if found,
+                ///         -1 if no matching item found.
                 int Find(ItemsType Item, int FromIndex = 0);
+                /// @brief Checks if a matching item exists in the list.
+                /// @param Item The search subject.
+                /// @return True if the item was found once, else false.
                 bool Contains(ItemsType Item);
-                int Find(Predicate, int FromIndex = 0);
-                bool Contains(Predicate);
+                /// @brief Finds the first item that satisfies the Predicate.
+                /// @param Predicate Gets an item and returns whether it's the search subject.
+                ///        Predicate can be a lambda.
+                /// @param FromIndex The start index for searching.
+                /// @return The index of the item if found,
+                ///         -1 if no item found.
+                int Find(Predicate Predicate, int FromIndex = 0);
+                /// @brief Checks if an item exists in the list that satisfies the Predicate.
+                /// @param Predicate Gets an item and returns whether it's the search subject.
+                ///        Predicate can be a lambda.
+                /// @return True if the item was found once, else false.
+                bool Contains(Predicate Predicate);
+                /// @brief Gets the items count.
                 int GetCount();
+                /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
+                /// @brief Calls a function for each item.
+                /// @param Body The foreach body function, can be a lambda.
                 void ForEach(ForEachBody Body);
+                /// @brief Calls a function for each item.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Set BreakLoop boolean provided by lambda to true to break the loop.
                 void ForEach(ForEachBodyWithBreakBool Body);
+                /// @brief Calls a function for each item.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Call Break function provided by lambda to break the loop.
                 void ForEach(ForEachBodyWithBreakFunction Body);
             private:
                 class LoopBreaker {};
@@ -439,6 +524,8 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
+                if (FromIndex < 0)
+                    throw std::out_of_range("FromIndex cannot be less than zero.");
                 for (int i = FromIndex; i < *CountRef; i++)
                     if (Items->GetItem(i) == Item)
                         return i;
@@ -461,6 +548,8 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
+                if (FromIndex < 0)
+                    throw std::out_of_range("FromIndex cannot be less than zero.");
                 for (int i = FromIndex; i < *CountRef; i++)
                     if (P(Items->GetItem(i)))
                         return i;
