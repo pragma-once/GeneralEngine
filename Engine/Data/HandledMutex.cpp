@@ -14,6 +14,15 @@ namespace Engine
 
         HandledMutex::LockGuard::LockGuard() : m(nullptr) {}
 
+        void HandledMutex::LockGuard::Unlock()
+        {
+            if (m != nullptr)
+            {
+                m->Unlock();
+                m = nullptr;
+            }
+        }
+
         HandledMutex::LockGuard::~LockGuard()
         {
             if (m != nullptr)
@@ -31,6 +40,15 @@ namespace Engine
         }
 
         HandledMutex::SharedLockGuard::SharedLockGuard() : m(nullptr) {}
+
+        void HandledMutex::SharedLockGuard::Unlock()
+        {
+            if (m != nullptr)
+            {
+                m->UnlockShared();
+                m = nullptr;
+            }
+        }
 
         HandledMutex::SharedLockGuard::~SharedLockGuard()
         {

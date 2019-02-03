@@ -15,6 +15,7 @@ namespace Engine
             public:
                 LockGuard& operator=(const LockGuard&);
                 LockGuard();
+                void Unlock();
                 ~LockGuard();
             private:
                 LockGuard(HandledMutex * m);
@@ -27,6 +28,7 @@ namespace Engine
             public:
                 SharedLockGuard& operator=(const SharedLockGuard&);
                 SharedLockGuard();
+                void Unlock();
                 ~SharedLockGuard();
             private:
                 SharedLockGuard(HandledMutex * m);
