@@ -72,8 +72,10 @@ namespace Engine
                     Parent->Add(Item, Index);
 
                     Item->Acquire(this);
+                    auto guard = isRunning.Mutex.GetSharedLock();
                     if (isRunning)
                         Item->_Start();
+                    guard.Unlock();
 
                     return true;
                 },
@@ -86,15 +88,19 @@ namespace Engine
                         if ((Index == 0 || Parent->GetItem(Index - 1)->GetPriority() <= Value->GetPriority())
                             && (Index == Parent->GetCount() - 1 || Value->GetPriority() <= Parent->GetItem(Index + 1)->GetPriority()))
                         {
+                            auto guard = isRunning.Mutex.GetSharedLock();
                             if (isRunning)
                                 Parent->GetItem(Index)->_Stop();
+                            guard.Unlock();
                             Parent->GetItem(Index)->Release();
 
                             Parent->SetItem(Index, Value);
 
                             Value->Acquire(this);
+                            guard = isRunning.Mutex.GetSharedLock();
                             if (isRunning)
                                 Value->_Start();
+                            guard.Unlock();
 
                             return true;
                         }
@@ -110,8 +116,10 @@ namespace Engine
                     {
                         Module * Item = Parent->GetItem(Index);
 
+                        auto guard = isRunning.Mutex.GetSharedLock();
                         if (isRunning)
                             Item->_Stop();
+                        guard.Unlock();
                         Item->Release();
 
                         int Priority = Item->GetPriority();
@@ -128,6 +136,7 @@ namespace Engine
                 // OnClear
                 [this](Data::Collections::List<Module*> * Parent)->bool
                 {
+                    auto guard = isRunning.Mutex.GetSharedLock();
                     if (isRunning) Parent->ForEach([](Module * Item) {
                         Item->_Stop();
                         Item->Release();
@@ -135,6 +144,7 @@ namespace Engine
                     else Parent->ForEach([](Module * Item) {
                         Item->Release();
                     });
+                    guard.Unlock();
 
                     Parent->Clear();
                     ZeroPriorityModulesStartIndex = 0;
@@ -148,6 +158,11 @@ namespace Engine
 
         void Container::Start()
         {
+            // Mutex lock to: 1. Not allowing more than one async starts.
+            //                2. Provide thread safety for _Start and _Stop calls
+            //                   on modifications on the Modules list.
+            auto guard = isRunning.Mutex.GetLock();
+
             if (isRunning)
                 throw std::logic_error("Cannot start twice.");
 
@@ -165,6 +180,7 @@ namespace Engine
             Data::Collections::List<Module*> copy_list = Modules;
             isRunning = true;
             copy_list.ForEach([](Module * Item) { Item->_Start(); });
+            guard.Unlock();
             copy_list.Clear();
             
             while (!ShouldStop)
@@ -196,8 +212,11 @@ namespace Engine
             }
 
             copy_list = Modules;
+
+            guard = isRunning.Mutex.GetLock();
             isRunning = false;
             copy_list.ForEach([](Module * Item) { Item->_Stop(); });
+            guard.Unlock();
             copy_list.Clear();
 
             Time = 0;

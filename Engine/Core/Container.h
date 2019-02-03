@@ -61,7 +61,7 @@ namespace Engine
             int ZeroPriorityModulesStartIndex;
             int ZeroPriorityModulesEndIndex;
 
-            Data::Shared<bool> isRunning;
+            Data::Shared<bool, true> isRunning;
             Data::Shared<double> Time;
             Data::Shared<double> TimeDiff;
             Data::Shared<float> TimeFloat;
