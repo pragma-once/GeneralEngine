@@ -18,7 +18,10 @@ namespace Engine
         /// @brief Object that uses a setter and/or a getter to be set or get.
         template <typename Type, bool HasSetter = true, bool HasGetter = true> class Property;
         /// @brief Shared object with automatic mutex locking on set/get
-        template <typename Type> class Shared;
+        /// @tparam AllowManualLocking If true, The class will use a public HandledMutex that
+        ///         can also be controlled by user.
+        ///         Else, a private std::shared_mutex will be used.
+        template <typename Type, bool AllowManualLocking = false> class Shared;
 
         namespace Collections
         {
