@@ -123,16 +123,16 @@ void TestList()
             {
             case 'a':
                 input(arg_item);
-                print(list->Add(arg_item));
+                list->Add(arg_item);
                 break;
             case 'p':
                 input(arg_item);
                 input(arg_int);
-                print(list->Add(arg_item, arg_int));
+                list->Add(arg_item, arg_int);
                 break;
             case 'r':
                 input(arg_int);
-                print(list->RemoveByIndex(arg_int));
+                list->RemoveByIndex(arg_int);
                 break;
             case 'R':
                 input(arg_item);
@@ -141,10 +141,10 @@ void TestList()
             case 's':
                 input(arg_int);
                 input(arg_item);
-                print(list->SetItem(arg_int, arg_item));
+                list->SetItem(arg_int, arg_item);
                 break;
             case 'c':
-                print(list->Clear());
+                list->Clear();
                 break;
             case 'g':
                 input(arg_int);

@@ -24,10 +24,10 @@ namespace Engine
             class ENGINE_LIST_CLASS_NAME
             {
             public:
-                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
-                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
-                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
-                typedef std::function<bool(ENGINE_LIST_CLASS_NAME * Parent)> OnClearCallback;
+                typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
+                typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
+                typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, int& Index)> OnRemoveCallback;
+                typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent)> OnClearCallback;
                 typedef std::function<bool(ItemsType Item)> Predicate;
                 typedef std::function<void(ItemsType Item)> ForEachBody;
                 typedef std::function<void(ItemsType Item, bool& BreakLoop)> ForEachBodyWithBreakBool;
@@ -78,28 +78,23 @@ namespace Engine
 
                 /// @brief Adds/appends an item to the end of the list by default.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
-                bool Add(ItemsType Item);
+                void Add(ItemsType Item);
                 /// @brief Inserts an item to the list at a specified index.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
-                bool Add(ItemsType Item, int Index);
+                void Add(ItemsType Item, int Index);
                 /// @brief Sets an item at a specified index.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
-                bool SetItem(int Index, ItemsType Value);
+                void SetItem(int Index, ItemsType Value);
                 /// @brief Removes the first found item that is equal to the Item parameter.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
+                /// @return Whether an item was found to be removed.
                 bool Remove(ItemsType Item);
                 /// @brief Removes an item at a specified index.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
-                bool RemoveByIndex(int Index);
+                void RemoveByIndex(int Index);
                 /// @brief Clears the list's items.
                 ///        Behavior might vary based on the interface that is used to access the list.
-                /// @return Success
-                bool Clear();
+                void Clear();
 
                 /// @brief Expands the allocated memory.
                 /// @param Space the space to add to the allocated memory.
@@ -224,7 +219,7 @@ namespace Engine
                 CountRef = new int(0);
                 AutoShrinkRef = new bool(true);
 
-                OnAdd = [this](ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index) -> bool {
+                OnAdd = [this](ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index) {
                     if (Index > *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
@@ -239,19 +234,16 @@ namespace Engine
                     Items->SetItem(Index, Item);
 
                     (*CountRef)++;
-
-                    return true;
                 };
 
-                OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) -> bool {
+                OnSetItem = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value) {
                     if (Index >= *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
                     Items->SetItem(Index, Value);
-                    return true;
                 };
 
-                OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) -> bool {
+                OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) {
                     if (Index >= *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
@@ -261,15 +253,12 @@ namespace Engine
 
                     if (*AutoShrinkRef && *CountRef < Items->GetLength() / 2)
                         Items->Resize(Items->GetLength() / 2);
-
-                    return true;
                 };
 
-                OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) -> bool {
+                OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) {
                     *CountRef = 0;
                     if (*AutoShrinkRef)
                         Items->Resize(0);
-                    return true;
                 };
             }
 
@@ -415,28 +404,28 @@ namespace Engine
 
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Add(ItemsType Item)
+            void ENGINE_LIST_CLASS_NAME::Add(ItemsType Item)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 int Index = *CountRef;
-                return OnAdd(Parent, Item, Index);
+                OnAdd(Parent, Item, Index);
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Add(ItemsType Item, int Index)
+            void ENGINE_LIST_CLASS_NAME::Add(ItemsType Item, int Index)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                return OnAdd(Parent, Item, Index);
+                OnAdd(Parent, Item, Index);
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::SetItem(int Index, ItemsType Value)
+            void ENGINE_LIST_CLASS_NAME::SetItem(int Index, ItemsType Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                return OnSetItem(Parent, Index, Value);
+                OnSetItem(Parent, Index, Value);
             }
 
             template <typename ItemsType>
@@ -446,24 +435,27 @@ namespace Engine
 
                 for (int i = 0; i < *CountRef; i++)
                     if (Items->GetItem(i) == Item)
-                        return OnRemove(Parent, i);
+                    {
+                        OnRemove(Parent, i);
+                        return true;
+                    }
                 return false;
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::RemoveByIndex(int Index)
+            void ENGINE_LIST_CLASS_NAME::RemoveByIndex(int Index)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                return OnRemove(Parent, Index);
+                OnRemove(Parent, Index);
             }
 
             template <typename ItemsType>
-            bool ENGINE_LIST_CLASS_NAME::Clear()
+            void ENGINE_LIST_CLASS_NAME::Clear()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                return OnClear(Parent);
+                OnClear(Parent);
             }
 
 

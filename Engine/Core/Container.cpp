@@ -11,11 +11,11 @@ namespace Engine
                                  Modules(
 
                 // OnAdd
-                [this](Data::Collections::List<Module*> * Parent, Module *& Item, int& Index)->bool
+                [this](Data::Collections::List<Module*> * Parent, Module *& Item, int& Index)
                 {
                     // Don't add a module if it already exists in the list
                     if (Parent->Contains(Item))
-                        return false;
+                        throw std::invalid_argument("The module is already added to the list.");
 
                     // Decide where to place the module in the list
                     if (Item->GetPriority() == 0) // 0 priority is more common
@@ -76,12 +76,10 @@ namespace Engine
                     if (isRunning)
                         Item->_Start();
                     guard.Unlock();
-
-                    return true;
                 },
 
                 // OnSetItem
-                [this](Data::Collections::List<Module*> * Parent, int& Index, Module *& Value)->bool
+                [this](Data::Collections::List<Module*> * Parent, int& Index, Module *& Value)
                 {
                     try
                     {
@@ -101,8 +99,6 @@ namespace Engine
                             if (isRunning)
                                 Value->_Start();
                             guard.Unlock();
-
-                            return true;
                         }
                         else throw std::invalid_argument("Module's priority doesn't match the index.");
                     }
@@ -110,7 +106,7 @@ namespace Engine
                 },
 
                 // OnRemove
-                [this](Data::Collections::List<Module*> * Parent, int& Index)->bool
+                [this](Data::Collections::List<Module*> * Parent, int& Index)
                 {
                     try
                     {
@@ -128,13 +124,12 @@ namespace Engine
                             ZeroPriorityModulesEndIndex--;
                         if (Priority < 0)
                             ZeroPriorityModulesStartIndex--;
-                        return true;
                     }
                     catch (std::exception& e) { throw e; } // Out of range Index
                 },
 
                 // OnClear
-                [this](Data::Collections::List<Module*> * Parent)->bool
+                [this](Data::Collections::List<Module*> * Parent)
                 {
                     auto guard = isRunning.Mutex.GetSharedLock();
                     if (isRunning) Parent->ForEach([](Module * Item) {
@@ -149,7 +144,6 @@ namespace Engine
                     Parent->Clear();
                     ZeroPriorityModulesStartIndex = 0;
                     ZeroPriorityModulesEndIndex = 0;
-                    return true;
                 }
             )
         {
