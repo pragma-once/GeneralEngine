@@ -30,9 +30,16 @@ namespace Engine
                 ResizableArray(const ResizableArray<T, false>&);
                 ResizableArray& operator=(const ResizableArray<T, false>&);
 
+                /// @brief Gets an item at a specified index.
                 T GetItem(int Index);
+                /// @brief Sets an item at a specified index.
                 void SetItem(int Index, T Value);
+                /// @brief Gets the current length of the array.
                 int GetLength();
+                /// @brief Sets the new length of the array.
+                ///
+                /// Some array items will be removed if NewLength < current length.
+                /// This function reallocates the whole array over.
                 void Resize(int NewLength);
             private:
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
@@ -47,6 +54,14 @@ namespace Engine
 
 // DEFINITION ----------------------------------------------------------------
 
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+    #define ENGINE_COLLECTION_WRITE_ACCESS std::lock_guard<std::shared_mutex> guard(Mutex);
+    #define ENGINE_COLLECTION_READ_ACCESS std::shared_lock<std::shared_mutex> guard(Mutex);
+#else
+    #define ENGINE_COLLECTION_WRITE_ACCESS ;
+    #define ENGINE_COLLECTION_READ_ACCESS ;
+#endif
+
 namespace Engine
 {
     namespace Data
@@ -56,9 +71,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(int Length)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (Length > 0)
                 {
@@ -76,9 +89,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::~ResizableArray()
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (Array != nullptr)
                     delete[] Array;
@@ -87,9 +98,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, true>& Op)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
                 Length = Op.Length;
                 if (Op.Length == 0) Array = nullptr;
@@ -103,9 +112,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, true>& Op)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
                 if (Op.Length == 0) Array = nullptr;
                 else
@@ -126,9 +133,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, false>& Op)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 Length = Op.Length;
                 if (Op.Length == 0) Array = nullptr;
                 else
@@ -141,9 +146,7 @@ namespace Engine
             template <typename T>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
@@ -163,9 +166,7 @@ namespace Engine
             template <typename T>
             T ENGINE_RESIZABLE_ARRAY_CLASS_NAME::GetItem(int Index)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::shared_lock<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_READ_ACCESS;
 
                 if (Index >= 0 && Index < Length)
                     return Array[Index];
@@ -175,9 +176,7 @@ namespace Engine
             template <typename T>
             void ENGINE_RESIZABLE_ARRAY_CLASS_NAME::SetItem(int Index, T Value)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (Index >= 0 && Index < Length)
                     Array[Index] = Value;
@@ -188,18 +187,14 @@ namespace Engine
             template <typename T>
             int ENGINE_RESIZABLE_ARRAY_CLASS_NAME::GetLength()
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::shared_lock<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_READ_ACCESS;
 
                 return Length;
             }
             template <typename T>
             void ENGINE_RESIZABLE_ARRAY_CLASS_NAME::Resize(int NewLength)
             {
-#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                std::lock_guard<std::shared_mutex> guard(Mutex);
-#endif
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (NewLength > 0)
                 {
@@ -227,6 +222,9 @@ namespace Engine
         }
     }
 }
+
+#undef ENGINE_COLLECTION_WRITE_ACCESS
+#undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_RESIZABLE_ARRAY_CLASS_NAME
 
