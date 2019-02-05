@@ -114,7 +114,13 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
-                if (Op.Length == 0) Array = nullptr;
+                if (Op.Length == 0)
+                {
+                    Length = 0;
+                    if (Array != nullptr)
+                            delete[] Array;
+                    Array = nullptr;
+                }
                 else
                 {
                     if (Length != Op.Length)
@@ -125,9 +131,10 @@ namespace Engine
                         Array = new T[Op.Length];
                     }
 
-                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
+
+                return *this;
             }
 
             template <typename T>
@@ -147,7 +154,13 @@ namespace Engine
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                if (Op.Length == 0) Array = nullptr;
+                if (Op.Length == 0)
+                {
+                    Length = 0;
+                    if (Array != nullptr)
+                            delete[] Array;
+                    Array = nullptr;
+                }
                 else
                 {
                     if (Length != Op.Length)
@@ -158,9 +171,10 @@ namespace Engine
                         Array = new T[Op.Length];
                     }
 
-                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
+
+                return *this;
             }
 
             template <typename T>
