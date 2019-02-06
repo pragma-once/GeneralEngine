@@ -72,7 +72,7 @@ namespace Engine
                 /// @param FromDepth The start depth for searching.
                 /// @return The 0-based depth of the matching item if found,
                 ///         -1 if no matching item found.
-                int GetDepthOf(ItemsType Item, int FromDepth = 0); // TODO: Add a FromDepth=0 parameter
+                int GetDepthOf(ItemsType Item, int FromDepth = 0);
                 /// @brief Checks if a matching item exists in the stack.
                 /// @param Item The search subject.
                 /// @return True if the item was found once, else false.
