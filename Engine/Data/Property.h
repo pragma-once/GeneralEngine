@@ -23,8 +23,18 @@ namespace Engine
         template <typename Type>
         class ENGINE_PROPERTY_CLASS_NAME
         {
+
+#if ENGINE_PROPERTY_NO_GETTER || ENGINE_PROPERTY_NO_SETTER
+
             friend Property<Type, true, true>;
+
+#endif
+#if !defined(ENGINE_PROPERTY_NO_GETTER) || ENGINE_PROPERTY_NO_SETTER
+
             friend Property<Type, true, false>;
+
+#endif
+
         public:
 
 #if ENGINE_PROPERTY_NO_GETTER
