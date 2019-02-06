@@ -32,22 +32,56 @@ namespace Engine
                 Stack(const Stack<ItemsType, false>&);
                 Stack& operator=(const Stack<ItemsType, false>&);
 
+                /// @brief Pushes an item to the top.
                 void Push(ItemsType Item);
+                /// @brief Pops the top item.
+                ///
+                /// @return The popped item.
                 ItemsType Pop();
+                /// @brief Pops the top item.
+                ///
+                /// @param ItemOut The popped item, if any.
+                /// @return Whether there was an item to pop.
                 bool Pop(ItemsType& ItemOut);
+                /// @brief Sets the top item.
                 void SetTop(ItemsType Value);
+                /// @brief Clears the stack.
                 void Clear();
 
+                /// @brief Expands the allocated memory.
+                /// @param Space the space to add to the allocated memory.
                 void Expand(int Space);
+                /// @brief Shrinks the allocated memory.
+                /// @param AdditionalSpace The space that must be left empty.
+                ///        0 will shrink the space to fit the items.
                 void Shrink(int AdditionalSpace = 0);
+                /// @brief Sets whether the stack must shrink automatically on removing.
+                ///
+                /// Shrinking can be manually controlled in frequent push/pop situations.
+                /// It is recommended to leave the AutoShrink on.
                 void ToggleAutoShrink(bool Value);
+                /// @brief Gets whether the stack shrinks automatically.
+                ///
+                /// Set the value using ToggleAutoShrink(bool).
                 bool IsAutoShrink();
 
+                /// @brief Gets the top item, without popping it.
                 ItemsType GetTop();
-                int GetDepthOf(ItemsType Item);
+                /// @brief Gets the 0-based depth of the top matching item.
+                /// @param Item The search subject.
+                /// @param FromDepth The start depth for searching.
+                /// @return The 0-based depth of the matching item if found,
+                ///         -1 if no matching item found.
+                int GetDepthOf(ItemsType Item); // TODO: Add a FromDepth=0 parameter
+                /// @brief Checks if a matching item exists in the stack.
+                /// @param Item The search subject.
+                /// @return True if the item was found once, else false.
                 bool Contains(ItemsType Item);
+                /// @brief Gets the items count.
                 int GetCount();
+                /// @brief Checks whether the stack is empty.
                 bool IsEmpty();
+                /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
             private:
 #ifdef ENGINE_STACK_USE_MUTEX
