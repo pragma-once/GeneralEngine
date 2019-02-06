@@ -9,7 +9,7 @@ namespace Engine
 {
     namespace Core
     {
-        class Container // TODO: Rename
+        class Loop
         {
             friend Module;
         public:
@@ -18,7 +18,7 @@ namespace Engine
             /// Add the modules to this list.
             Data::Collections::List<Module*> Modules;
 
-            Container();
+            Loop();
 
             /// @brief Starts the loop.
             ///
@@ -32,7 +32,7 @@ namespace Engine
 
             /// @brief Schedules to call a function.
             ///
-            /// Will not call if the Container is stopped before the call.
+            /// Will not call if the Loop is stopped before the call.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.
@@ -41,7 +41,7 @@ namespace Engine
             void Schedule(std::function<void()> Task, double Time = 0, bool Async = false);
             /// @brief Schedules to call a function.
             ///
-            /// Will not call if the Container is stopped before the call.
+            /// Will not call if the Loop is stopped before the call.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.
@@ -50,7 +50,7 @@ namespace Engine
             void Schedule(double Time, std::function<void()> Task, bool Async = false);
             /// @brief Schedules to call a function.
             ///
-            /// Will not call if the Container is stopped before the call.
+            /// Will not call if the Loop is stopped before the call.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.

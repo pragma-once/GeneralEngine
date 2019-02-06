@@ -5,7 +5,7 @@ namespace Engine
 {
     namespace Core
     {
-        Container::Container() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
+        Loop::Loop() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
                                  isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
                                  ShouldStop(false),
                                  Modules(
@@ -150,7 +150,7 @@ namespace Engine
 
         }
 
-        void Container::Start()
+        void Loop::Start()
         {
             // Mutex lock to: 1. Not allowing more than one async starts.
             //                2. Provide thread safety for _Start and _Stop calls
@@ -219,29 +219,29 @@ namespace Engine
             TimeDiffFloat = 0;
         }
 
-        void Container::Stop()
+        void Loop::Stop()
         {
             ShouldStop = true;
         }
 
-        bool Container::IsRunning()
+        bool Loop::IsRunning()
         {
             return isRunning;
         }
 
-        void Container::Schedule(std::function<void()> Func, double Time, bool Async)
+        void Loop::Schedule(std::function<void()> Func, double Time, bool Async)
         {
             if (Async) AsyncSchedules.Push(Func, Time);
             else Schedules.Push(Func, Time);
         }
 
-        void Container::Schedule(double Time, std::function<void()> Func, bool Async)
+        void Loop::Schedule(double Time, std::function<void()> Func, bool Async)
         {
             if (Async) AsyncSchedules.Push(Func, Time);
             else Schedules.Push(Func, Time);
         }
 
-        void Container::Schedule(double Time, bool Async, std::function<void()> Func)
+        void Loop::Schedule(double Time, bool Async, std::function<void()> Func)
         {
             if (Async) AsyncSchedules.Push(Func, Time);
             else Schedules.Push(Func, Time);

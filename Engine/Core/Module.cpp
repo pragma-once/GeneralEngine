@@ -4,16 +4,16 @@ namespace Engine
 {
     namespace Core
     {
-        Module::Module() : Priority(0), isActive(true), container(nullptr) {}
+        Module::Module() : Priority(0), isActive(true), loop(nullptr) {}
 
-        Module::Module(int Priority) : Priority(Priority), isActive(true), container(nullptr) {}
+        Module::Module(int Priority) : Priority(Priority), isActive(true), loop(nullptr) {}
 
         void Module::Activate()
         {
             if (!isActive)
             {
                 isActive = true;
-                if (container != nullptr && container.Get()->isRunning)
+                if (loop != nullptr && loop.Get()->isRunning)
                     OnActivate();
             }
         }
@@ -22,7 +22,7 @@ namespace Engine
         {
             if (isActive)
             {
-                if (container != nullptr && container.Get()->isRunning)
+                if (loop != nullptr && loop.Get()->isRunning)
                     OnDeactivate();
                 isActive = false;
             }
@@ -35,7 +35,7 @@ namespace Engine
 
         bool Module::IsRunning()
         {
-            return container != nullptr && isActive && container.Get()->isRunning;
+            return loop != nullptr && isActive && loop.Get()->isRunning;
         }
 
         int Module::GetPriority()
@@ -45,47 +45,47 @@ namespace Engine
 
         double Module::GetTime()
         {
-            if (container == nullptr)
+            if (loop == nullptr)
                 return 0;
-            return container.Get()->Time;
+            return loop.Get()->Time;
         }
 
         double Module::GetTimeDiff()
         {
-            if (container == nullptr)
+            if (loop == nullptr)
                 return 0;
-            return container.Get()->TimeDiff;
+            return loop.Get()->TimeDiff;
         }
 
         float Module::GetTimeFloat()
         {
-            if (container == nullptr)
+            if (loop == nullptr)
                 return 0;
-            return container.Get()->TimeFloat;
+            return loop.Get()->TimeFloat;
         }
 
         float Module::GetTimeDiffFloat()
         {
-            if (container == nullptr)
+            if (loop == nullptr)
                 return 0;
-            return container.Get()->TimeDiffFloat;
+            return loop.Get()->TimeDiffFloat;
         }
 
-        Container * Module::GetContainer()
+        Loop * Module::GetLoop()
         {
-            return container;
+            return loop;
         }
 
-        void Module::Acquire(Container * container)
+        void Module::Acquire(Loop * loop)
         {
-            if (this->container != nullptr)
-                throw std::logic_error("Cannot add one Module to multiple Container[s].");
-            this->container = container;
+            if (this->loop != nullptr)
+                throw std::logic_error("Cannot add one Module to multiple loop[s].");
+            this->loop = loop;
         }
 
         void Module::Release()
         {
-            container = nullptr;
+            loop = nullptr;
         }
 
         void Module::_Start()

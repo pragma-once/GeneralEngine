@@ -9,7 +9,7 @@ namespace Engine
     {
         class Module
         {
-            friend Container;
+            friend Loop;
         public:
             Module();
             Module(int Priority);
@@ -34,13 +34,13 @@ namespace Engine
             float GetTimeFloat();
             float GetTimeDiffFloat();
 
-            Container * GetContainer();
+            Loop * GetLoop();
         private:
             const int Priority;
             Data::Shared<bool> isActive;
-            Data::Shared<Container*> container;
+            Data::Shared<Loop*> loop;
 
-            void Acquire(Container*);
+            void Acquire(Loop*);
             void Release();
             void _Start();
             void _Stop();

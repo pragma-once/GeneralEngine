@@ -7,7 +7,7 @@
 
 class QuitException {};
 
-void Prompt(Engine::Core::Container&);
+void Prompt(Engine::Core::Loop&);
 
 class TestModule : public Engine::Core::Module
 {
@@ -27,7 +27,7 @@ public:
     virtual void OnUpdate() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Updating: " << Name);
-        Prompt(*GetContainer());
+        Prompt(*GetLoop());
     }
 
     virtual void OnStop() override
@@ -51,7 +51,7 @@ public:
     }
 };
 
-void Prompt(Engine::Core::Container& container)
+void Prompt(Engine::Core::Loop& loop)
 {
     print("");
     print("add Name Priority       => Add Module with Name and Priority");
@@ -60,10 +60,10 @@ void Prompt(Engine::Core::Container& container)
     print("a   Name                => Activate Module with Name");
     print("d   Name                => Deactivate Module with Name");
     print("");
-    print("f => Container.Modules.ForEach([](Item) { print(Item.GetName()); })");
+    print("f => Loop.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
-    print("s => Container.Start()");
-    print("e => Container.Stop()");
+    print("s => Loop.Start()");
+    print("e => Loop.Stop()");
     print("");
     print("[anything] => pass");
     print("q          => quit");
@@ -77,18 +77,18 @@ void Prompt(Engine::Core::Container& container)
         {
             int arg;
             input(option >> arg);
-            container.Modules.Add(new TestModule(option, arg));
+            loop.Modules.Add(new TestModule(option, arg));
         }
         else if (option == "ADD")
         {
             int arg1, arg2;
             input(option >> arg1 >> arg2);
-            container.Modules.Add(new TestModule(option, arg1), arg2);
+            loop.Modules.Add(new TestModule(option, arg1), arg2);
         }
         else if (option == "rem")
         {
             input(option);
-            try { container.Modules.RemoveByIndex(container.Modules.Find(
+            try { loop.Modules.RemoveByIndex(loop.Modules.Find(
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 )); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
@@ -96,7 +96,7 @@ void Prompt(Engine::Core::Container& container)
         else if (option == "a")
         {
             input(option);
-            try{ container.Modules.GetItem(container.Modules.Find(
+            try{ loop.Modules.GetItem(loop.Modules.Find(
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 ))->Activate(); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
@@ -104,22 +104,22 @@ void Prompt(Engine::Core::Container& container)
         else if (option == "d")
         {
             input(option);
-            try{ container.Modules.GetItem(container.Modules.Find(
+            try{ loop.Modules.GetItem(loop.Modules.Find(
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 ))->Deactivate(); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "f")
         {
-            container.Modules.ForEach([](Engine::Core::Module * Item) { print(Item->GetName()); });
+            loop.Modules.ForEach([](Engine::Core::Module * Item) { print(Item->GetName()); });
         }
         else if (option == "s")
         {
-            container.Start();
+            loop.Start();
         }
         else if (option == "e")
         {
-            container.Stop();
+            loop.Stop();
         }
         else if (option == "q")
         {
@@ -131,10 +131,10 @@ void Prompt(Engine::Core::Container& container)
 
 int main()
 {
-    Engine::Core::Container container;
+    Engine::Core::Loop loop;
     while (true) try
     {
-        Prompt(container);
+        Prompt(loop);
     }
     catch (QuitException&) { return 0; }
 }
