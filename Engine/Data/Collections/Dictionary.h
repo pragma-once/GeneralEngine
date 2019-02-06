@@ -1,17 +1,17 @@
 #ifndef ENGINE_DICTIONARY_INCLUDED
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
-#define ENGINE_DICTIONARY_INCLUDED
+    #define ENGINE_DICTIONARY_INCLUDED
 #endif
 
 #include "../../Engine.dec.h"
 #include "ResizableArray.h"
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
-#include "../HandledMutex.h"
-#define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, true>
+    #include "../HandledMutex.h"
+    #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, true>
 #else
-#define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, false>
+    #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, false>
 #endif
 
 namespace Engine
@@ -76,11 +76,11 @@ namespace Engine
 // DEFINITION ----------------------------------------------------------------
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
-#define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock();
-#define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock();
+    #define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock();
+    #define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock();
 #else
-#define ENGINE_COLLECTION_WRITE_ACCESS ;
-#define ENGINE_COLLECTION_READ_ACCESS ;
+    #define ENGINE_COLLECTION_WRITE_ACCESS ;
+    #define ENGINE_COLLECTION_READ_ACCESS ;
 #endif
 
 namespace Engine
@@ -317,9 +317,9 @@ namespace Engine
 #undef ENGINE_DICTIONARY_CLASS_NAME
 
 #ifndef ENGINE_DICTIONARY_USE_MUTEX
-#define ENGINE_DICTIONARY_USE_MUTEX
-#include "Dictionary.h"
-#undef ENGINE_DICTIONARY_USE_MUTEX
+    #define ENGINE_DICTIONARY_USE_MUTEX
+    #include "Dictionary.h"
+    #undef ENGINE_DICTIONARY_USE_MUTEX
 #endif
 
 #endif // Include Guard
