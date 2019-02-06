@@ -11,5 +11,5 @@
 #include "Data/Collections/PriorityQueue.h"
 #include "Data/Collections/Dictionary.h"
 
-#include "Core/Container.h"
+#include "Core/Loop.h"
 #include "Core/Module.h"
