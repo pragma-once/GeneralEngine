@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            class ENGINE_PRIORITY_QUEUE_CLASS_NAME
+            class ENGINE_PRIORITY_QUEUE_CLASS_NAME final
             {
             public:
                 PriorityQueue(int InitialCapacity = 0);

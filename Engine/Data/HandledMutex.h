@@ -6,10 +6,10 @@ namespace Engine
 {
     namespace Data
     {
-        class HandledMutex
+        class HandledMutex final
         {
         public:
-            struct LockGuard
+            class LockGuard final
             {
                 friend HandledMutex;
             public:
@@ -22,7 +22,7 @@ namespace Engine
                 HandledMutex * m;
             };
 
-            struct SharedLockGuard
+            class SharedLockGuard final
             {
                 friend HandledMutex;
             public:

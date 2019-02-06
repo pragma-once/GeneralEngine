@@ -19,7 +19,7 @@ namespace Engine
         namespace Collections
         {
             template <typename T>
-            class ENGINE_RESIZABLE_ARRAY_CLASS_NAME
+            class ENGINE_RESIZABLE_ARRAY_CLASS_NAME final
             {
             public:
                 ResizableArray(int Length = 0);

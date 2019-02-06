@@ -8,6 +8,8 @@ namespace Engine
 
         Module::Module(int Priority) : Priority(Priority), isActive(true), loop(nullptr) {}
 
+        Module::~Module() {};
+
         void Module::Activate()
         {
             if (!isActive)

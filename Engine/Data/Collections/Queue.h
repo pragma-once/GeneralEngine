@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_QUEUE_CLASS_NAME
+            class ENGINE_QUEUE_CLASS_NAME final
             {
             public:
                 Queue(int InitialCapacity = 0);

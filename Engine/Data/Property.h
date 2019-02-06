@@ -21,7 +21,7 @@ namespace Engine
     namespace Data
     {
         template <typename Type>
-        class ENGINE_PROPERTY_CLASS_NAME
+        class ENGINE_PROPERTY_CLASS_NAME final
         {
 
 #if ENGINE_PROPERTY_NO_GETTER || ENGINE_PROPERTY_NO_SETTER

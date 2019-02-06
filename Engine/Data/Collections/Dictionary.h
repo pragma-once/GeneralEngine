@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename KeyType, typename ValueType>
-            class ENGINE_DICTIONARY_CLASS_NAME
+            class ENGINE_DICTIONARY_CLASS_NAME final
             {
             public:
                 typedef std::function<void(KeyType Key)> ForEachBody;

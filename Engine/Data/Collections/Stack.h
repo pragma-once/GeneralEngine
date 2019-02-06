@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_STACK_CLASS_NAME
+            class ENGINE_STACK_CLASS_NAME final
             {
             public:
                 Stack(int InitialCapacity = 0);

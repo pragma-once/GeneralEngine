@@ -9,7 +9,7 @@ namespace Engine
 {
     namespace Core
     {
-        class Loop
+        class Loop final
         {
             friend Module;
         public:

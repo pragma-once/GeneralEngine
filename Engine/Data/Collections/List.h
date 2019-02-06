@@ -21,7 +21,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_LIST_CLASS_NAME
+            class ENGINE_LIST_CLASS_NAME final
             {
             public:
                 typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;

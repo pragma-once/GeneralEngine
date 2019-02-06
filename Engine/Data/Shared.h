@@ -18,7 +18,7 @@ namespace Engine
     namespace Data
     {
         template <typename Type>
-        class ENGINE_SHARED_CLASS_NAME
+        class ENGINE_SHARED_CLASS_NAME final
         {
         public:
 

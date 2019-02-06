@@ -14,6 +14,8 @@ namespace Engine
             Module();
             Module(int Priority);
 
+            virtual ~Module();
+
             void Activate();
             void Deactivate();
 
