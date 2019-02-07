@@ -81,7 +81,7 @@ namespace Engine
         void Module::Acquire(Loop * loop)
         {
             if (this->loop != nullptr)
-                throw std::logic_error("Cannot add one Module to multiple loop[s].");
+                throw std::logic_error("Cannot add one Module to multiple Loops.");
             this->loop = loop;
         }
 
