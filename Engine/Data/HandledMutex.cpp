@@ -140,8 +140,14 @@ namespace Engine
         {
             std::unique_lock<std::mutex> m(OwnerMutex);
 
-            if (SharedOwners->Contains(std::this_thread::get_id()) || (HasOwner && (Owner == std::this_thread::get_id())))
+            if (SharedOwners->Contains(std::this_thread::get_id()))
                 return false;
+
+            if (HasOwner && (Owner == std::this_thread::get_id()))
+            {
+                SharedOwners->Add(std::this_thread::get_id());
+                return true;
+            }
 
             while (HasOwner)
             {
