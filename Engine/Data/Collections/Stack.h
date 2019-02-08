@@ -35,11 +35,9 @@ namespace Engine
                 /// @brief Pushes an item to the top.
                 void Push(ItemsType Item);
                 /// @brief Pops the top item.
-                ///
                 /// @return The popped item.
                 ItemsType Pop();
                 /// @brief Pops the top item.
-                ///
                 /// @param ItemOut The popped item, if any.
                 /// @return Whether there was an item to pop.
                 bool Pop(ItemsType& ItemOut);
