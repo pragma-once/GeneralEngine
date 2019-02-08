@@ -32,23 +32,59 @@ namespace Engine
                 PriorityQueue(const PriorityQueue<ItemsType, PriorityType, false>&);
                 PriorityQueue& operator=(const PriorityQueue<ItemsType, PriorityType, false>&);
 
+                /// @brief Inserts an item to the back of its priority group.
                 void Push(ItemsType Item, PriorityType Priority);
+                /// @brief Pops the first item.
+                /// @return The popped item.
                 ItemsType Pop();
+                /// @brief Pops the first item.
+                /// @param ItemOut The popped item, if any.
+                /// @return Whether there was an item to pop.
                 bool Pop(ItemsType& ItemOut);
+                /// @brief Pops the first item.
+                /// @param ItemOut The popped item, if any.
+                /// @param PriorityOut The popped item priority, if any.
+                /// @return Whether there was an item to pop.
                 bool Pop(ItemsType& ItemOut, PriorityType& PriorityOut);
+                /// @brief Clears the priority queue.
                 void Clear();
 
+                /// @brief Expands the allocated memory.
+                /// @param Space the space to add to the allocated memory.
                 void Expand(int Space);
+                /// @brief Shrinks the allocated memory.
+                /// @param AdditionalSpace The space that must be left empty.
+                ///        0 will shrink the space to fit the items.
                 void Shrink(int AdditionalSpace = 0);
+                /// @brief Sets whether the priority queue must shrink automatically on removing.
+                ///
+                /// Shrinking can be manually controlled in frequent push/pop situations.
+                /// It is recommended to leave the AutoShrink on.
                 void ToggleAutoShrink(bool Value);
+                /// @brief Gets whether the priority queue shrinks automatically.
+                ///
+                /// Set the value using ToggleAutoShrink(bool).
                 bool IsAutoShrink();
 
+                /// @brief Gets the first item, without popping it.
                 ItemsType GetFirstItem();
+                /// @brief Gets the first item priority, without popping the item.
                 PriorityType GetFirstPriority();
-                int GetDepthOf(ItemsType Item);
+                /// @brief Gets the 0-based depth of the first matching item.
+                /// @param Item The search subject.
+                /// @param FromDepth The start depth for searching.
+                /// @return The 0-based depth of the matching item if found,
+                ///         -1 if no matching item found.
+                int GetDepthOf(ItemsType Item, int FromDepth = 0);
+                /// @brief Checks if a matching item exists in the priority queue.
+                /// @param Item The search subject.
+                /// @return True if the item was found once, else false.
                 bool Contains(ItemsType Item);
+                /// @brief Gets the items count.
                 int GetCount();
+                /// @brief Checks whether the priority queue is empty.
                 bool IsEmpty();
+                /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
             private:
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
@@ -310,11 +346,11 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            int ENGINE_PRIORITY_QUEUE_CLASS_NAME::GetDepthOf(ItemsType Item)
+            int ENGINE_PRIORITY_QUEUE_CLASS_NAME::GetDepthOf(ItemsType Item, int FromDepth)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                for (int i = Count - 1; i >= 0; i--)
+                for (int i = Count - 1 - FromDepth; i >= 0; i--)
                     if (Items->GetItem(i) == Item)
                         return (Count - 1) - i;
 
