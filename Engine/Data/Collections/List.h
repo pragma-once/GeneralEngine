@@ -150,11 +150,11 @@ namespace Engine
                 void ForEach(ForEachBody Body);
                 /// @brief Calls a function for each item.
                 /// @param Body The foreach body function, can be a lambda.
-                ///        Set BreakLoop boolean provided by lambda to true to break the loop.
+                ///        Set BreakLoop boolean provided by the parameters to true to break the loop.
                 void ForEach(ForEachBodyWithBreakBool Body);
                 /// @brief Calls a function for each item.
                 /// @param Body The foreach body function, can be a lambda.
-                ///        Call Break function provided by lambda to break the loop.
+                ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithBreakFunction Body);
             private:
                 class LoopBreaker {};
