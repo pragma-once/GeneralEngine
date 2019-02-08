@@ -39,18 +39,39 @@ namespace Engine
                 Dictionary(const Dictionary<KeyType, ValueType, false>&);
                 Dictionary& operator=(const Dictionary<KeyType, ValueType, false>&);
 
+                /// @brief Assigns a value to a key.
                 void SetValue(KeyType Key, ValueType Value);
+                /// @brief Removes a key-value pair.
                 void Remove(KeyType Key);
+                /// @brief Clears the key-value pairs.
                 void Clear();
 
+                /// @brief Gets the value that is assigned to a key.
                 ValueType GetValue(KeyType Key);
+                /// @brief Checks whether the dictionary is empty.
                 bool IsEmpty();
 
+                /// @brief Calls a function for each key.
+                /// @param Body The foreach body function, can be a lambda.
                 void ForEach(ForEachBody Body);
+                /// @brief Calls a function for each key.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Set BreakLoop boolean provided by the parameters to true to break the loop.
                 void ForEach(ForEachBodyWithBreakBool Body);
+                /// @brief Calls a function for each key.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithBreakFunction Body);
+                /// @brief Calls a function for each key-value.
+                /// @param Body The foreach body function, can be a lambda.
                 void ForEach(ForEachBodyWithValue Body);
+                /// @brief Calls a function for each key-value.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Set BreakLoop boolean provided by the parameters to true to break the loop.
                 void ForEach(ForEachBodyWithValueWithBreakBool Body);
+                /// @brief Calls a function for each key-value.
+                /// @param Body The foreach body function, can be a lambda.
+                ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithValueWithBreakFunction Body);
             private:
                 struct Pair
