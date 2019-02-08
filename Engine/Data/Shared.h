@@ -23,6 +23,9 @@ namespace Engine
         public:
 
 #ifdef ENGINE_SHARED_MANUAL
+            /// @brief The mutex used by this shared variable.
+            ///
+            /// Can be used to perform locks in larger/other program sections.
             HandledMutex Mutex;
 #endif
 
@@ -34,7 +37,10 @@ namespace Engine
             ENGINE_SHARED_CLASS_NAME& operator=(const Type&);
             operator Type();
 
+            /// @brief Sets the shared variable. Can be done by an assignment.
             void Set(const Type&);
+            /// @brief Gets the shared variable.
+            ///        Can be done by using this variable in an expression.
             Type Get();
         private:
             Type Value;
