@@ -85,6 +85,7 @@ namespace Engine
                 m.lock();
             }
             if (IsSharedOwner)
+                // Replace shared lock with lock if it exists only by this thread
                 Mutex.unlock_shared();
             Mutex.lock();
             Owner = std::this_thread::get_id();
@@ -111,6 +112,8 @@ namespace Engine
             {
                 Mutex.unlock();
                 if (SharedOwners->Contains(std::this_thread::get_id()))
+                    // Replace with shared lock if this->LockShared() was called
+                    //                          and this->UnlockShared() isn't called yet
                     Mutex.lock_shared();
                 HasOwner = false;
                 return true;
@@ -145,6 +148,7 @@ namespace Engine
 
             if (HasOwner && (Owner == std::this_thread::get_id()))
             {
+                // Mutex.lock_shared() will be called on this->Unlock()
                 SharedOwners->Add(std::this_thread::get_id());
                 return true;
             }
@@ -182,6 +186,7 @@ namespace Engine
             {
                 if (!(HasOwner && (Owner == std::this_thread::get_id())))
                     Mutex.unlock_shared();
+                // else, Mutex.unlock_shared() was called by this->Lock() already
                 SharedOwners->Remove(std::this_thread::get_id());
                 return true;
             }
