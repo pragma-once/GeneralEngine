@@ -39,14 +39,18 @@ namespace Engine
 
 #if ENGINE_PROPERTY_NO_GETTER
 
+            /// @param Setter The setter function, can be a lambda
             Property(std::function<void(Type)> Setter);
 
 #elif ENGINE_PROPERTY_NO_SETTER
 
+            /// @param Getter The getter function, can be a lambda
             Property(std::function<Type()> Getter);
 
 #else
 
+            /// @param Setter The setter function, can be a lambda
+            /// @param Getter The getter function, can be a lambda
             Property(std::function<void(Type)> Setter, std::function<Type()> Getter);
 
 #endif
@@ -62,6 +66,7 @@ namespace Engine
             Property(const Property<Type, true, false>&) = delete;
 
             ENGINE_PROPERTY_CLASS_NAME& operator=(const Type&);
+            /// @brief Sets the property. Can be done by an assignment.
             void Set(const Type&);
 
 #else
@@ -74,6 +79,8 @@ namespace Engine
 #ifndef ENGINE_PROPERTY_NO_GETTER
 
             operator Type();
+            /// @brief Gets the property.
+            ///        Can be done by using this property in an expression.
             Type Get();
 
 #endif
