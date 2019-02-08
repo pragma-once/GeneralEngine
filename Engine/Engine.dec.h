@@ -13,11 +13,13 @@ namespace Engine
     {
         /// @brief Shared mutex that handles recursive locking in a thread.
         ///
+        /// This class is meant for sharing data between different threads
+        /// and is much easier to use than a normal shared mutex.
         /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
         class HandledMutex;
         /// @brief Object that uses a setter and/or a getter to be set or get.
         template <typename Type, bool HasSetter = true, bool HasGetter = true> class Property;
-        /// @brief Shared object with automatic mutex locking on set/get
+        /// @brief Shared object with automatic mutex locking on set/get.
         /// @tparam AllowManualLocking If true, The class will use a public HandledMutex that
         ///         can also be controlled by user.
         ///         Else, a private std::shared_mutex will be used.
@@ -40,10 +42,10 @@ namespace Engine
     namespace Core
     {
         /// @brief Manages and runs Module objects.
-        class Container;
+        class Loop;
         /// @brief Abstract class to implement the application's modules.
         ///
-        /// Add them to a Container to run.
+        /// Add them to a Loop to run.
         class Module;
     }
 }
