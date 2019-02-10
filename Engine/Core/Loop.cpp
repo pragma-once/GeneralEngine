@@ -170,11 +170,15 @@ namespace Engine
             ShouldStop = false;
             Schedules.Clear();
             AsyncSchedules.Clear();
+            Schedules.ToggleAutoShrink(false);
+            AsyncSchedules.ToggleAutoShrink(false);
 
             Data::Collections::List<Module*> copy_list = Modules;
             isRunning = true;
             copy_list.ForEach([](Module * Item) { Item->_Start(); });
+
             guard.Unlock();
+
             copy_list.Clear();
             
             while (!ShouldStop)
@@ -208,15 +212,22 @@ namespace Engine
             copy_list = Modules;
 
             guard = isRunning.Mutex.GetLock();
+
             isRunning = false;
             copy_list.ForEach([](Module * Item) { Item->_Stop(); });
-            guard.Unlock();
             copy_list.Clear();
+
+            Schedules.ToggleAutoShrink(true);
+            AsyncSchedules.ToggleAutoShrink(true);
+            Schedules.Clear();
+            AsyncSchedules.Clear();
 
             Time = 0;
             TimeDiff = 0;
             TimeFloat = 0;
             TimeDiffFloat = 0;
+
+            guard.Unlock();
         }
 
         void Loop::Stop()
