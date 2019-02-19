@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../Engine.dec.h"
+#define ENGINE_LIST_DONT_USE_MUTEX
+#include "Collections/List.h"
 
 namespace Engine
 {
@@ -40,7 +42,6 @@ namespace Engine
             };
 
             HandledMutex();
-            ~HandledMutex();
             
             /// @brief Locks the mutex manually.
             ///
@@ -124,7 +125,7 @@ namespace Engine
             std::shared_mutex Mutex;
             bool HasOwner;
             std::thread::id Owner;
-            Collections::List<std::thread::id, false> * SharedOwners;
+            Collections::List<std::thread::id, false> SharedOwners;
         };
     }
 }
