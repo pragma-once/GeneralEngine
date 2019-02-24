@@ -170,8 +170,8 @@ namespace Engine
             ShouldStop = false;
             Schedules.Clear();
             AsyncSchedules.Clear();
-            Schedules.ToggleAutoShrink(false);
-            AsyncSchedules.ToggleAutoShrink(false);
+            Schedules.SetAutoShrink(false);
+            AsyncSchedules.SetAutoShrink(false);
 
             Data::Collections::List<Module*> copy_list = Modules;
             isRunning = true;
@@ -217,8 +217,8 @@ namespace Engine
             copy_list.ForEach([](Module * Item) { Item->_Stop(); });
             copy_list.Clear();
 
-            Schedules.ToggleAutoShrink(true);
-            AsyncSchedules.ToggleAutoShrink(true);
+            Schedules.SetAutoShrink(true);
+            AsyncSchedules.SetAutoShrink(true);
             Schedules.Clear();
             AsyncSchedules.Clear();
 

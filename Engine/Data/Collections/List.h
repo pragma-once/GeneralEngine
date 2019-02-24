@@ -121,10 +121,10 @@ namespace Engine
                 ///
                 /// Shrinking can be manually controlled in quick add/remove situations.
                 /// It is recommended to leave the AutoShrink on.
-                void ToggleAutoShrink(bool Value);
+                void SetAutoShrink(bool Value);
                 /// @brief Gets whether the list shrinks automatically.
                 ///
-                /// Set the value using ToggleAutoShrink(bool).
+                /// Set the value using SetAutoShrink(bool).
                 bool IsAutoShrink();
 
                 /// @brief Gets an item at a specified index.
@@ -497,7 +497,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            void ENGINE_LIST_CLASS_NAME::ToggleAutoShrink(bool Value)
+            void ENGINE_LIST_CLASS_NAME::SetAutoShrink(bool Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
