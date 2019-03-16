@@ -60,10 +60,10 @@ namespace Engine
                 ///
                 /// Shrinking can be manually controlled in frequent push/pop situations.
                 /// It is recommended to leave the AutoShrink on.
-                void ToggleAutoShrink(bool Value);
+                void SetAutoShrink(bool Value);
                 /// @brief Gets whether the priority queue shrinks automatically.
                 ///
-                /// Set the value using ToggleAutoShrink(bool).
+                /// Set the value using SetAutoShrink(bool).
                 bool IsAutoShrink();
 
                 /// @brief Gets the first item, without popping it.
@@ -308,7 +308,7 @@ namespace Engine
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            void ENGINE_PRIORITY_QUEUE_CLASS_NAME::ToggleAutoShrink(bool Value)
+            void ENGINE_PRIORITY_QUEUE_CLASS_NAME::SetAutoShrink(bool Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
