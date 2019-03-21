@@ -481,6 +481,9 @@ void TestMultipleLists()
         print("f Index         => lists[Index].ForEach([](Item) { print(Item); })");
         print("s Index1 Index2 => lists[Index1] = lists[Index2]");
         print("");
+        print("j Index1 Index2 Index3 => lists[Index1] = lists[Index2] + lists[Index3]");
+        print("J Index1 Index2        => lists[Index1] += lists[Index2]");
+        print("");
         print("q => Quit Multiple Lists Test");
         print("");
 
@@ -488,6 +491,7 @@ void TestMultipleLists()
         ITEMS_TYPE arg;
         int arg_int1;
         int arg_int2;
+        int arg_int3;
         input(func);
 
         switch (func)
@@ -523,6 +527,29 @@ void TestMultipleLists()
                 print("Index2 should be between 0-3");
             else
                 lists[arg_int1] = lists[arg_int2];
+            break;
+        case 'j':
+            input(arg_int1);
+            input(arg_int2);
+            input(arg_int3);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else if (arg_int3 < 0 || arg_int3 >= 4)
+                print("Index3 should be between 0-3");
+            else
+                lists[arg_int1] = lists[arg_int2] + lists[arg_int3];
+            break;
+        case 'J':
+            input(arg_int1);
+            input(arg_int2);
+            if (arg_int1 < 0 || arg_int1 >= 4)
+                print("Index1 should be between 0-3");
+            else if (arg_int2 < 0 || arg_int2 >= 4)
+                print("Index2 should be between 0-3");
+            else
+                lists[arg_int1] += lists[arg_int2];
             break;
         case 'q':
             return;
