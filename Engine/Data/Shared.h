@@ -20,6 +20,11 @@ namespace Engine
         template <typename Type>
         class ENGINE_SHARED_CLASS_NAME final
         {
+#ifdef ENGINE_SHARED_MANUAL
+                friend Shared<Type, false>;
+#else
+                friend Shared<Type, true>;
+#endif
         public:
 
 #ifdef ENGINE_SHARED_MANUAL
@@ -29,10 +34,10 @@ namespace Engine
             HandledMutex Mutex;
 #endif
 
-            Shared(const Shared<Type, false>&);
+            Shared(Shared<Type, false>&);
             Shared(Shared<Type, true>&);
             Shared(const Type&);
-            ENGINE_SHARED_CLASS_NAME& operator=(const Shared<Type, false>&);
+            ENGINE_SHARED_CLASS_NAME& operator=(Shared<Type, false>&);
             ENGINE_SHARED_CLASS_NAME& operator=(Shared<Type, true>&);
             ENGINE_SHARED_CLASS_NAME& operator=(const Type&);
             operator Type();
@@ -67,7 +72,7 @@ namespace Engine
     namespace Data
     {
         template <typename Type>
-        ENGINE_SHARED_CLASS_NAME::Shared(const Shared<Type, false>& Operand)
+        ENGINE_SHARED_CLASS_NAME::Shared(Shared<Type, false>& Operand)
         {
             std::shared_lock<std::shared_mutex> guard_op(Operand.Mutex);
             Type Value = Operand.Value;
@@ -94,7 +99,7 @@ namespace Engine
         }
 
         template <typename Type>
-        ENGINE_SHARED_CLASS_NAME& ENGINE_SHARED_CLASS_NAME::operator=(const Shared<Type, false>& Operand)
+        ENGINE_SHARED_CLASS_NAME& ENGINE_SHARED_CLASS_NAME::operator=(Shared<Type, false>& Operand)
         {
             std::shared_lock<std::shared_mutex> guard_op(Operand.Mutex);
             Type Value = Operand.Value;

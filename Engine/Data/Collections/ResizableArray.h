@@ -21,12 +21,17 @@ namespace Engine
             template <typename T>
             class ENGINE_RESIZABLE_ARRAY_CLASS_NAME final
             {
+#ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
+                friend ResizableArray<T, false>;
+#else
+                friend ResizableArray<T, true>;
+#endif
             public:
                 ResizableArray(int Length = 0);
                 ~ResizableArray();
 
-                ResizableArray(const ResizableArray<T, true>&);
-                ResizableArray& operator=(const ResizableArray<T, true>&);
+                ResizableArray(ResizableArray<T, true>&);
+                ResizableArray& operator=(ResizableArray<T, true>&);
                 ResizableArray(const ResizableArray<T, false>&);
                 ResizableArray& operator=(const ResizableArray<T, false>&);
 
@@ -96,7 +101,7 @@ namespace Engine
             }
 
             template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, true>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -110,7 +115,7 @@ namespace Engine
             }
 
             template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, true>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);

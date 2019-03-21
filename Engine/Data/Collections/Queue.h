@@ -23,6 +23,11 @@ namespace Engine
             template <typename ItemsType>
             class ENGINE_QUEUE_CLASS_NAME final
             {
+#ifdef ENGINE_QUEUE_USE_MUTEX
+                friend Queue<ItemsType, false>;
+#else
+                friend Queue<ItemsType, true>;
+#endif
             public:
                 Queue(int InitialCapacity = 0);
                 ~Queue();

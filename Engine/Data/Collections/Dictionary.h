@@ -23,6 +23,11 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             class ENGINE_DICTIONARY_CLASS_NAME final
             {
+#ifdef ENGINE_DICTIONARY_USE_MUTEX
+                friend Dictionary<KeyType, ValueType, false>;
+#else
+                friend Dictionary<KeyType, ValueType, true>;
+#endif
             public:
                 typedef std::function<void(KeyType Key)> ForEachBody;
                 typedef std::function<void(KeyType Key, bool& BreakLoop)> ForEachBodyWithBreakBool;

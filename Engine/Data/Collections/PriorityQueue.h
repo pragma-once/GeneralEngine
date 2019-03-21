@@ -23,6 +23,11 @@ namespace Engine
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
             class ENGINE_PRIORITY_QUEUE_CLASS_NAME final
             {
+#ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
+                friend PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, false>;
+#else
+                friend PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, true>;
+#endif
             public:
                 PriorityQueue(int InitialCapacity = 0);
                 ~PriorityQueue();

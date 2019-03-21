@@ -23,6 +23,11 @@ namespace Engine
             template <typename ItemsType>
             class ENGINE_STACK_CLASS_NAME final
             {
+#ifdef ENGINE_STACK_USE_MUTEX
+                friend Stack<ItemsType, false>;
+#else
+                friend Stack<ItemsType, true>;
+#endif
             public:
                 Stack(int InitialCapacity = 0);
                 ~Stack();

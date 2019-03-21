@@ -37,6 +37,11 @@ namespace Engine
             template <typename ItemsType>
             class ENGINE_LIST_CLASS_NAME final
             {
+#ifdef ENGINE_LIST_USE_MUTEX
+                friend List<ItemsType, false>;
+#else
+                friend List<ItemsType, true>;
+#endif
             public:
                 typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, ItemsType& Item, int& Index)> OnAddCallback;
                 typedef std::function<void(ENGINE_LIST_CLASS_NAME * Parent, int& Index, ItemsType& Value)> OnSetItemCallback;
