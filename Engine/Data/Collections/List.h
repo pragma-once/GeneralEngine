@@ -225,11 +225,11 @@ namespace Engine
 // DEFINITION ----------------------------------------------------------------
 
 #ifdef ENGINE_LIST_USE_MUTEX
-    #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS auto guard = Mutex.GetLock();
+    #define ENGINE_COLLECTION_STRUCTURE_ACCESS auto guard = Mutex.GetLock();
     #define ENGINE_COLLECTION_WRITE_ACCESS auto guard = Mutex.GetLock(); if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
     #define ENGINE_COLLECTION_READ_ACCESS auto guard = Mutex.GetSharedLock(); if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
 #else
-    #define ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS ;
+    #define ENGINE_COLLECTION_STRUCTURE_ACCESS ;
     #define ENGINE_COLLECTION_WRITE_ACCESS if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
     #define ENGINE_COLLECTION_READ_ACCESS if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
 #endif
@@ -243,7 +243,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(int InitialCapacity) : IsRoot(true)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 Parent = nullptr;
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>();
@@ -303,7 +303,7 @@ namespace Engine
                 OnRemoveCallback OnRemove,
                 OnClearCallback OnClear) : IsRoot(false)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 if (OnAdd == nullptr)
                     OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
@@ -333,7 +333,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::~List()
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 if (Parent != nullptr) for (int i = 0; i < Parent->Children->GetLength(); i++) if (Parent->Children->GetItem(i) == this)
                 {
@@ -354,7 +354,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>& Op) : List(*(Op.CountRef))
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 *CountRef = *(Op.CountRef);
@@ -363,7 +363,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List(*(Op.CountRef))
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(CountRef, Op.CountRef);
@@ -372,7 +372,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : List(*(Op.CountRef))
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 *CountRef = *(Op.CountRef);
                 *ItemsRef = *(Op.ItemsRef);
@@ -380,7 +380,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List(*(Op.CountRef))
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 std::swap(CountRef, Op.CountRef);
                 std::swap(ItemsRef, Op.ItemsRef);
@@ -390,7 +390,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>& Op)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 // Return if the operand is the same list.
@@ -416,7 +416,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>&& Op)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 // Return if the operand is the same list.
@@ -442,7 +442,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>& Op)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -467,7 +467,7 @@ namespace Engine
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>&& Op)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -670,7 +670,7 @@ namespace Engine
                 OnRemoveCallback OnRemove,
                 OnClearCallback OnClear)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (OnAdd == nullptr)
                     OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
@@ -908,7 +908,7 @@ namespace Engine
                 OnRemoveCallback OnRemove,
                 OnClearCallback OnClear) : IsRoot(false)
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+                ENGINE_COLLECTION_STRUCTURE_ACCESS
 
                 this->Parent = Parent;
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(0);
@@ -928,7 +928,7 @@ namespace Engine
             template <typename ItemsType>
             void ENGINE_LIST_CLASS_NAME::DestructChildren()
             {
-                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+                ENGINE_COLLECTION_STRUCTURE_ACCESS
 
                 for (int i = 0; i < Children->GetLength(); i++)
                     if (Children->GetItem(i)->Parent == nullptr)
@@ -941,7 +941,7 @@ namespace Engine
     }
 }
 
-#undef ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS
+#undef ENGINE_COLLECTION_STRUCTURE_ACCESS
 #undef ENGINE_COLLECTION_WRITE_ACCESS
 #undef ENGINE_COLLECTION_READ_ACCESS
 
