@@ -73,9 +73,14 @@ namespace Engine
                 ~List();
 
                 List(List<ItemsType, true>&);
-                List& operator=(List<ItemsType, true>&);
+                List(List<ItemsType, true>&&);
                 List(List<ItemsType, false>&);
+                List(List<ItemsType, false>&&);
+
+                List& operator=(List<ItemsType, true>&);
+                List& operator=(List<ItemsType, true>&&);
                 List& operator=(List<ItemsType, false>&);
+                List& operator=(List<ItemsType, false>&&);
 
                 /// @brief Creates an interface for this list.
                 ///
@@ -345,27 +350,15 @@ namespace Engine
                 *CountRef = *(Op.CountRef);
                 *Items = *(Op.Items);
             }
-
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>& Op)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
-                if (IsRoot)
-                {
-                    *CountRef = *(Op.CountRef);
-                    *Items = *(Op.Items);
-                }
-                else
-                {
-                    Clear();
-                    Op.ForEach([this](ItemsType Item) { Add(Item); });
-                }
-
-                return *this;
+                std::swap(CountRef, Op.CountRef);
+                std::swap(Items, Op.Items);
             }
-
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : List(*(Op.CountRef))
             {
@@ -374,11 +367,25 @@ namespace Engine
                 *CountRef = *(Op.CountRef);
                 *Items = *(Op.Items);
             }
-
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>& Op)
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+
+                std::swap(CountRef, Op.CountRef);
+                std::swap(Items, Op.Items);
+            }
+
+
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                // Return if the operand is the same list.
+                if (Items == Op.Items)
+                    return *this;
 
                 if (IsRoot)
                 {
@@ -387,12 +394,92 @@ namespace Engine
                 }
                 else
                 {
-                    Clear();
-                    Op.ForEach([this](ItemsType Item) { Add(Item); });
+                    ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
+                    Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
+                    // No exceptions occured, the list is now complete and ready to swap.
+                    std::swap(CountRef, list.CountRef);
+                    std::swap(Items, list.Items);
                 }
 
                 return *this;
             }
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>&& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                // Return if the operand is the same list.
+                if (Items == Op.Items)
+                    return *this;
+
+                if (IsRoot)
+                {
+                    std::swap(CountRef, Op.CountRef);
+                    std::swap(Items, Op.Items);
+                }
+                else
+                {
+                    ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
+                    Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
+                    // No exceptions occured, the list is now complete and ready to swap.
+                    std::swap(CountRef, list.CountRef);
+                    std::swap(Items, list.Items);
+                }
+
+                return *this;
+            }
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+
+                // Return if the operand is the same list.
+                if (Items == Op.Items)
+                    return *this;
+
+                if (IsRoot)
+                {
+                    *CountRef = *(Op.CountRef);
+                    *Items = *(Op.Items);
+                }
+                else
+                {
+                    ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
+                    Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
+                    // No exceptions occured, the list is now complete and ready to swap.
+                    std::swap(CountRef, list.CountRef);
+                    std::swap(Items, list.Items);
+                }
+
+                return *this;
+            }
+            template <typename ItemsType>
+            ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>&& Op)
+            {
+                ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
+
+                // Return if the operand is the same list.
+                if (Items == Op.Items)
+                    return *this;
+
+                if (IsRoot)
+                {
+                    std::swap(CountRef, Op.CountRef);
+                    std::swap(Items, Op.Items);
+                }
+                else
+                {
+                    ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
+                    Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
+                    // No exceptions occured, the list is now complete and ready to swap.
+                    std::swap(CountRef, list.CountRef);
+                    std::swap(Items, list.Items);
+                }
+
+                return *this;
+            }
+
 
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME * ENGINE_LIST_CLASS_NAME::CreateInterface(
