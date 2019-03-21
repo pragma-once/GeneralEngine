@@ -306,13 +306,13 @@ namespace Engine
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
 
                 if (OnAdd == nullptr)
-                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
+                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType&, int&) { throw std::logic_error("List::Add interface not implemented"); };
                 if (OnSetItem == nullptr)
-                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int&, ItemsType&) { throw std::logic_error("List::SetItem interface not implemented"); };
                 if (OnRemove == nullptr)
-                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int&) { throw std::logic_error("List::Remove interface not implemented"); };
                 if (OnClear == nullptr)
-                    OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
+                    OnClear = [](ENGINE_LIST_CLASS_NAME*) { throw std::logic_error("List::Clear interface not implemented"); };
 
                 Parent = new ENGINE_LIST_CLASS_NAME();
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(1);
@@ -673,13 +673,13 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (OnAdd == nullptr)
-                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType, int) -> bool { return false; };
+                    OnAdd = [](ENGINE_LIST_CLASS_NAME*, ItemsType&, int&) { throw std::logic_error("List::Add interface not implemented"); };
                 if (OnSetItem == nullptr)
-                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int, ItemsType) -> bool { return false; };
+                    OnSetItem = [](ENGINE_LIST_CLASS_NAME*, int&, ItemsType&) { throw std::logic_error("List::SetItem interface not implemented"); };
                 if (OnRemove == nullptr)
-                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int) -> bool { return false; };
+                    OnRemove = [](ENGINE_LIST_CLASS_NAME*, int&) { throw std::logic_error("List::Remove interface not implemented"); };
                 if (OnClear == nullptr)
-                    OnClear = [](ENGINE_LIST_CLASS_NAME*) -> bool { return false; };
+                    OnClear = [](ENGINE_LIST_CLASS_NAME*) { throw std::logic_error("List::Clear interface not implemented"); };
 
                 ENGINE_LIST_CLASS_NAME * Child = new ENGINE_LIST_CLASS_NAME(this, OnAdd, OnSetItem, OnRemove, OnClear);
 
@@ -931,7 +931,7 @@ namespace Engine
                 ENGINE_COLLECTION_STRUCTURE_ACCESS
 
                 for (int i = 0; i < Children->GetLength(); i++)
-                    if (Children->GetItem(i)->Parent == nullptr)
+                    if (Children->GetItem(i)->Parent == nullptr) // If the parent is created by the child using List::List(OnAdd,...)
                         delete Children->GetItem(i);
                     else
                         Children->GetItem(i)->DestructChildren();
