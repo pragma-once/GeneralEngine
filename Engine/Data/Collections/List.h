@@ -196,7 +196,7 @@ namespace Engine
 #ifdef ENGINE_LIST_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                ResizableArray<ItemsType, false> * Items;
+                ResizableArray<ItemsType, false> * ItemsRef;
                 int * CountRef;
                 bool * AutoShrinkRef;
 
@@ -249,7 +249,7 @@ namespace Engine
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>();
                 IsParentDestructed = false;
 
-                Items = new ResizableArray<ItemsType, false>(InitialCapacity);
+                ItemsRef = new ResizableArray<ItemsType, false>(InitialCapacity);
                 CountRef = new int(0);
                 AutoShrinkRef = new bool(true);
 
@@ -257,15 +257,15 @@ namespace Engine
                     if (Index > *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
-                    while (*CountRef >= Items->GetLength())
-                        if (Items->GetLength() > 0)
-                            Items->Resize(Items->GetLength() * 2);
+                    while (*CountRef >= ItemsRef->GetLength())
+                        if (ItemsRef->GetLength() > 0)
+                            ItemsRef->Resize(ItemsRef->GetLength() * 2);
                         else
-                            Items->Resize(1);
+                            ItemsRef->Resize(1);
 
                     for (int i = *CountRef; i > Index; i--)
-                        Items->SetItem(i, Items->GetItem(i - 1));
-                    Items->SetItem(Index, Item);
+                        ItemsRef->SetItem(i, ItemsRef->GetItem(i - 1));
+                    ItemsRef->SetItem(Index, Item);
 
                     (*CountRef)++;
                 };
@@ -274,7 +274,7 @@ namespace Engine
                     if (Index >= *CountRef || Index < 0)
                         throw std::out_of_range("Index is out of range.");
 
-                    Items->SetItem(Index, Value);
+                    ItemsRef->SetItem(Index, Value);
                 };
 
                 OnRemove = [this](ENGINE_LIST_CLASS_NAME * Parent, int& Index) {
@@ -282,17 +282,17 @@ namespace Engine
                         throw std::out_of_range("Index is out of range.");
 
                     for (int i = Index + 1; i < *CountRef; i++)
-                        Items->SetItem(i - 1, Items->GetItem(i));
+                        ItemsRef->SetItem(i - 1, ItemsRef->GetItem(i));
                     (*CountRef)--;
 
-                    if (*AutoShrinkRef && *CountRef < Items->GetLength() / 2)
-                        Items->Resize(Items->GetLength() / 2);
+                    if (*AutoShrinkRef && *CountRef < ItemsRef->GetLength() / 2)
+                        ItemsRef->Resize(ItemsRef->GetLength() / 2);
                 };
 
                 OnClear = [this](ENGINE_LIST_CLASS_NAME * Parent) {
                     *CountRef = 0;
                     if (*AutoShrinkRef)
-                        Items->Resize(0);
+                        ItemsRef->Resize(0);
                 };
             }
 
@@ -318,7 +318,7 @@ namespace Engine
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(1);
                 Children->SetItem(0, Parent); // To destruct the parent when destructed
 
-                Items = Parent->Items;
+                ItemsRef = Parent->ItemsRef;
                 CountRef = Parent->CountRef;
                 AutoShrinkRef = Parent->AutoShrinkRef;
 
@@ -344,7 +344,7 @@ namespace Engine
                 DestructChildren();
                 if (Parent == nullptr)
                 {
-                    delete Items;
+                    delete ItemsRef;
                     delete CountRef;
                     delete AutoShrinkRef;
                 }
@@ -358,7 +358,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 *CountRef = *(Op.CountRef);
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List(*(Op.CountRef))
@@ -367,7 +367,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(CountRef, Op.CountRef);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : List(*(Op.CountRef))
@@ -375,7 +375,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
                 *CountRef = *(Op.CountRef);
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
             template <typename ItemsType>
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List(*(Op.CountRef))
@@ -383,7 +383,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
                 std::swap(CountRef, Op.CountRef);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
 
 
@@ -394,13 +394,13 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 // Return if the operand is the same list.
-                if (Items == Op.Items)
+                if (ItemsRef == Op.ItemsRef)
                     return *this;
 
                 if (IsRoot)
                 {
                     *CountRef = *(Op.CountRef);
-                    *Items = *(Op.Items);
+                    *ItemsRef = *(Op.ItemsRef);
                 }
                 else
                 {
@@ -408,7 +408,7 @@ namespace Engine
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -420,13 +420,13 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 // Return if the operand is the same list.
-                if (Items == Op.Items)
+                if (ItemsRef == Op.ItemsRef)
                     return *this;
 
                 if (IsRoot)
                 {
                     std::swap(CountRef, Op.CountRef);
-                    std::swap(Items, Op.Items);
+                    std::swap(ItemsRef, Op.ItemsRef);
                 }
                 else
                 {
@@ -434,7 +434,7 @@ namespace Engine
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -445,13 +445,13 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
                 // Return if the operand is the same list.
-                if (Items == Op.Items)
+                if (ItemsRef == Op.ItemsRef)
                     return *this;
 
                 if (IsRoot)
                 {
                     *CountRef = *(Op.CountRef);
-                    *Items = *(Op.Items);
+                    *ItemsRef = *(Op.ItemsRef);
                 }
                 else
                 {
@@ -459,7 +459,7 @@ namespace Engine
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -470,13 +470,13 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_MEMBERS_ACCESS;
 
                 // Return if the operand is the same list.
-                if (Items == Op.Items)
+                if (ItemsRef == Op.ItemsRef)
                     return *this;
 
                 if (IsRoot)
                 {
                     std::swap(CountRef, Op.CountRef);
-                    std::swap(Items, Op.Items);
+                    std::swap(ItemsRef, Op.ItemsRef);
                 }
                 else
                 {
@@ -484,7 +484,7 @@ namespace Engine
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -501,9 +501,9 @@ namespace Engine
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
 
                 for (int i = 0; i < *CountRef; i++)
-                    result.Items->SetItem(i, Items->GetItem(i));
+                    result.ItemsRef->SetItem(i, ItemsRef->GetItem(i));
                 for (int i = 0; i < *Op.CountRef; i++)
-                    result.Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                    result.ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
 
                 return result;
             }
@@ -517,9 +517,9 @@ namespace Engine
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
 
                 for (int i = 0; i < *CountRef; i++)
-                    result.Items->SetItem(i, Items->GetItem(i));
+                    result.ItemsRef->SetItem(i, ItemsRef->GetItem(i));
                 for (int i = 0; i < *Op.CountRef; i++)
-                    result.Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                    result.ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
 
                 return result;
             }
@@ -532,9 +532,9 @@ namespace Engine
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
 
                 for (int i = 0; i < *CountRef; i++)
-                    result.Items->SetItem(i, Items->GetItem(i));
+                    result.ItemsRef->SetItem(i, ItemsRef->GetItem(i));
                 for (int i = 0; i < *Op.CountRef; i++)
-                    result.Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                    result.ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
 
                 return result;
             }
@@ -547,9 +547,9 @@ namespace Engine
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
 
                 for (int i = 0; i < *CountRef; i++)
-                    result.Items->SetItem(i, Items->GetItem(i));
+                    result.ItemsRef->SetItem(i, ItemsRef->GetItem(i));
                 for (int i = 0; i < *Op.CountRef; i++)
-                    result.Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                    result.ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
 
                 return result;
             }
@@ -563,21 +563,21 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    if (Items->GetLength() < (*CountRef) + (*Op.CountRef))
-                        Items->Resize((*CountRef) + (*Op.CountRef));
+                    if (ItemsRef->GetLength() < (*CountRef) + (*Op.CountRef))
+                        ItemsRef->Resize((*CountRef) + (*Op.CountRef));
                     for (int i = 0; i < *Op.CountRef; i++)
-                        Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                        ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
                     *CountRef += *Op.CountRef;
                 }
                 else
                 {
                     ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
                     *list.CountRef = *CountRef;
-                    *list.Items = *Items;
+                    *list.ItemsRef = *ItemsRef;
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -590,21 +590,21 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    if (Items->GetLength() < (*CountRef) + (*Op.CountRef))
-                        Items->Resize((*CountRef) + (*Op.CountRef));
+                    if (ItemsRef->GetLength() < (*CountRef) + (*Op.CountRef))
+                        ItemsRef->Resize((*CountRef) + (*Op.CountRef));
                     for (int i = 0; i < *Op.CountRef; i++)
-                        Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                        ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
                     *CountRef += *Op.CountRef;
                 }
                 else
                 {
                     ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
                     *list.CountRef = *CountRef;
-                    *list.Items = *Items;
+                    *list.ItemsRef = *ItemsRef;
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -616,21 +616,21 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    if (Items->GetLength() < (*CountRef) + (*Op.CountRef))
-                        Items->Resize((*CountRef) + (*Op.CountRef));
+                    if (ItemsRef->GetLength() < (*CountRef) + (*Op.CountRef))
+                        ItemsRef->Resize((*CountRef) + (*Op.CountRef));
                     for (int i = 0; i < *Op.CountRef; i++)
-                        Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                        ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
                     *CountRef += *Op.CountRef;
                 }
                 else
                 {
                     ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
                     *list.CountRef = *CountRef;
-                    *list.Items = *Items;
+                    *list.ItemsRef = *ItemsRef;
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -642,21 +642,21 @@ namespace Engine
 
                 if (IsRoot)
                 {
-                    if (Items->GetLength() < (*CountRef) + (*Op.CountRef))
-                        Items->Resize((*CountRef) + (*Op.CountRef));
+                    if (ItemsRef->GetLength() < (*CountRef) + (*Op.CountRef))
+                        ItemsRef->Resize((*CountRef) + (*Op.CountRef));
                     for (int i = 0; i < *Op.CountRef; i++)
-                        Items->SetItem((*CountRef) + i, Op.Items->GetItem(i));
+                        ItemsRef->SetItem((*CountRef) + i, Op.ItemsRef->GetItem(i));
                     *CountRef += *Op.CountRef;
                 }
                 else
                 {
                     ENGINE_LIST_CLASS_NAME list(OnAdd, OnSetItem, OnRemove, OnClear);
                     *list.CountRef = *CountRef;
-                    *list.Items = *Items;
+                    *list.ItemsRef = *ItemsRef;
                     Op.ForEach([&list](ItemsType Item) { list.Add(Item); });
                     // No exceptions occured, the list is now complete and ready to swap.
                     std::swap(CountRef, list.CountRef);
-                    std::swap(Items, list.Items);
+                    std::swap(ItemsRef, list.ItemsRef);
                 }
 
                 return *this;
@@ -722,7 +722,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 for (int i = 0; i < *CountRef; i++)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                     {
                         OnRemove(Parent, i);
                         return true;
@@ -754,7 +754,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (Space >= 0)
-                    Items->Resize(Items->GetLength() + Space);
+                    ItemsRef->Resize(ItemsRef->GetLength() + Space);
                 else
                     throw std::domain_error("Space is less than zero.");
             }
@@ -765,7 +765,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (AdditionalSpace >= 0)
-                    Items->Resize(*CountRef + AdditionalSpace);
+                    ItemsRef->Resize(*CountRef + AdditionalSpace);
                 else
                     throw std::domain_error("AdditionalSpace is less than zero.");
             }
@@ -796,7 +796,7 @@ namespace Engine
                 if (Index >= *CountRef || Index < 0)
                     throw std::out_of_range("Index is out of range.");
 
-                return Items->GetItem(Index);
+                return ItemsRef->GetItem(Index);
             }
 
             template <typename ItemsType>
@@ -807,7 +807,7 @@ namespace Engine
                 if (FromIndex < 0)
                     throw std::out_of_range("FromIndex cannot be less than zero.");
                 for (int i = FromIndex; i < *CountRef; i++)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return i;
                 return -1;
             }
@@ -818,7 +818,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < *CountRef; i++)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return true;
                 return false;
             }
@@ -831,7 +831,7 @@ namespace Engine
                 if (FromIndex < 0)
                     throw std::out_of_range("FromIndex cannot be less than zero.");
                 for (int i = FromIndex; i < *CountRef; i++)
-                    if (P(Items->GetItem(i)))
+                    if (P(ItemsRef->GetItem(i)))
                         return i;
                 return -1;
             }
@@ -842,7 +842,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < *CountRef; i++)
-                    if (P(Items->GetItem(i)))
+                    if (P(ItemsRef->GetItem(i)))
                         return true;
                 return false;
             }
@@ -860,7 +860,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                return Items->GetLength();
+                return ItemsRef->GetLength();
             }
 
             template <typename ItemsType>
@@ -869,7 +869,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < *CountRef; i++)
-                    Body(Items->GetItem(i));
+                    Body(ItemsRef->GetItem(i));
             }
 
             template <typename ItemsType>
@@ -880,7 +880,7 @@ namespace Engine
                 bool Break = false;
                 for (int i = 0; i < *CountRef; i++)
                 {
-                    Body(Items->GetItem(i), Break);
+                    Body(ItemsRef->GetItem(i), Break);
                     if (Break) break;
                 }
             }
@@ -893,7 +893,7 @@ namespace Engine
                 std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < *CountRef; i++) try
                 {
-                    Body(Items->GetItem(i), BreakFunction);
+                    Body(ItemsRef->GetItem(i), BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
             }
@@ -913,7 +913,7 @@ namespace Engine
                 this->Parent = Parent;
                 Children = new ResizableArray<ENGINE_LIST_CLASS_NAME*, false>(0);
 
-                Items = Parent->Items;
+                ItemsRef = Parent->ItemsRef;
                 CountRef = Parent->CountRef;
                 AutoShrinkRef = Parent->AutoShrinkRef;
 
