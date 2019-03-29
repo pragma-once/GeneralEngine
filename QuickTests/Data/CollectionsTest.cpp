@@ -2,6 +2,20 @@
 #include <iostream>
 #include <string>
 
+// To check the compilation errors
+template class Engine::Data::Collections::ResizableArray<int, true>;
+template class Engine::Data::Collections::ResizableArray<int, false>;
+template class Engine::Data::Collections::List<int, true>;
+template class Engine::Data::Collections::List<int, false>;
+template class Engine::Data::Collections::Stack<int, true>;
+template class Engine::Data::Collections::Stack<int, false>;
+template class Engine::Data::Collections::Queue<int, true>;
+template class Engine::Data::Collections::Queue<int, false>;
+template class Engine::Data::Collections::PriorityQueue<int, int, true, true>;
+template class Engine::Data::Collections::PriorityQueue<int, int, true, false>;
+template class Engine::Data::Collections::Dictionary<int, int, true>;
+template class Engine::Data::Collections::Dictionary<int, int, false>;
+
 #define print(context) (std::cout << context << '\n')
 #define input(var) (std::cin >> var)
 #define ITEMS_TYPE std::string
