@@ -30,10 +30,13 @@ namespace Engine
                 ResizableArray(int Length = 0);
                 ~ResizableArray();
 
-                ResizableArray(ResizableArray<T, true>&);
-                ResizableArray& operator=(ResizableArray<T, true>&);
-                ResizableArray(const ResizableArray<T, false>&);
-                ResizableArray& operator=(const ResizableArray<T, false>&);
+                ResizableArray(ResizableArray<T, true>&) noexcept;
+                ResizableArray(ResizableArray<T, true>&&) noexcept;
+                ResizableArray(ResizableArray<T, false>&) noexcept;
+                ResizableArray(ResizableArray<T, false>&&) noexcept;
+
+                ResizableArray& operator=(ResizableArray<T, true>) noexcept;
+                ResizableArray& operator=(ResizableArray<T, false>) noexcept;
 
                 /// @brief Gets an item at a specified index.
                 T GetItem(int Index);
@@ -101,7 +104,7 @@ namespace Engine
             }
 
             template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -115,70 +118,51 @@ namespace Engine
             }
 
             template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, true>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>&& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
-                if (Op.Length == 0)
-                {
-                    Length = 0;
-                    if (Array != nullptr)
-                            delete[] Array;
-                    Array = nullptr;
-                }
+                std::swap(Length, Op.Length);
+                std::swap(Array, Op.Array);
+            }
+
+            template <typename T>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, false>& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                Length = Op.Length;
+                if (Op.Length == 0) Array = nullptr;
                 else
                 {
-                    if (Length != Op.Length)
-                    {
-                        Length = Op.Length;
-                        if (Array != nullptr)
-                            delete[] Array;
-                        Array = new T[Op.Length];
-                    }
-
+                    Array = new T[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
+            }
 
+            template <typename T>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, false>&& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                std::swap(Length, Op.Length);
+                std::swap(Array, Op.Array);
+            }
+
+            template <typename T>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, true> Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
+                std::swap(Length, Op.Length);
+                std::swap(Array, Op.Array);
                 return *this;
             }
 
             template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(const ResizableArray<T, false>& Op)
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, false> Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                Length = Op.Length;
-                if (Op.Length == 0) Array = nullptr;
-                else
-                {
-                    Array = new T[Op.Length];
-                    std::copy(Op.Array, Op.Array + Op.Length, Array);
-                }
-            }
-
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(const ResizableArray<T, false>& Op)
-            {
-                ENGINE_COLLECTION_WRITE_ACCESS;
-                if (Op.Length == 0)
-                {
-                    Length = 0;
-                    if (Array != nullptr)
-                            delete[] Array;
-                    Array = nullptr;
-                }
-                else
-                {
-                    if (Length != Op.Length)
-                    {
-                        Length = Op.Length;
-                        if (Array != nullptr)
-                            delete[] Array;
-                        Array = new T[Op.Length];
-                    }
-
-                    std::copy(Op.Array, Op.Array + Op.Length, Array);
-                }
-
+                std::swap(Length, Op.Length);
+                std::swap(Array, Op.Array);
                 return *this;
             }
 

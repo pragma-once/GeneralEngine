@@ -39,10 +39,13 @@ namespace Engine
                 Dictionary();
                 ~Dictionary();
 
-                Dictionary(Dictionary<KeyType, ValueType, true>&);
-                Dictionary& operator=(Dictionary<KeyType, ValueType, true>&);
-                Dictionary(const Dictionary<KeyType, ValueType, false>&);
-                Dictionary& operator=(const Dictionary<KeyType, ValueType, false>&);
+                Dictionary(Dictionary<KeyType, ValueType, true>&) noexcept;
+                Dictionary(Dictionary<KeyType, ValueType, true>&&) noexcept;
+                Dictionary(Dictionary<KeyType, ValueType, false>&) noexcept;
+                Dictionary(Dictionary<KeyType, ValueType, false>&&) noexcept;
+
+                Dictionary& operator=(Dictionary<KeyType, ValueType, true>) noexcept;
+                Dictionary& operator=(Dictionary<KeyType, ValueType, false>) noexcept;
 
                 /// @brief Assigns a value to a key.
                 void SetValue(KeyType Key, ValueType Value);
@@ -79,21 +82,13 @@ namespace Engine
                 ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithValueWithBreakFunction Body);
             private:
-                struct Pair
-                {
-                    Pair() {}
-                    Pair(KeyType Key, ValueType Value) : Key(Key), Value(Value) {}
-                    KeyType Key;
-                    ValueType Value;
-                };
-
                 class LoopBreaker {};
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
                 HandledMutex Mutex;
 #endif
                 int Count;
-                ResizableArray<Pair, false> * Pairs;
+                ResizableArray<std::pair<KeyType, ValueType>, false> * Pairs;
             };
         }
     }
@@ -120,7 +115,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Pairs = new ResizableArray<Pair, false>();
+                Pairs = new ResizableArray<std::pair<KeyType, ValueType>, false>();
                 Count = 0;
             }
 
@@ -133,7 +128,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>& Op)
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -143,33 +138,52 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(Dictionary<KeyType, ValueType, true>& Op)
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>&& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
+                std::swap(Count, Op.Count);
+                std::swap(Pairs, Op.Pairs);
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
                 Count = Op.Count;
                 *Pairs = *(Op.Pairs);
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>&& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                std::swap(Count, Op.Count);
+                std::swap(Pairs, Op.Pairs);
+            }
+
+            template <typename KeyType, typename ValueType>
+            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(Dictionary<KeyType, ValueType, true> Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                std::swap(Count, Op.Count);
+                std::swap(Pairs, Op.Pairs);
 
                 return *this;
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(const Dictionary<KeyType, ValueType, false>& Op)
+            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(Dictionary<KeyType, ValueType, false> Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Count = Op.Count;
-                *Pairs = *(Op.Pairs);
-            }
-
-            template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME& ENGINE_DICTIONARY_CLASS_NAME::operator=(const Dictionary<KeyType, ValueType, false>& Op)
-            {
-                ENGINE_COLLECTION_WRITE_ACCESS;
-
-                Count = Op.Count;
-                *Pairs = *(Op.Pairs);
+                std::swap(Count, Op.Count);
+                std::swap(Pairs, Op.Pairs);
 
                 return *this;
             }
@@ -190,13 +204,13 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key < Pairs->GetItem(c).Key) e = c;
+                    if (Key < Pairs->GetItem(c).first) e = c;
                     else s = c + 1;
                 }
 
                 for (int i = Count; i > s; i--)
                     Pairs->SetItem(i, Pairs->GetItem(i - 1));
-                Pairs->SetItem(s, Pair(Key, Value));
+                Pairs->SetItem(s, std::pair<KeyType, ValueType>(Key, Value));
                 Count++;
             }
 
@@ -210,12 +224,12 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key == Pairs->GetItem(c).Key) { s = c; break; }
-                    else if (Key < Pairs->GetItem(c).Key) e = c - 1;
+                    if (Key == Pairs->GetItem(c).first) { s = c; break; }
+                    else if (Key < Pairs->GetItem(c).first) e = c - 1;
                     else s = c + 1;
                 }
 
-                if (Pairs->GetItem(s).Key != Key)
+                if (Pairs->GetItem(s).first != Key)
                     throw std::domain_error("Key not found.");
                 
                 for (int i = s + 1; i < Count; i++)
@@ -245,15 +259,15 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key == Pairs->GetItem(c).Key) { s = c; break; }
-                    else if (Key < Pairs->GetItem(c).Key) e = c - 1;
+                    if (Key == Pairs->GetItem(c).first) { s = c; break; }
+                    else if (Key < Pairs->GetItem(c).first) e = c - 1;
                     else s = c + 1;
                 }
 
-                if (Pairs->GetItem(s).Key != Key)
+                if (Pairs->GetItem(s).first != Key)
                     throw std::domain_error("Key not found.");
 
-                return Pairs->GetItem(s).Value;
+                return Pairs->GetItem(s).second;
             }
 
             template <typename KeyType, typename ValueType>
@@ -270,7 +284,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < Count; i++)
-                    Body(Pairs->GetItem(i).Key);
+                    Body(Pairs->GetItem(i).first);
             }
 
             template <typename KeyType, typename ValueType>
@@ -281,7 +295,7 @@ namespace Engine
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
-                    Body(Pairs->GetItem(i).Key, ShouldBreak);
+                    Body(Pairs->GetItem(i).first, ShouldBreak);
                     if (ShouldBreak) break;
                 }
             }
@@ -294,7 +308,7 @@ namespace Engine
                 std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
-                    Body(Pairs->GetItem(i).Key, BreakFunction);
+                    Body(Pairs->GetItem(i).first, BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
             }
@@ -305,7 +319,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < Count; i++)
-                    Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value);
+                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second);
             }
 
             template <typename KeyType, typename ValueType>
@@ -316,7 +330,7 @@ namespace Engine
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
-                    Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, ShouldBreak);
+                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second, ShouldBreak);
                     if (ShouldBreak) break;
                 }
             }
@@ -329,7 +343,7 @@ namespace Engine
                 std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
-                    Body(Pairs->GetItem(i).Key, Pairs->GetItem(i).Value, BreakFunction);
+                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second, BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
             }

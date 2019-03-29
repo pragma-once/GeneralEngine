@@ -32,10 +32,13 @@ namespace Engine
                 Queue(int InitialCapacity = 0);
                 ~Queue();
 
-                Queue(Queue<ItemsType, true>&);
-                Queue& operator=(Queue<ItemsType, true>&);
-                Queue(const Queue<ItemsType, false>&);
-                Queue& operator=(const Queue<ItemsType, false>&);
+                Queue(Queue<ItemsType, true>&) noexcept;
+                Queue(Queue<ItemsType, true>&&) noexcept;
+                Queue(Queue<ItemsType, false>&) noexcept;
+                Queue(Queue<ItemsType, false>&&) noexcept;
+
+                Queue& operator=(Queue<ItemsType, true>) noexcept;
+                Queue& operator=(Queue<ItemsType, false>) noexcept;
 
                 /// @brief Pushes an item to the back.
                 void Push(ItemsType Item);
@@ -135,7 +138,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>& Op)
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -147,37 +150,60 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(Queue<ItemsType, true>& Op)
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>&& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
+                std::swap(First, Op.First);
+                std::swap(Count, Op.Count);
+                std::swap(Items, Op.Items);
+                AutoShrink = true;
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
                 First = Op.First;
                 Count = Op.Count;
                 *Items = *(Op.Items);
+                AutoShrink = true;
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>&& Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+
+                std::swap(First, Op.First);
+                std::swap(Count, Op.Count);
+                std::swap(Items, Op.Items);
+                AutoShrink = true;
+            }
+
+            template <typename ItemsType>
+            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(Queue<ItemsType, true> Op) noexcept
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                auto OpGuard = Op.Mutex.GetSharedLock();
+
+                std::swap(First, Op.First);
+                std::swap(Count, Op.Count);
+                std::swap(Items, Op.Items);
 
                 return *this;
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(const Queue<ItemsType, false>& Op)
+            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(Queue<ItemsType, false> Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                First = Op.First;
-                Count = Op.Count;
-                *Items = *(Op.Items);
-                AutoShrink = true;
-            }
-
-            template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME& ENGINE_QUEUE_CLASS_NAME::operator=(const Queue<ItemsType, false>& Op)
-            {
-                ENGINE_COLLECTION_WRITE_ACCESS;
-
-                First = Op.First;
-                Count = Op.Count;
-                *Items = *(Op.Items);
+                std::swap(First, Op.First);
+                std::swap(Count, Op.Count);
+                std::swap(Items, Op.Items);
 
                 return *this;
             }
