@@ -7,9 +7,9 @@
 #include "../../Engine.dec.h"
 
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, true>
+    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<ItemsType, true>
 #else
-    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<T, false>
+    #define ENGINE_RESIZABLE_ARRAY_CLASS_NAME ResizableArray<ItemsType, false>
 #endif
 
 namespace Engine
@@ -18,30 +18,30 @@ namespace Engine
     {
         namespace Collections
         {
-            template <typename T>
+            template <typename ItemsType>
             class ENGINE_RESIZABLE_ARRAY_CLASS_NAME final
             {
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
-                friend ResizableArray<T, false>;
+                friend ResizableArray<ItemsType, false>;
 #else
-                friend ResizableArray<T, true>;
+                friend ResizableArray<ItemsType, true>;
 #endif
             public:
                 ResizableArray(int Length = 0);
                 ~ResizableArray();
 
-                ResizableArray(ResizableArray<T, true>&) noexcept;
-                ResizableArray(ResizableArray<T, true>&&) noexcept;
-                ResizableArray(ResizableArray<T, false>&) noexcept;
-                ResizableArray(ResizableArray<T, false>&&) noexcept;
+                ResizableArray(ResizableArray<ItemsType, true>&) noexcept;
+                ResizableArray(ResizableArray<ItemsType, true>&&) noexcept;
+                ResizableArray(ResizableArray<ItemsType, false>&) noexcept;
+                ResizableArray(ResizableArray<ItemsType, false>&&) noexcept;
 
-                ResizableArray& operator=(ResizableArray<T, true>) noexcept;
-                ResizableArray& operator=(ResizableArray<T, false>) noexcept;
+                ResizableArray& operator=(ResizableArray<ItemsType, true>) noexcept;
+                ResizableArray& operator=(ResizableArray<ItemsType, false>) noexcept;
 
                 /// @brief Gets an item at a specified index.
-                T GetItem(int Index);
+                ItemsType GetItem(int Index);
                 /// @brief Sets an item at a specified index.
-                void SetItem(int Index, T Value);
+                void SetItem(int Index, ItemsType Value);
                 /// @brief Gets the current length of the array.
                 int GetLength();
                 /// @brief Sets the new length of the array.
@@ -53,7 +53,7 @@ namespace Engine
 #ifdef ENGINE_RESIZABLE_ARRAY_USE_MUTEX
                 std::shared_mutex Mutex;
 #endif
-                T * Array;
+                ItemsType * Array;
                 int Length;
             };
         }
@@ -76,14 +76,14 @@ namespace Engine
     {
         namespace Collections
         {
-            template <typename T>
+            template <typename ItemsType>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(int Length)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (Length > 0)
                 {
-                    Array = new T[Length];
+                    Array = new ItemsType[Length];
                     this->Length = Length;
                 }
                 else if (Length == 0)
@@ -94,7 +94,7 @@ namespace Engine
                 else throw std::domain_error("Length is less than zero.");
             }
 
-            template <typename T>
+            template <typename ItemsType>
             ENGINE_RESIZABLE_ARRAY_CLASS_NAME::~ResizableArray()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
@@ -103,8 +103,8 @@ namespace Engine
                     delete[] Array;
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>& Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, true>& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -112,13 +112,13 @@ namespace Engine
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
-                    Array = new T[Op.Length];
+                    Array = new ItemsType[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, true>&& Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, true>&& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -126,29 +126,29 @@ namespace Engine
                 std::swap(Array, Op.Array);
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, false>& Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, false>& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 Length = Op.Length;
                 if (Op.Length == 0) Array = nullptr;
                 else
                 {
-                    Array = new T[Op.Length];
+                    Array = new ItemsType[Op.Length];
                     std::copy(Op.Array, Op.Array + Op.Length, Array);
                 }
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<T, false>&& Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, false>&& Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::swap(Length, Op.Length);
                 std::swap(Array, Op.Array);
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, true> Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<ItemsType, true> Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -157,8 +157,8 @@ namespace Engine
                 return *this;
             }
 
-            template <typename T>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<T, false> Op) noexcept
+            template <typename ItemsType>
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME& ENGINE_RESIZABLE_ARRAY_CLASS_NAME::operator=(ResizableArray<ItemsType, false> Op) noexcept
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::swap(Length, Op.Length);
@@ -166,8 +166,8 @@ namespace Engine
                 return *this;
             }
 
-            template <typename T>
-            T ENGINE_RESIZABLE_ARRAY_CLASS_NAME::GetItem(int Index)
+            template <typename ItemsType>
+            ItemsType ENGINE_RESIZABLE_ARRAY_CLASS_NAME::GetItem(int Index)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
@@ -176,8 +176,8 @@ namespace Engine
                 throw std::out_of_range("Index is out of range.");
             }
 
-            template <typename T>
-            void ENGINE_RESIZABLE_ARRAY_CLASS_NAME::SetItem(int Index, T Value)
+            template <typename ItemsType>
+            void ENGINE_RESIZABLE_ARRAY_CLASS_NAME::SetItem(int Index, ItemsType Value)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
@@ -187,21 +187,21 @@ namespace Engine
                     throw std::out_of_range("Index is out of range.");
             }
 
-            template <typename T>
+            template <typename ItemsType>
             int ENGINE_RESIZABLE_ARRAY_CLASS_NAME::GetLength()
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 return Length;
             }
-            template <typename T>
+            template <typename ItemsType>
             void ENGINE_RESIZABLE_ARRAY_CLASS_NAME::Resize(int NewLength)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (NewLength > 0)
                 {
-                    T * NewArray = new T[NewLength];
+                    ItemsType * NewArray = new ItemsType[NewLength];
                     int MinimumLength = NewLength > Length ? Length : NewLength;
 
                     for (int i = 0; i < MinimumLength; i++)
