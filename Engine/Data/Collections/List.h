@@ -365,7 +365,7 @@ namespace Engine
                 *ItemsRef = *(Op.ItemsRef);
             }
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List(*(Op.CountRef))
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List()
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_WRITE_ACCESS_WITH_MUTEX;
@@ -383,7 +383,7 @@ namespace Engine
                 *ItemsRef = *(Op.ItemsRef);
             }
             template <typename ItemsType>
-            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List(*(Op.CountRef))
+            ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List()
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_ACCESS;
