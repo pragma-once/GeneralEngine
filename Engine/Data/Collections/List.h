@@ -234,6 +234,10 @@ namespace Engine
     #define ENGINE_COLLECTION_READ_ACCESS if (IsParentDestructed) throw std::logic_error("The parent is destructed!");
 #endif
 
+#define ENGINE_COLLECTION_OPERAND_ACCESS if (Op.IsParentDestructed) throw std::logic_error("The operand's parent is destructed!");
+#define ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX auto OpGuard = Op.Mutex.GetSharedLock(); ENGINE_COLLECTION_OPERAND_ACCESS
+#define ENGINE_COLLECTION_OPERAND_WRITE_ACCESS_WITH_MUTEX auto OpGuard = Op.Mutex.GetLock(); ENGINE_COLLECTION_OPERAND_ACCESS
+
 namespace Engine
 {
     namespace Data
@@ -355,7 +359,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 *CountRef = *(Op.CountRef);
                 *ItemsRef = *(Op.ItemsRef);
@@ -364,7 +368,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, true>&& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_WRITE_ACCESS_WITH_MUTEX;
 
                 std::swap(CountRef, Op.CountRef);
                 std::swap(ItemsRef, Op.ItemsRef);
@@ -373,6 +377,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 *CountRef = *(Op.CountRef);
                 *ItemsRef = *(Op.ItemsRef);
@@ -381,6 +386,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME::List(List<ItemsType, false>&& Op) : List(*(Op.CountRef))
             {
                 ENGINE_COLLECTION_STRUCTURE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 std::swap(CountRef, Op.CountRef);
                 std::swap(ItemsRef, Op.ItemsRef);
@@ -391,7 +397,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -417,7 +423,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, true>&& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_WRITE_ACCESS_WITH_MUTEX;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -443,6 +449,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -468,6 +475,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator=(List<ItemsType, false>&& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 // Return if the operand is the same list.
                 if (ItemsRef == Op.ItemsRef)
@@ -495,7 +503,7 @@ namespace Engine
             List<ItemsType, true> ENGINE_LIST_CLASS_NAME::operator+(List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 List<ItemsType, true> result((*CountRef) + (*Op.CountRef));
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
@@ -511,7 +519,7 @@ namespace Engine
             List<ItemsType, true> ENGINE_LIST_CLASS_NAME::operator+(List<ItemsType, true>&& Op)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 List<ItemsType, true> result((*CountRef) + (*Op.CountRef));
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
@@ -527,6 +535,7 @@ namespace Engine
             List<ItemsType, true> ENGINE_LIST_CLASS_NAME::operator+(List<ItemsType, false>& Op)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 List<ItemsType, true> result((*CountRef) + (*Op.CountRef));
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
@@ -542,6 +551,7 @@ namespace Engine
             List<ItemsType, true> ENGINE_LIST_CLASS_NAME::operator+(List<ItemsType, false>&& Op)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 List<ItemsType, true> result((*CountRef) + (*Op.CountRef));
                 *result.CountRef = (*CountRef) + (*Op.CountRef);
@@ -559,7 +569,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator+=(List<ItemsType, true>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 if (IsRoot)
                 {
@@ -586,7 +596,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator+=(List<ItemsType, true>&& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
-                auto OpGuard = Op.Mutex.GetSharedLock();
+                ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
                 if (IsRoot)
                 {
@@ -613,6 +623,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator+=(List<ItemsType, false>& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 if (IsRoot)
                 {
@@ -639,6 +650,7 @@ namespace Engine
             ENGINE_LIST_CLASS_NAME& ENGINE_LIST_CLASS_NAME::operator+=(List<ItemsType, false>&& Op)
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
+                ENGINE_COLLECTION_OPERAND_ACCESS;
 
                 if (IsRoot)
                 {
