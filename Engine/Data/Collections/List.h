@@ -399,12 +399,12 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_READ_ACCESS_WITH_MUTEX;
 
-                // Return if the operand is the same list.
-                if (ItemsRef == Op.ItemsRef)
-                    return *this;
-
                 if (IsRoot)
                 {
+                    // Return if the operand is the same list.
+                    if (ItemsRef == Op.ItemsRef)
+                        return *this;
+
                     *CountRef = *(Op.CountRef);
                     *ItemsRef = *(Op.ItemsRef);
                 }
@@ -425,14 +425,15 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_WRITE_ACCESS_WITH_MUTEX;
 
-                // Return if the operand is the same list.
-                if (ItemsRef == Op.ItemsRef)
-                    return *this;
-
                 if (IsRoot)
                 {
-                    std::swap(CountRef, Op.CountRef);
-                    std::swap(ItemsRef, Op.ItemsRef);
+                    // Return if the operand is the same list.
+                    if (ItemsRef == Op.ItemsRef)
+                        return *this;
+
+                    delete ItemsRef;
+                    *CountRef = std::exchange(*Op.CountRef, 0);
+                    ItemsRef  = std::exchange(Op.ItemsRef, new ResizableArray<ItemsType, false>());
                 }
                 else
                 {
@@ -451,12 +452,12 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_ACCESS;
 
-                // Return if the operand is the same list.
-                if (ItemsRef == Op.ItemsRef)
-                    return *this;
-
                 if (IsRoot)
                 {
+                    // Return if the operand is the same list.
+                    if (ItemsRef == Op.ItemsRef)
+                        return *this;
+
                     *CountRef = *(Op.CountRef);
                     *ItemsRef = *(Op.ItemsRef);
                 }
@@ -477,14 +478,15 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 ENGINE_COLLECTION_OPERAND_ACCESS;
 
-                // Return if the operand is the same list.
-                if (ItemsRef == Op.ItemsRef)
-                    return *this;
-
                 if (IsRoot)
                 {
-                    std::swap(CountRef, Op.CountRef);
-                    std::swap(ItemsRef, Op.ItemsRef);
+                    // Return if the operand is the same list.
+                    if (ItemsRef == Op.ItemsRef)
+                        return *this;
+
+                    delete ItemsRef;
+                    *CountRef = std::exchange(*Op.CountRef, 0);
+                    ItemsRef  = std::exchange(Op.ItemsRef, new ResizableArray<ItemsType, false>());
                 }
                 else
                 {
