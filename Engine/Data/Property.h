@@ -55,15 +55,13 @@ namespace Engine
 
 #endif
 
+            Property(const Property&) = delete;
+
 #ifndef ENGINE_PROPERTY_NO_SETTER
 
             ENGINE_PROPERTY_CLASS_NAME& operator=(const Property<Type, true, true>&);
             ENGINE_PROPERTY_CLASS_NAME& operator=(const Property<Type, false, true>&);
             ENGINE_PROPERTY_CLASS_NAME& operator=(const Property<Type, true, false>&) = delete;
-
-            Property(const Property<Type, true, true>&);
-            Property(const Property<Type, false, true>&);
-            Property(const Property<Type, true, false>&) = delete;
 
             ENGINE_PROPERTY_CLASS_NAME& operator=(const Type&);
             /// @brief Sets the property. Can be done by an assignment.
@@ -72,7 +70,6 @@ namespace Engine
 #else
 
             Property& operator=(const Property&) = delete;
-            Property(const Property&) = delete;
 
 #endif
 
@@ -152,20 +149,6 @@ namespace Engine
             Type Value = Operand.Getter();
             Setter(Value);
             return *this;
-        }
-
-        template <typename Type>
-        ENGINE_PROPERTY_CLASS_NAME::Property(const Property<Type, true, true>& Operand)
-        {
-            Type Value = Operand.Getter();
-            Setter(Value);
-        }
-
-        template <typename Type>
-        ENGINE_PROPERTY_CLASS_NAME::Property(const Property<Type, false, true>& Operand)
-        {
-            Type Value = Operand.Getter();
-            Setter(Value);
         }
 
         template <typename Type>
