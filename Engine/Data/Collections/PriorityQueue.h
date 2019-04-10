@@ -98,8 +98,8 @@ namespace Engine
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                ResizableArray<ItemsType, false> * Items;
-                ResizableArray<PriorityType, false> * Priorities;
+                ResizableArray<ItemsType, false> * ItemsRef;
+                ResizableArray<PriorityType, false> * PrioritiesRef;
                 int Count;
                 bool AutoShrink;
             };
@@ -128,8 +128,8 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Items = new ResizableArray<ItemsType, false>(InitialCapacity);
-                Priorities = new ResizableArray<PriorityType, false>(InitialCapacity);
+                ItemsRef = new ResizableArray<ItemsType, false>(InitialCapacity);
+                PrioritiesRef = new ResizableArray<PriorityType, false>(InitialCapacity);
                 Count = 0;
                 AutoShrink = true;
             }
@@ -139,8 +139,8 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                delete Items;
-                delete Priorities;
+                delete ItemsRef;
+                delete PrioritiesRef;
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -152,8 +152,8 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 Count = Op.Count;
-                *Items = *(Op.Items);
-                *Priorities = *(Op.Priorities);
+                *ItemsRef = *(Op.ItemsRef);
+                *PrioritiesRef = *(Op.PrioritiesRef);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -165,8 +165,8 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
-                std::swap(Priorities, Op.Priorities);
+                std::swap(ItemsRef, Op.ItemsRef);
+                std::swap(PrioritiesRef, Op.PrioritiesRef);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -177,8 +177,8 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = Op.Count;
-                *Items = *(Op.Items);
-                *Priorities = *(Op.Priorities);
+                *ItemsRef = *(Op.ItemsRef);
+                *PrioritiesRef = *(Op.PrioritiesRef);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -189,8 +189,8 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
-                std::swap(Priorities, Op.Priorities);
+                std::swap(ItemsRef, Op.ItemsRef);
+                std::swap(PrioritiesRef, Op.PrioritiesRef);
             }
             
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -202,8 +202,8 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
-                std::swap(Priorities, Op.Priorities);
+                std::swap(ItemsRef, Op.ItemsRef);
+                std::swap(PrioritiesRef, Op.PrioritiesRef);
 
                 return *this;
             }
@@ -216,8 +216,8 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
-                std::swap(Priorities, Op.Priorities);
+                std::swap(ItemsRef, Op.ItemsRef);
+                std::swap(PrioritiesRef, Op.PrioritiesRef);
 
                 return *this;
             }
@@ -227,17 +227,17 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                while (Count >= Items->GetLength())
-                    if (Items->GetLength() > 0)
-                        Items->Resize(Items->GetLength() * 2);
+                while (Count >= ItemsRef->GetLength())
+                    if (ItemsRef->GetLength() > 0)
+                        ItemsRef->Resize(ItemsRef->GetLength() * 2);
                     else
-                        Items->Resize(1);
+                        ItemsRef->Resize(1);
 
-                while (Count >= Priorities->GetLength())
-                    if (Priorities->GetLength() > 0)
-                        Priorities->Resize(Priorities->GetLength() * 2);
+                while (Count >= PrioritiesRef->GetLength())
+                    if (PrioritiesRef->GetLength() > 0)
+                        PrioritiesRef->Resize(PrioritiesRef->GetLength() * 2);
                     else
-                        Priorities->Resize(1);
+                        PrioritiesRef->Resize(1);
 
                 int s = 0;
                 int e = Count;
@@ -245,20 +245,20 @@ namespace Engine
                 {
                     int c = (s + e) / 2;
                     if (LessPriorityFirst)
-                        if (Priority < Priorities->GetItem(c)) s = c + 1;
+                        if (Priority < PrioritiesRef->GetItem(c)) s = c + 1;
                         else e = c;
                     else
-                        if (Priorities->GetItem(c) < Priority) s = c + 1;
+                        if (PrioritiesRef->GetItem(c) < Priority) s = c + 1;
                         else e = c;
                 }
 
                 for (int i = Count; i > s; i--)
                 {
-                    Items->SetItem(i, Items->GetItem(i - 1));
-                    Priorities->SetItem(i, Priorities->GetItem(i - 1));
+                    ItemsRef->SetItem(i, ItemsRef->GetItem(i - 1));
+                    PrioritiesRef->SetItem(i, PrioritiesRef->GetItem(i - 1));
                 }
-                Items->SetItem(s, Item);
-                Priorities->SetItem(s, Priority);
+                ItemsRef->SetItem(s, Item);
+                PrioritiesRef->SetItem(s, Priority);
                 Count++;
             }
 
@@ -271,10 +271,10 @@ namespace Engine
                     throw std::logic_error("Cannot pop from an empty priority queue.");
 
                 Count--;
-                ItemsType Item = Items->GetItem(Count);
+                ItemsType Item = ItemsRef->GetItem(Count);
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    ItemsRef->Resize(ItemsRef->GetLength() / 2);
 
                 return Item;
             }
@@ -288,10 +288,10 @@ namespace Engine
                     return false;
 
                 Count--;
-                ItemOut = Items->GetItem(Count);
+                ItemOut = ItemsRef->GetItem(Count);
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    ItemsRef->Resize(ItemsRef->GetLength() / 2);
 
                 return true;
             }
@@ -305,11 +305,11 @@ namespace Engine
                     return false;
 
                 Count--;
-                ItemOut = Items->GetItem(Count);
-                PriorityOut = Priorities->GetItem(Count);
+                ItemOut = ItemsRef->GetItem(Count);
+                PriorityOut = PrioritiesRef->GetItem(Count);
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    ItemsRef->Resize(ItemsRef->GetLength() / 2);
 
                 return true;
             }
@@ -321,7 +321,7 @@ namespace Engine
 
                 Count = 0;
                 if (AutoShrink)
-                    Items->Resize(0);
+                    ItemsRef->Resize(0);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -332,7 +332,7 @@ namespace Engine
                 if (Space < 0)
                     throw std::domain_error("Space is less than zero.");
 
-                Items->Resize(Items->GetLength() + Space);
+                ItemsRef->Resize(ItemsRef->GetLength() + Space);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -343,7 +343,7 @@ namespace Engine
                 if (AdditionalSpace < 0)
                     throw std::domain_error("AdditionalSpace is less than zero.");
 
-                Items->Resize(Count + AdditionalSpace);
+                ItemsRef->Resize(Count + AdditionalSpace);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -370,7 +370,7 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot get the first item of an empty priority queue.");
 
-                return Items->GetItem(Count - 1);
+                return ItemsRef->GetItem(Count - 1);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -381,7 +381,7 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot get the first priority of an empty priority queue.");
 
-                return Priorities->GetItem(Count - 1);
+                return PrioritiesRef->GetItem(Count - 1);
             }
 
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
@@ -390,7 +390,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = Count - 1 - FromDepth; i >= 0; i--)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return (Count - 1) - i;
 
                 return -1;
@@ -402,7 +402,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = Count - 1; i >= 0; i--)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return true;
 
                 return false;
@@ -429,7 +429,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                return Items->GetLength();
+                return ItemsRef->GetLength();
             }
         }
     }

@@ -91,7 +91,7 @@ namespace Engine
 #ifdef ENGINE_QUEUE_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                ResizableArray<ItemsType, false> * Items;
+                ResizableArray<ItemsType, false> * ItemsRef;
                 int First;
                 int Count;
                 bool AutoShrink;
@@ -123,7 +123,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Items = new ResizableArray<ItemsType, false>(InitialCapacity);
+                ItemsRef = new ResizableArray<ItemsType, false>(InitialCapacity);
                 First = 0;
                 Count = 0;
                 AutoShrink = true;
@@ -134,7 +134,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                delete Items;
+                delete ItemsRef;
             }
 
             template <typename ItemsType>
@@ -145,7 +145,7 @@ namespace Engine
 
                 First = Op.First;
                 Count = Op.Count;
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -156,7 +156,7 @@ namespace Engine
 
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -166,7 +166,7 @@ namespace Engine
 
                 First = Op.First;
                 Count = Op.Count;
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -176,7 +176,7 @@ namespace Engine
 
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -187,7 +187,7 @@ namespace Engine
 
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
 
                 return *this;
             }
@@ -199,7 +199,7 @@ namespace Engine
 
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
 
                 return *this;
             }
@@ -209,13 +209,13 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                while (Count >= Items->GetLength())
-                    if (Items->GetLength() > 0)
-                        Resize(Items->GetLength() * 2);
+                while (Count >= ItemsRef->GetLength())
+                    if (ItemsRef->GetLength() > 0)
+                        Resize(ItemsRef->GetLength() * 2);
                     else
                         Resize(1);
 
-                Items->SetItem((First + Count) % Items->GetLength(), Item);
+                ItemsRef->SetItem((First + Count) % ItemsRef->GetLength(), Item);
                 Count++;
             }
 
@@ -227,12 +227,12 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot pop from an empty queue.");
 
-                ItemsType Item = Items->GetItem(First);
-                First = (First + 1) % Items->GetLength();
+                ItemsType Item = ItemsRef->GetItem(First);
+                First = (First + 1) % ItemsRef->GetLength();
                 Count--;
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    Resize(ItemsRef->GetLength() / 2);
 
                 return Item;
             }
@@ -245,12 +245,12 @@ namespace Engine
                 if (Count <= 0)
                     return false;
 
-                ItemOut = Items->GetItem(First);
-                First = (First + 1) % Items->GetLength();
+                ItemOut = ItemsRef->GetItem(First);
+                First = (First + 1) % ItemsRef->GetLength();
                 Count--;
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    Resize(ItemsRef->GetLength() / 2);
 
                 return true;
             }
@@ -263,7 +263,7 @@ namespace Engine
                 First = 0;
                 Count = 0;
                 if (AutoShrink)
-                    Items->Resize(0);
+                    ItemsRef->Resize(0);
             }
 
             template <typename ItemsType>
@@ -274,7 +274,7 @@ namespace Engine
                 if (Space < 0)
                     throw std::domain_error("Space is less than zero.");
 
-                Resize(Items->GetLength() + Space);
+                Resize(ItemsRef->GetLength() + Space);
             }
 
             template <typename ItemsType>
@@ -312,7 +312,7 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot get the first element of an empty queue.");
 
-                return Items->GetItem(First);
+                return ItemsRef->GetItem(First);
             }
 
             template <typename ItemsType>
@@ -323,23 +323,23 @@ namespace Engine
                 if (Count == 0)
                     return -1;
 
-                int Last = (First + Count - 1) % Items->GetLength();
-                int From = (First + FromDepth) % Items->GetLength();
+                int Last = (First + Count - 1) % ItemsRef->GetLength();
+                int From = (First + FromDepth) % ItemsRef->GetLength();
 
                 if (From <= Last)
                 {
                     for (int i = From; i <= Last; i++)
-                        if (Items->GetItem(i) == Item)
+                        if (ItemsRef->GetItem(i) == Item)
                             return i - First;
                 }
                 else
                 {
-                    for (int i = From; i < Items->GetLength(); i++)
-                        if (Items->GetItem(i) == Item)
+                    for (int i = From; i < ItemsRef->GetLength(); i++)
+                        if (ItemsRef->GetItem(i) == Item)
                             return i - First;
                     for (int i = 0; i <= Last; i++)
-                        if (Items->GetItem(i) == Item)
-                            return (Items->GetLength() - First) + i;
+                        if (ItemsRef->GetItem(i) == Item)
+                            return (ItemsRef->GetLength() - First) + i;
                 }
 
                 return -1;
@@ -353,21 +353,21 @@ namespace Engine
                 if (Count == 0)
                     return false;
 
-                int Last = (First + Count - 1) % Items->GetLength();
+                int Last = (First + Count - 1) % ItemsRef->GetLength();
 
                 if (First <= Last)
                 {
                     for (int i = First; i <= Last; i++)
-                        if (Items->GetItem(i) == Item)
+                        if (ItemsRef->GetItem(i) == Item)
                             return true;
                 }
                 else
                 {
-                    for (int i = First; i < Items->GetLength(); i++)
-                        if (Items->GetItem(i) == Item)
+                    for (int i = First; i < ItemsRef->GetLength(); i++)
+                        if (ItemsRef->GetItem(i) == Item)
                             return true;
                     for (int i = 0; i <= Last; i++)
-                        if (Items->GetItem(i) == Item)
+                        if (ItemsRef->GetItem(i) == Item)
                             return true;
                 }
 
@@ -395,7 +395,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                return Items->GetLength();
+                return ItemsRef->GetLength();
             }
 
             template <typename ItemsType>
@@ -404,14 +404,14 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 if (First == 0 || Count == 0)
-                    Items->Resize(NewCapacity);
+                    ItemsRef->Resize(NewCapacity);
                 else
                 {
-                    ResizableArray<ItemsType, false> * PrevItems = Items;
+                    ResizableArray<ItemsType, false> * PrevItems = ItemsRef;
                     int prev_capacity = PrevItems->GetLength();
-                    Items = new ResizableArray<ItemsType, false>(NewCapacity);
+                    ItemsRef = new ResizableArray<ItemsType, false>(NewCapacity);
                     for (int i = 0; i < Count; i++)
-                        Items->SetItem(i, PrevItems->GetItem((First + i) % prev_capacity));
+                        ItemsRef->SetItem(i, PrevItems->GetItem((First + i) % prev_capacity));
                     First = 0;
                     delete PrevItems;
                 }

@@ -88,7 +88,7 @@ namespace Engine
                 HandledMutex Mutex;
 #endif
                 int Count;
-                ResizableArray<std::pair<KeyType, ValueType>, false> * Pairs;
+                ResizableArray<std::pair<KeyType, ValueType>, false> * PairsRef;
             };
         }
     }
@@ -115,7 +115,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Pairs = new ResizableArray<std::pair<KeyType, ValueType>, false>();
+                PairsRef = new ResizableArray<std::pair<KeyType, ValueType>, false>();
                 Count = 0;
             }
 
@@ -124,7 +124,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                delete Pairs;
+                delete PairsRef;
             }
 
             template <typename KeyType, typename ValueType>
@@ -134,7 +134,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 Count = Op.Count;
-                *Pairs = *(Op.Pairs);
+                *PairsRef = *(Op.PairsRef);
             }
 
             template <typename KeyType, typename ValueType>
@@ -144,7 +144,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Pairs, Op.Pairs);
+                std::swap(PairsRef, Op.PairsRef);
             }
 
             template <typename KeyType, typename ValueType>
@@ -153,7 +153,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = Op.Count;
-                *Pairs = *(Op.Pairs);
+                *PairsRef = *(Op.PairsRef);
             }
 
             template <typename KeyType, typename ValueType>
@@ -162,7 +162,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Pairs, Op.Pairs);
+                std::swap(PairsRef, Op.PairsRef);
             }
 
             template <typename KeyType, typename ValueType>
@@ -172,7 +172,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Pairs, Op.Pairs);
+                std::swap(PairsRef, Op.PairsRef);
 
                 return *this;
             }
@@ -183,7 +183,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Pairs, Op.Pairs);
+                std::swap(PairsRef, Op.PairsRef);
 
                 return *this;
             }
@@ -193,24 +193,24 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                while (Count >= Pairs->GetLength())
-                    if (Pairs->GetLength() > 0)
-                        Pairs->Resize(Pairs->GetLength() * 2);
+                while (Count >= PairsRef->GetLength())
+                    if (PairsRef->GetLength() > 0)
+                        PairsRef->Resize(PairsRef->GetLength() * 2);
                     else
-                        Pairs->Resize(1);
+                        PairsRef->Resize(1);
 
                 int s = 0;
                 int e = Count;
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key < Pairs->GetItem(c).first) e = c;
+                    if (Key < PairsRef->GetItem(c).first) e = c;
                     else s = c + 1;
                 }
 
                 for (int i = Count; i > s; i--)
-                    Pairs->SetItem(i, Pairs->GetItem(i - 1));
-                Pairs->SetItem(s, std::pair<KeyType, ValueType>(Key, Value));
+                    PairsRef->SetItem(i, PairsRef->GetItem(i - 1));
+                PairsRef->SetItem(s, std::pair<KeyType, ValueType>(Key, Value));
                 Count++;
             }
 
@@ -224,20 +224,20 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key == Pairs->GetItem(c).first) { s = c; break; }
-                    else if (Key < Pairs->GetItem(c).first) e = c - 1;
+                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
+                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
                     else s = c + 1;
                 }
 
-                if (Pairs->GetItem(s).first != Key)
+                if (PairsRef->GetItem(s).first != Key)
                     throw std::domain_error("Key not found.");
                 
                 for (int i = s + 1; i < Count; i++)
-                    Pairs->SetItem(i - 1, Pairs->GetItem(i));
+                    PairsRef->SetItem(i - 1, PairsRef->GetItem(i));
                 Count--;
 
-                if (Count < Pairs->GetLength() / 2)
-                    Pairs->Resize(Pairs->GetLength() / 2);
+                if (Count < PairsRef->GetLength() / 2)
+                    PairsRef->Resize(PairsRef->GetLength() / 2);
             }
 
             template <typename KeyType, typename ValueType>
@@ -246,7 +246,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = 0;
-                Pairs->Resize(0);
+                PairsRef->Resize(0);
             }
 
             template <typename KeyType, typename ValueType>
@@ -259,15 +259,15 @@ namespace Engine
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key == Pairs->GetItem(c).first) { s = c; break; }
-                    else if (Key < Pairs->GetItem(c).first) e = c - 1;
+                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
+                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
                     else s = c + 1;
                 }
 
-                if (Pairs->GetItem(s).first != Key)
+                if (PairsRef->GetItem(s).first != Key)
                     throw std::domain_error("Key not found.");
 
-                return Pairs->GetItem(s).second;
+                return PairsRef->GetItem(s).second;
             }
 
             template <typename KeyType, typename ValueType>
@@ -284,7 +284,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < Count; i++)
-                    Body(Pairs->GetItem(i).first);
+                    Body(PairsRef->GetItem(i).first);
             }
 
             template <typename KeyType, typename ValueType>
@@ -295,7 +295,7 @@ namespace Engine
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
-                    Body(Pairs->GetItem(i).first, ShouldBreak);
+                    Body(PairsRef->GetItem(i).first, ShouldBreak);
                     if (ShouldBreak) break;
                 }
             }
@@ -308,7 +308,7 @@ namespace Engine
                 std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
-                    Body(Pairs->GetItem(i).first, BreakFunction);
+                    Body(PairsRef->GetItem(i).first, BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
             }
@@ -319,7 +319,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = 0; i < Count; i++)
-                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second);
+                    Body(PairsRef->GetItem(i).first, PairsRef->GetItem(i).second);
             }
 
             template <typename KeyType, typename ValueType>
@@ -330,7 +330,7 @@ namespace Engine
                 bool ShouldBreak = false;
                 for (int i = 0; i < Count; i++)
                 {
-                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second, ShouldBreak);
+                    Body(PairsRef->GetItem(i).first, PairsRef->GetItem(i).second, ShouldBreak);
                     if (ShouldBreak) break;
                 }
             }
@@ -343,7 +343,7 @@ namespace Engine
                 std::function<void()> BreakFunction = []() { throw LoopBreaker(); };
                 for (int i = 0; i < Count; i++) try
                 {
-                    Body(Pairs->GetItem(i).first, Pairs->GetItem(i).second, BreakFunction);
+                    Body(PairsRef->GetItem(i).first, PairsRef->GetItem(i).second, BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
             }

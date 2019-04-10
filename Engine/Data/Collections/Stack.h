@@ -93,7 +93,7 @@ namespace Engine
 #ifdef ENGINE_STACK_USE_MUTEX
                 HandledMutex Mutex;
 #endif
-                ResizableArray<ItemsType, false> * Items;
+                ResizableArray<ItemsType, false> * ItemsRef;
                 int Count;
                 bool AutoShrink;
             };
@@ -122,7 +122,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                Items = new ResizableArray<ItemsType, false>(InitialCapacity);
+                ItemsRef = new ResizableArray<ItemsType, false>(InitialCapacity);
                 Count = 0;
                 AutoShrink = true;
             }
@@ -132,7 +132,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                delete Items;
+                delete ItemsRef;
             }
 
             template <typename ItemsType>
@@ -142,7 +142,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 Count = Op.Count;
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -152,7 +152,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -161,7 +161,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = Op.Count;
-                *Items = *(Op.Items);
+                *ItemsRef = *(Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -170,7 +170,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
             }
 
             template <typename ItemsType>
@@ -180,7 +180,7 @@ namespace Engine
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
 
                 return *this;
             }
@@ -191,7 +191,7 @@ namespace Engine
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
-                std::swap(Items, Op.Items);
+                std::swap(ItemsRef, Op.ItemsRef);
 
                 return *this;
             }
@@ -201,13 +201,13 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                while (Count >= Items->GetLength())
-                    if (Items->GetLength() > 0)
-                        Items->Resize(Items->GetLength() * 2);
+                while (Count >= ItemsRef->GetLength())
+                    if (ItemsRef->GetLength() > 0)
+                        ItemsRef->Resize(ItemsRef->GetLength() * 2);
                     else
-                        Items->Resize(1);
+                        ItemsRef->Resize(1);
 
-                Items->SetItem(Count, Item);
+                ItemsRef->SetItem(Count, Item);
                 Count++;
             }
 
@@ -220,10 +220,10 @@ namespace Engine
                     throw std::logic_error("Cannot pop from an empty stack.");
 
                 Count--;
-                ItemsType Item = Items->GetItem(Count);
+                ItemsType Item = ItemsRef->GetItem(Count);
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    ItemsRef->Resize(ItemsRef->GetLength() / 2);
 
                 return Item;
             }
@@ -237,10 +237,10 @@ namespace Engine
                     return false;
 
                 Count--;
-                ItemOut = Items->GetItem(Count);
+                ItemOut = ItemsRef->GetItem(Count);
 
-                if (AutoShrink && Count < Items->GetLength() / 2)
-                    Items->Resize(Items->GetLength() / 2);
+                if (AutoShrink && Count < ItemsRef->GetLength() / 2)
+                    ItemsRef->Resize(ItemsRef->GetLength() / 2);
 
                 return true;
             }
@@ -253,7 +253,7 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot set the top element of an empty stack.");
 
-                Items->SetItem(Count - 1, Value);
+                ItemsRef->SetItem(Count - 1, Value);
             }
 
             template <typename ItemsType>
@@ -263,7 +263,7 @@ namespace Engine
 
                 Count = 0;
                 if (AutoShrink)
-                    Items->Resize(0);
+                    ItemsRef->Resize(0);
             }
 
             template <typename ItemsType>
@@ -274,7 +274,7 @@ namespace Engine
                 if (Space < 0)
                     throw std::domain_error("Space is less than zero.");
 
-                Items->Resize(Items->GetLength() + Space);
+                ItemsRef->Resize(ItemsRef->GetLength() + Space);
             }
 
             template <typename ItemsType>
@@ -285,7 +285,7 @@ namespace Engine
                 if (AdditionalSpace < 0)
                     throw std::domain_error("AdditionalSpace is less than zero.");
 
-                Items->Resize(Count + AdditionalSpace);
+                ItemsRef->Resize(Count + AdditionalSpace);
             }
 
             template <typename ItemsType>
@@ -312,7 +312,7 @@ namespace Engine
                 if (Count <= 0)
                     throw std::logic_error("Cannot get the top element of an empty stack.");
 
-                return Items->GetItem(Count - 1);
+                return ItemsRef->GetItem(Count - 1);
             }
 
             template <typename ItemsType>
@@ -321,7 +321,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = Count - 1 - FromDepth; i >= 0; i--)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return (Count - 1) - i;
 
                 return -1;
@@ -333,7 +333,7 @@ namespace Engine
                 ENGINE_COLLECTION_READ_ACCESS;
 
                 for (int i = Count - 1; i >= 0; i--)
-                    if (Items->GetItem(i) == Item)
+                    if (ItemsRef->GetItem(i) == Item)
                         return true;
 
                 return false;
@@ -360,7 +360,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                return Items->GetLength();
+                return ItemsRef->GetLength();
             }
         }
     }
