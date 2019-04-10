@@ -128,7 +128,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>& Op) noexcept
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>& Op) noexcept : Dictionary()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -138,7 +138,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>&& Op) noexcept
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, true>&& Op) noexcept : Dictionary()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -148,7 +148,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>& Op) noexcept
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>& Op) noexcept : Dictionary()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
@@ -157,7 +157,7 @@ namespace Engine
             }
 
             template <typename KeyType, typename ValueType>
-            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>&& Op) noexcept
+            ENGINE_DICTIONARY_CLASS_NAME::Dictionary(Dictionary<KeyType, ValueType, false>&& Op) noexcept : Dictionary()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 

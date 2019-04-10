@@ -136,45 +136,41 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, true>& Op) noexcept
+            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, true>& Op) noexcept : Stack()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 Count = Op.Count;
                 *Items = *(Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, true>&& Op) noexcept
+            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, true>&& Op) noexcept : Stack()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
 
                 std::swap(Count, Op.Count);
                 std::swap(Items, Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, false>& Op) noexcept
+            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, false>& Op) noexcept : Stack()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 Count = Op.Count;
                 *Items = *(Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, false>&& Op) noexcept
+            ENGINE_STACK_CLASS_NAME::Stack(Stack<ItemsType, false>&& Op) noexcept : Stack()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(Count, Op.Count);
                 std::swap(Items, Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>

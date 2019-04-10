@@ -118,7 +118,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, true>&& Op) noexcept
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, true>&& Op) noexcept : ResizableArray()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::shared_lock<std::shared_mutex> op_guard(Op.Mutex);
@@ -140,7 +140,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, false>&& Op) noexcept
+            ENGINE_RESIZABLE_ARRAY_CLASS_NAME::ResizableArray(ResizableArray<ItemsType, false>&& Op) noexcept : ResizableArray()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 std::swap(Length, Op.Length);

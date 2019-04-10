@@ -138,7 +138,7 @@ namespace Engine
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>& Op) noexcept
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>& Op) noexcept : Queue()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -146,11 +146,10 @@ namespace Engine
                 First = Op.First;
                 Count = Op.Count;
                 *Items = *(Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>&& Op) noexcept
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, true>&& Op) noexcept : Queue()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
                 auto OpGuard = Op.Mutex.GetSharedLock();
@@ -158,29 +157,26 @@ namespace Engine
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
                 std::swap(Items, Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>& Op) noexcept
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>& Op) noexcept : Queue()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 First = Op.First;
                 Count = Op.Count;
                 *Items = *(Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
-            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>&& Op) noexcept
+            ENGINE_QUEUE_CLASS_NAME::Queue(Queue<ItemsType, false>&& Op) noexcept : Queue()
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
                 std::swap(First, Op.First);
                 std::swap(Count, Op.Count);
                 std::swap(Items, Op.Items);
-                AutoShrink = true;
             }
 
             template <typename ItemsType>
