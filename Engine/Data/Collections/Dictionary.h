@@ -273,7 +273,7 @@ namespace Engine
                 }
 
                 if (PairsRef->GetItem(s).first != Key)
-                    return false
+                    return false;
 
                 return true;
             }
