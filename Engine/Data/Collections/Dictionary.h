@@ -201,25 +201,30 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                while (Count >= PairsRef->GetLength())
-                    if (PairsRef->GetLength() > 0)
-                        PairsRef->Resize(PairsRef->GetLength() * 2);
-                    else
-                        PairsRef->Resize(1);
-
                 int s = 0;
                 int e = Count;
                 while (s < e)
                 {
                     int c = (s + e) / 2;
-                    if (Key < PairsRef->GetItem(c).first) e = c;
+                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
+                    else if (Key < PairsRef->GetItem(c).first) e = c;
                     else s = c + 1;
                 }
 
-                for (int i = Count; i > s; i--)
-                    PairsRef->SetItem(i, PairsRef->GetItem(i - 1));
+                if (PairsRef->GetItem(s).first != Key)
+                {
+                    while (Count >= PairsRef->GetLength())
+                        if (PairsRef->GetLength() > 0)
+                            PairsRef->Resize(PairsRef->GetLength() * 2);
+                        else
+                            PairsRef->Resize(1);
+
+                    for (int i = Count; i > s; i--)
+                        PairsRef->SetItem(i, PairsRef->GetItem(i - 1));
+                    Count++;
+                }
+
                 PairsRef->SetItem(s, std::pair<KeyType, ValueType>(Key, Value));
-                Count++;
             }
 
             template <typename KeyType, typename ValueType>
