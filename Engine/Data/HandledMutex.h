@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../Engine.dec.h"
-#define ENGINE_LIST_DONT_USE_MUTEX
-#include "Collections/List.h"
 
 namespace Engine
 {
@@ -16,8 +14,11 @@ namespace Engine
             {
                 friend HandledMutex;
             public:
-                LockGuard& operator=(const LockGuard&);
                 LockGuard();
+                LockGuard(LockGuard&);
+                LockGuard(LockGuard&&);
+                LockGuard& operator=(LockGuard&);
+                LockGuard& operator=(LockGuard&&);
                 /// @brief Unlocks the guard manually.
                 void Unlock();
                 ~LockGuard();
@@ -31,8 +32,11 @@ namespace Engine
             {
                 friend HandledMutex;
             public:
-                SharedLockGuard& operator=(const SharedLockGuard&);
                 SharedLockGuard();
+                SharedLockGuard(SharedLockGuard&);
+                SharedLockGuard(SharedLockGuard&&);
+                SharedLockGuard& operator=(SharedLockGuard&);
+                SharedLockGuard& operator=(SharedLockGuard&&);
                 /// @brief Unlocks the guard manually.
                 void Unlock();
                 ~SharedLockGuard();
@@ -41,7 +45,11 @@ namespace Engine
                 HandledMutex * m;
             };
 
+            friend LockGuard;
+            friend SharedLockGuard;
+
             HandledMutex();
+            ~HandledMutex();
             
             /// @brief Locks the mutex manually.
             ///
@@ -121,11 +129,17 @@ namespace Engine
             ///         and is shared-locked by this call.
             bool TryGetSharedLock(SharedLockGuard &GuardOut);
         private:
-            std::mutex OwnerMutex;
+            std::mutex MembersMutex;
             std::shared_mutex Mutex;
             bool HasOwner;
             std::thread::id Owner;
-            Collections::List<std::thread::id, false> SharedOwners;
+            Collections::Dictionary<std::thread::id, int, false> * SharedOwnersRef;
+
+            int LockGuardCount;
+            void LockByGuard();
+            void UnlockByGuard();
+            void LockSharedByGuard();
+            void UnlockSharedByGuard();
         };
     }
 }
