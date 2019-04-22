@@ -95,6 +95,8 @@ namespace Engine
 #endif
                 int Count;
                 ResizableArray<std::pair<KeyType, ValueType>, false> * PairsRef;
+
+                inline int Find(KeyType Key);
             };
         }
     }
@@ -225,20 +227,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_WRITE_ACCESS;
 
-                int s = 0;
-                int e = Count - 1;
-                while (s < e)
-                {
-                    int c = (s + e) / 2;
-                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
-                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
-                    else s = c + 1;
-                }
-
-                if (PairsRef->GetItem(s).first != Key)
-                    throw std::domain_error("Key not found.");
-                
-                for (int i = s + 1; i < Count; i++)
+                for (int i = Find(Key) + 1; i < Count; i++)
                     PairsRef->SetItem(i - 1, PairsRef->GetItem(i));
                 Count--;
 
@@ -260,20 +249,7 @@ namespace Engine
             {
                 ENGINE_COLLECTION_READ_ACCESS;
 
-                int s = 0;
-                int e = Count - 1;
-                while (s < e)
-                {
-                    int c = (s + e) / 2;
-                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
-                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
-                    else s = c + 1;
-                }
-
-                if (PairsRef->GetItem(s).first != Key)
-                    throw std::domain_error("Key not found.");
-
-                return PairsRef->GetItem(s).second;
+                return PairsRef->GetItem(Find(Key)).second;
             }
 
             template <typename KeyType, typename ValueType>
@@ -381,6 +357,25 @@ namespace Engine
                     Body(PairsRef->GetItem(i).first, PairsRef->GetItem(i).second, BreakFunction);
                 }
                 catch (LoopBreaker&) { break; }
+            }
+
+            template <typename KeyType, typename ValueType>
+            int ENGINE_DICTIONARY_CLASS_NAME::Find(KeyType Key)
+            {
+                int s = 0;
+                int e = Count - 1;
+                while (s < e)
+                {
+                    int c = (s + e) / 2;
+                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
+                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
+                    else s = c + 1;
+                }
+
+                if (PairsRef->GetItem(s).first != Key)
+                    throw std::domain_error("Key not found.");
+
+                return s;
             }
         }
     }
