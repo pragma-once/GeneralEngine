@@ -56,6 +56,12 @@ namespace Engine
 
                 /// @brief Gets the value that is assigned to a key.
                 ValueType GetValue(KeyType Key);
+                /// @brief Checks if a key exists in the dictionary.
+                /// @param Key The search subject.
+                /// @return True if the key exists in the dictionary.
+                bool Contains(KeyType Key);
+                /// @brief Gets the items count.
+                int GetCount();
                 /// @brief Checks whether the dictionary is empty.
                 bool IsEmpty();
 
@@ -268,6 +274,35 @@ namespace Engine
                     throw std::domain_error("Key not found.");
 
                 return PairsRef->GetItem(s).second;
+            }
+
+            template <typename KeyType, typename ValueType>
+            bool ENGINE_DICTIONARY_CLASS_NAME::Contains(KeyType Key)
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                int s = 0;
+                int e = Count - 1;
+                while (s < e)
+                {
+                    int c = (s + e) / 2;
+                    if (Key == PairsRef->GetItem(c).first) { s = c; break; }
+                    else if (Key < PairsRef->GetItem(c).first) e = c - 1;
+                    else s = c + 1;
+                }
+
+                if (PairsRef->GetItem(s).first != Key)
+                    return false
+
+                return true;
+            }
+
+            template <typename KeyType, typename ValueType>
+            int ENGINE_DICTIONARY_CLASS_NAME::GetCount()
+            {
+                ENGINE_COLLECTION_READ_ACCESS;
+
+                return Count;
             }
 
             template <typename KeyType, typename ValueType>
