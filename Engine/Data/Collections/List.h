@@ -1,21 +1,7 @@
 #ifndef ENGINE_LIST_INCLUDED
 
-#if defined(ENGINE_LIST_WITHOUT_MUTEX_INCLUDED) && !defined(ENGINE_LIST_USE_MUTEX)
-    #ifndef ENGINE_LIST_DONT_USE_MUTEX // Should be defined by HandledMutex.h only
-        #define ENGINE_LIST_USE_MUTEX
-        #include "List.h"
-        #undef ENGINE_LIST_USE_MUTEX
-    #endif
-    // And skip to the last #endif
-#else
-
 #ifdef ENGINE_LIST_USE_MUTEX
     #define ENGINE_LIST_INCLUDED
-#endif
-
-#ifdef ENGINE_LIST_DONT_USE_MUTEX
-    #define ENGINE_LIST_WITHOUT_MUTEX_INCLUDED
-    #undef ENGINE_LIST_USE_MUTEX
 #endif
 
 #include "../../Engine.dec.h"
@@ -961,14 +947,10 @@ namespace Engine
 
 #undef ENGINE_LIST_CLASS_NAME
 
-#if !defined(ENGINE_LIST_USE_MUTEX) && !defined(ENGINE_LIST_DONT_USE_MUTEX)
+#ifndef ENGINE_LIST_USE_MUTEX
     #define ENGINE_LIST_USE_MUTEX
     #include "List.h"
     #undef ENGINE_LIST_USE_MUTEX
 #endif
 
-#endif
-#endif // Include Guards
-
-// Ensure that the ENGINE_LIST_DONT_USE_MUTEX is undefined
-#undef ENGINE_LIST_DONT_USE_MUTEX
+#endif // Include Guard
