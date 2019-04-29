@@ -4,40 +4,40 @@ namespace Engine
 {
     namespace Core
     {
-        Module::Module() : Priority(0), isActive(true), loop(nullptr) {}
+        Module::Module() : Priority(0), isEnabled(true), loop(nullptr) {}
 
-        Module::Module(int Priority) : Priority(Priority), isActive(true), loop(nullptr) {}
+        Module::Module(int Priority) : Priority(Priority), isEnabled(true), loop(nullptr) {}
 
         Module::~Module() {};
 
-        void Module::Activate()
+        void Module::Enable()
         {
-            if (!isActive)
+            if (!isEnabled)
             {
-                isActive = true;
+                isEnabled = true;
                 if (loop != nullptr && loop.Get()->isRunning)
-                    OnActivate();
+                    OnEnable();
             }
         }
 
-        void Module::Deactivate()
+        void Module::Disable()
         {
-            if (isActive)
+            if (isEnabled)
             {
                 if (loop != nullptr && loop.Get()->isRunning)
-                    OnDeactivate();
-                isActive = false;
+                    OnDisable();
+                isEnabled = false;
             }
         }
 
-        bool Module::IsActive()
+        bool Module::IsEnabled()
         {
-            return isActive;
+            return isEnabled;
         }
 
         bool Module::IsRunning()
         {
-            return loop != nullptr && isActive && loop.Get()->isRunning;
+            return loop != nullptr && isEnabled && loop.Get()->isRunning;
         }
 
         int Module::GetPriority()
@@ -93,14 +93,14 @@ namespace Engine
         void Module::_Start()
         {
             OnStart();
-            if (isActive)
-                OnActivate();
+            if (isEnabled)
+                OnEnable();
         }
 
         void Module::_Stop()
         {
-            if (isActive)
-                OnDeactivate();
+            if (isEnabled)
+                OnDisable();
             OnStop();
         }
     }

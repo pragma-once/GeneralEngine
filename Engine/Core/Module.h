@@ -21,21 +21,21 @@ namespace Engine
 
             virtual ~Module();
 
-            /// @brief Activates the module
+            /// @brief Enables the module
             ///
-            /// The OnUpdate will be called when the module is active
-            /// and the cotaining Loop is started.
-            void Activate();
-            /// @brief Deactivates the module
+            /// The OnUpdate will be called when the module is enabled
+            /// and the container Loop is started.
+            void Enable();
+            /// @brief Disables the module
             ///
-            /// The OnUpdate won't be called when the module is inactive.
-            void Deactivate();
+            /// The OnUpdate won't be called when the module is disabled.
+            void Disable();
 
-            /// @brief Checks if the module is activated.
+            /// @brief Checks whether the module is enabled.
             ///
-            /// The module may not be running while active.
-            bool IsActive();
-            /// @brief Checks if the module is running.
+            /// The module may not be running while enabled.
+            bool IsEnabled();
+            /// @brief Checks whether the module is running.
             ///
             /// Running means that the OnUpdate is being called.
             bool IsRunning();
@@ -50,11 +50,11 @@ namespace Engine
             ///        to the loop while the loop is running.
             virtual void OnStart() = 0;
             /// @brief Is called on activation if the loop is running or just after OnStart.
-            virtual void OnActivate() = 0;
+            virtual void OnEnable() = 0;
             // @brief Synchronous update called by the loop.
             virtual void OnUpdate() = 0;
             /// @brief Is called on deactivation if the loop is running or just before OnStop.
-            virtual void OnDeactivate() = 0;
+            virtual void OnDisable() = 0;
             /// @brief Is called on loop stop or when being removed
             ///        from the loop while the loop is running.
             virtual void OnStop() = 0;
@@ -72,7 +72,7 @@ namespace Engine
             Loop * GetLoop();
         private:
             const int Priority;
-            Data::Shared<bool> isActive;
+            Data::Shared<bool> isEnabled;
             Data::Shared<Loop*> loop;
 
             void Acquire(Loop*);

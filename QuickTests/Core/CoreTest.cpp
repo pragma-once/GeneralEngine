@@ -35,14 +35,14 @@ public:
         print(GetTime() << ", " << GetTimeDiff() << ": Ending: " << Name);
     }
 
-    virtual void OnActivate() override
+    virtual void OnEnable() override
     {
-        print(GetTime() << ", " << GetTimeDiff() << ": Activating: " << Name);
+        print(GetTime() << ", " << GetTimeDiff() << ": Enabling: " << Name);
     }
 
-    virtual void OnDeactivate() override
+    virtual void OnDisable() override
     {
-        print(GetTime() << ", " << GetTimeDiff() << ": Deavtivating: " << Name);
+        print(GetTime() << ", " << GetTimeDiff() << ": Disabling: " << Name);
     }
 
     virtual std::string GetName() override
@@ -57,8 +57,8 @@ void Prompt(Engine::Core::Loop& loop)
     print("add Name Priority       => Add Module with Name and Priority");
     print("ADD Name Priority Index => Add Module with Name and Priority and Index");
     print("rem Name                => Remove Module with Name");
-    print("a   Name                => Activate Module with Name");
-    print("d   Name                => Deactivate Module with Name");
+    print("a   Name                => Enable Module with Name");
+    print("d   Name                => Disable Module with Name");
     print("");
     print("f => Loop.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
@@ -98,7 +98,7 @@ void Prompt(Engine::Core::Loop& loop)
             input(option);
             try{ loop.Modules.GetItem(loop.Modules.Find(
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
-                ))->Activate(); }
+                ))->Enable(); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "d")
@@ -106,7 +106,7 @@ void Prompt(Engine::Core::Loop& loop)
             input(option);
             try{ loop.Modules.GetItem(loop.Modules.Find(
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
-                ))->Deactivate(); }
+                ))->Disable(); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
         }
         else if (option == "f")

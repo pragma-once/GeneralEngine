@@ -203,7 +203,7 @@ namespace Engine
                         Schedules.Pop()();
                     else break;
 
-                Modules.ForEach([](Module * Item) { if (Item->isActive) Item->OnUpdate(); });
+                Modules.ForEach([](Module * Item) { if (Item->isEnabled) Item->OnUpdate(); });
 
                 if (Modules.GetCount() == 0)
                     break;
