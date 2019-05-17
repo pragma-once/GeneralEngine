@@ -150,7 +150,7 @@ namespace Engine
 
         }
 
-        void Loop::Start()
+        void Loop::Run()
         {
             // Mutex lock to: 1. Not allowing more than one async starts.
             //                2. Provide thread safety for _Start and _Stop calls

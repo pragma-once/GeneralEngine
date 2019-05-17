@@ -23,7 +23,7 @@ namespace Engine
             /// @brief Starts the loop.
             ///
             /// Note that it's not an async start.
-            void Start();
+            void Run();
             /// @brief Stops the loop.
             void Stop();
 

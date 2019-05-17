@@ -62,7 +62,7 @@ void Prompt(Engine::Core::Loop& loop)
     print("");
     print("f => Loop.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
-    print("s => Loop.Start()");
+    print("s => Loop.Run()");
     print("e => Loop.Stop()");
     print("");
     print("[anything] => pass");
@@ -115,7 +115,7 @@ void Prompt(Engine::Core::Loop& loop)
         }
         else if (option == "s")
         {
-            loop.Start();
+            loop.Run();
         }
         else if (option == "e")
         {
