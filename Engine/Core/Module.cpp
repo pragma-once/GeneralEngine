@@ -4,12 +4,11 @@ namespace Engine
 {
     namespace Core
     {
-        Module::Module() : Priority(0), isEnabled(true), loop(nullptr) {}
-
-        Module::Module(std::int_fast8_t Priority) : Priority(Priority >= -128 ?
-                                                        (Priority <= 127 ? Priority : 127)
-                                                        : -128),
-                                                    isEnabled(true), loop(nullptr) {}
+        Module::Module(std::int_fast8_t Priority, bool Async) : Priority(Priority >= -128 ?
+                                                                    (Priority <= 127 ? Priority : 127)
+                                                                    : -128),
+                                                                Async(Async),
+                                                                isEnabled(true), loop(nullptr) {}
 
         Module::~Module() {};
 
@@ -46,6 +45,11 @@ namespace Engine
         int Module::GetPriority()
         {
             return Priority;
+        }
+
+        bool Module::IsAsync()
+        {
+            return Async;
         }
 
         double Module::GetTime()

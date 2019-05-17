@@ -11,13 +11,18 @@ namespace Engine
         {
             friend Loop;
         public:
-            Module();
             /// In the derived class, use this function to set the module priority
             /// to specify the execution order, using a constructor written like:
+            ///
             ///     MyModule(...) : Module(MyPriority) {...}
             ///
+            /// and/or whether it can be async:
+            ///
+            ///     MyModule(...) : Module(MyPriority, CanBeAsync) {...}
+            ///
             /// @param Priority Specifies modules execution order
-            Module(std::int_fast8_t Priority);
+            /// @param Async Whether the module can be executed asynchronously
+            Module(std::int_fast8_t Priority = 0, bool Async = true);
 
             virtual ~Module();
 
@@ -43,6 +48,8 @@ namespace Engine
             ///
             /// Priority specifies modules execution order
             int GetPriority();
+            // @brief Returns whether the module can be executed asynchronously.
+            bool IsAsync();
 
             virtual std::string GetName() = 0;
         protected:
@@ -72,6 +79,8 @@ namespace Engine
             Loop * GetLoop();
         private:
             const std::int_fast8_t Priority;
+            const bool Async;
+
             Data::Shared<bool> isEnabled;
             Data::Shared<Loop*> loop;
 
