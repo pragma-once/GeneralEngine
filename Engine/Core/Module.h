@@ -17,7 +17,7 @@ namespace Engine
             ///     MyModule(...) : Module(MyPriority) {...}
             ///
             /// @param Priority Specifies modules execution order
-            Module(int Priority);
+            Module(std::int_fast8_t Priority);
 
             virtual ~Module();
 
@@ -71,7 +71,7 @@ namespace Engine
             /// @brief Gets the loop which this module is added to.
             Loop * GetLoop();
         private:
-            const int Priority;
+            const std::int_fast8_t Priority;
             Data::Shared<bool> isEnabled;
             Data::Shared<Loop*> loop;
 

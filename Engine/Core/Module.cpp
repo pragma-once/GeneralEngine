@@ -6,7 +6,10 @@ namespace Engine
     {
         Module::Module() : Priority(0), isEnabled(true), loop(nullptr) {}
 
-        Module::Module(int Priority) : Priority(Priority), isEnabled(true), loop(nullptr) {}
+        Module::Module(std::int_fast8_t Priority) : Priority(Priority >= -128 ?
+                                                        (Priority <= 127 ? Priority : 127)
+                                                        : -128),
+                                                    isEnabled(true), loop(nullptr) {}
 
         Module::~Module() {};
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
