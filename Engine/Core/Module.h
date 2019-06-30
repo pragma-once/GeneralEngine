@@ -16,13 +16,8 @@ namespace Engine
             ///
             ///     MyModule(...) : Module(MyPriority) {...}
             ///
-            /// and/or whether it can be async:
-            ///
-            ///     MyModule(...) : Module(MyPriority, CanBeAsync) {...}
-            ///
             /// @param Priority Specifies modules execution order
-            /// @param Async Whether the module can be executed asynchronously
-            Module(std::int_fast8_t Priority = 0, bool Async = true);
+            Module(std::int_fast8_t Priority = 0);
 
             virtual ~Module();
 
@@ -52,6 +47,8 @@ namespace Engine
             bool IsAsync();
 
             virtual std::string GetName() = 0;
+
+            virtual ExecutionType GetExecutionType();
         protected:
             /// @brief Is called on loop start or when being added
             ///        to the loop while the loop is running.
@@ -79,7 +76,6 @@ namespace Engine
             Loop * GetLoop();
         private:
             const std::int_fast8_t Priority;
-            const bool Async;
 
             Data::Shared<bool> isEnabled;
             Data::Shared<Loop*> loop;
