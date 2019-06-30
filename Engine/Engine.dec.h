@@ -43,18 +43,17 @@ namespace Engine
 
     namespace Core
     {
-        /// @brief The execution type of a Module or a Schedule in a Loop
-        ///
-        /// SingleThreaded: Blocks and waits for all BoundedAsync processes to execute.
-        ///                 Only recommended for core modules that need this.
-        /// BoundedAsync: Is executed inside the loop in separate threads.
-        ///               Recommended for normal Modules.
-        /// FreeAsync: Is executed outside the loop in a new thread.
-        ///            Only recommended for long scheduled tasks that sleep a lot,
-        ///            and NOT Modules.
+        /// @brief The execution type of a Module or a Scheduled task in a Loop
         enum ExecutionType : std::int_fast8_t {
+            /// @brief Wait for and block all BoundedAsync processes to execute.
+            ///        Only recommended for core modules that need this.
             SingleThreaded = -1,
+            /// @brief Are executed inside the loop in separate threads.
+            ///        Recommended for normal Modules.
             BoundedAsync = 0,
+            /// @brief Are executed outside the loop in new individual threads.
+            ///        Only recommended for long scheduled tasks that sleep a lot,
+            ///        and NOT Modules.
             FreeAsync = 1,
         };
         /// @brief Manages and runs Module objects.
