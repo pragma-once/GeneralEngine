@@ -46,7 +46,9 @@ namespace Engine
         /// @brief The execution type of a Module or a Scheduled task in a Loop
         enum ExecutionType : std::int_fast8_t {
             /// @brief Wait for and block all BoundedAsync processes to execute.
-            ///        Only recommended for core modules that need this.
+            ///        May be used for core modules that really need this.
+            ///        TRY NOT TO use this for 0-priority modules
+            ///        as it will be wasting more time on updates.
             SingleThreaded = -1,
             /// @brief Are executed inside the loop in separate threads.
             ///        Recommended for normal Modules.
