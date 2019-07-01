@@ -1,5 +1,6 @@
 #include "../Engine.h"
 #include <chrono>
+#include <condition_variable>
 
 namespace Engine
 {
@@ -169,18 +170,180 @@ namespace Engine
 
             ShouldStop = false;
             Schedules.Clear();
-            AsyncSchedules.Clear();
             Schedules.SetAutoShrink(false);
-            AsyncSchedules.SetAutoShrink(false);
 
             Data::Collections::List<Module*> copy_list = Modules;
             isRunning = true;
-            copy_list.ForEach([](Module * Item) { Item->_Start(); });
+            copy_list.ForEach([](Module * Item) { Item->_Start(); }); // TODO: Analyze, What if some module gets removed on start
+                                                                      // Potential fix: by scheduling Start and End calls when IsRunning?
+                                                                      // Or just add them to Start/End priority*-queues to schedule
+                                                                      // When removing a started module, it's not added to the ending priority-queue,
+                                                                      // and removed from the starting priority-queue.
+                                                                      // Also! SCHEDULE to add to or remove from a separate updating modules list
+                                                                      // so that they can be used to decide what modules to update.
+                                                                      // ALSO! do it for schedules!
 
             guard.Unlock();
 
             copy_list.Clear();
-            
+
+            // Threads initialization
+
+            unsigned int threads_count = std::thread::hardware_concurrency();
+            if (threads_count == 0) threads_count = 1;
+            enum thread_state
+            {
+                /// @brief Should start working, set by the main thread
+                ready,
+                /// @brief Is working, set by each thread in the pool
+                working,
+                /// @brief Waiting for the main thread to continue, set by each thread
+                passing,
+                /// @brief Current priority done, set by each thread
+                done,
+                /// @brief Used to detect bugs
+                error
+            };
+            Data::Collections::List<std::thread, false> threads(threads_count);
+            Data::Collections::List<thread_state> thread_states(threads_count);
+            threads.SetAutoShrink(false);
+            thread_states.SetAutoShrink(false);
+
+            std::condition_variable condition;
+            std::mutex condition_mutex;
+
+            Data::Shared<std::int> CurrentPriority = -128; // Only set by the main thread
+            Data::Shared<int, true> ModuleIndex = 0;
+            Data::Shared<bool> ShouldTerminate = false;
+
+            for (int i = 0; i < threads_count; i++)
+            {
+                thread_states.Add(done);
+                // Pool: Update
+                threads.Add(std::thread([&](int thread_index) {
+                    while (true)
+                    {
+                        std::unique_lock<std::mutex> condition_guard(condition_mutex);
+                        condition.wait(condition_guard, [&]() {
+                            return thread_states.GetItem(thread_index) == thread_state::ready;
+                        });
+                        if (ShouldTerminate)
+                        {
+                            thread_states.SetItem(thread_index, thread_state::done);
+                            return;
+                        }
+                        thread_states.SetItem(thread_index, thread_state::working);
+                        condition_guard.unlock();
+                        if (CurrentPriority == 0)
+                        {
+                            std::function<void()> func;
+                            auto guard = ModuleIndex.Mutex.GetLock();
+                            bool done_for_now = false;
+                            while (!Schedules.IsEmpty())
+                            {
+                                func = nullptr;
+                                if (Schedules.GetFirstPriority <= Time)
+                                    switch (Schedules.GetFirstItem().first)
+                                    {
+                                        case ExecutionType::FreeAsync:
+                                            std::thread([&]() { Schedules.Pop().second(); }).detach();
+                                            break;
+                                        case ExecutionType::BoundedAsync:
+                                            func = Schedules.Pop().second;
+                                            break;
+                                        case ExecutionType::SingleThreaded:
+                                            condition_guard.lock();
+                                            thread_states.SetItem(thread_index, thread_state::passing);
+                                            condition_guard.unlock();
+                                            condition.notify_all();
+                                            done_for_now = true;
+                                            break;
+                                    }
+                                else break;
+                                guard.Unlock();
+                                if (done_for_now) break;
+                                if (func != nullptr) func();
+                                guard = ModuleIndex.Mutex.GetLock();
+                            }
+                            // Wait for the main thread to continue to run the schedules.
+                            // And do not continue to the modules yet.
+                            if (done_for_now) continue;
+                        }
+                        {
+                            int module_index;
+                            auto guard = ModuleIndex.Mutex.GetLock();
+                            bool done_for_now = false;
+                            while (ModuleIndex < Modules.GetCount()
+                                && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
+                            {
+                                module_index = -1;
+                                switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
+                                {
+                                    case ExecutionType::FreeAsync:
+                                        std::thread([&]() { Modules.GetItem(ModuleIndex)->OnUpdate(); }).detach();
+                                        ModuleIndex = ModuleIndex + 1;
+                                        break;
+                                    case ExecutionType::BoundedAsync:
+                                        module_index = ModuleIndex;
+                                        break;
+                                    case ExecutionType::SingleThreaded:
+                                        condition_guard.lock();
+                                        thread_states.SetItem(thread_index, thread_state::passing);
+                                        condition_guard.unlock();
+                                        condition.notify_all();
+                                        done_for_now = true;
+                                        break;
+                                }
+                                guard.Unlock();
+                                if (done_for_now) break;
+                                if (module_index != -1) Modules.GetItem(module_index)->OnUpdate();
+                                guard = ModuleIndex.Mutex.GetLock();
+                            }
+                            // Wait for the main thread to continue to run the modules.
+                            // And do not set the state to 'done' yet.
+                            if (done_for_now) continue;
+                        }
+                        condition_guard.lock();
+                        thread_states.SetItem(thread_index, thread_state::done);
+                        condition_guard.unlock();
+                        condition.notify_all();
+                    }
+                }), i);
+            }
+
+            auto pool_process = [&]()->thread_state {
+                // start
+                std::unique_lock<std::mutex> condition_guard(condition_mutex);
+                for (int i = 0; i < threads_count; i++)
+                    thread_states.SetItem(i, thread_state::ready);
+                condition_guard.unlock();
+                condition.notify_all();
+                // wait
+                thread_state result = thread_state::error;
+                std::unique_lock<std::mutex> condition_guard(condition_mutex);
+                condition.wait(condition_guard, [&]() {
+                    int done_count = 0;
+                    int passing_count = 0;
+                    for (int i = 0; i < threads_count; i++)
+                        switch (thread_states.GetItem(i))
+                        {
+                            case thread_state::done: done_count++; break;
+                            case thread_state::passing: passing_count++; break;
+                            case default: return false;
+                        }
+                    if (done_count == threads_count) result = thread_state::done;
+                    else if (passing_count == threads_count) result = thread_state::passing;
+                    else result = thread_state::error;
+                    return true;
+                });
+                if (result == thread_state::error)
+                    throw std::logic_error("This is a bug!");
+                return result;
+            };
+
+            thread_state pool_state = thread_state::done;
+
+            // Main thread: Update
             while (!ShouldStop)
             {
                 auto duration = std::chrono::steady_clock::now() - StartTime;
@@ -190,37 +353,123 @@ namespace Engine
                 TimeFloat = (float)Time;
                 TimeDiffFloat = (float)TimeDiff;
 
-                while (!AsyncSchedules.IsEmpty())
-                    if (AsyncSchedules.GetFirstPriority() <= Time)
-                        std::thread(
-                            [](Data::Collections::PriorityQueue<std::function<void()>, double> * AsyncSchedules) { AsyncSchedules->Pop()(); }
-                            , &AsyncSchedules
-                            ).detach();
-                    else break;
+                CurrentPriority = -128;
+                auto guard = ModuleIndex.Mutex.GetLock();
+                ModuleIndex = 0;
+                guard.Unlock();
 
-                while (!Schedules.IsEmpty())
-                    if (Schedules.GetFirstPriority() <= Time)
-                        Schedules.Pop()();
-                    else break;
-
-                Modules.ForEach([](Module * Item) { if (Item->isEnabled) Item->OnUpdate(); });
+                while (true)
+                {
+                    // Set ModuleIndex
+                    if (ModuleIndex >= Modules.GetCount())
+                        if (CurrentPriority <= 0)
+                            CurrentPriority = 0;
+                        else break;
+                    else if (CurrentPriority < Modules.GetItem(ModuleItem)->GetPriority())
+                        if (CurrentPriority <= 0 && Modules.GetItem(ModuleItem)->GetPriority() > 0)
+                            CurrentPriority = 0;
+                        else CurrentPriority = Modules.GetItem(ModuleItem)->GetPriority();
+                    //  Normal process
+                    if (CurrentPriority == 0)
+                    {
+                        std::function<void()> func;
+                        auto guard = ModuleIndex.Mutex.GetLock();
+                        bool pass_to_pool = false;
+                        bool priority_done = false;
+                        while (!Schedules.IsEmpty())
+                        {
+                            func = nullptr;
+                            if (Schedules.GetFirstPriority <= Time)
+                                switch (Schedules.GetFirstItem().first)
+                                {
+                                    case ExecutionType::FreeAsync:
+                                        std::thread([&]() { Schedules.Pop().second(); }).detach();
+                                        break;
+                                    case ExecutionType::SingleThreaded:
+                                        func = Schedules.Pop().second;
+                                        break;
+                                    case ExecutionType::BoundedAsync:
+                                        pass_to_pool = true;
+                                        break;
+                                }
+                            else break;
+                            guard.Unlock();
+                            if (pass_to_pool)
+                            {
+                                priority_done = pool_process() == thread_state::done;
+                                if (priority_done) break;
+                                pass_to_pool = false;
+                            }
+                            if (func != nullptr) func();
+                            guard = ModuleIndex.Mutex.GetLock();
+                        }
+                        if (priority_done)
+                        {
+                            // 0-priority is done now.
+                            CurrentPriority = CurrentPriority + 1;
+                            continue;
+                        }
+                    }
+                    {
+                        int module_index;
+                        auto guard = ModuleIndex.Mutex.GetLock();
+                        bool pass_to_pool = false;
+                        while (ModuleIndex < Modules.GetCount()
+                            && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
+                        {
+                            module_index = -1;
+                            switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
+                            {
+                                case ExecutionType::FreeAsync:
+                                    std::thread([&]() { Modules.GetItem(ModuleIndex)->OnUpdate(); }).detach();
+                                    ModuleIndex = ModuleIndex + 1;
+                                    break;
+                                case ExecutionType::SingleThreaded:
+                                    module_index = ModuleIndex;
+                                    break;
+                                case ExecutionType::BoundedAsync:
+                                    pass_to_pool = true;
+                                    break;
+                            }
+                            guard.Unlock();
+                            if (pass_to_pool)
+                            {
+                                priority_done = pool_process() == thread_state::done;
+                                if (priority_done) break;
+                                pass_to_pool = false;
+                            }
+                            if (module_index != -1) Modules.GetItem(module_index)->OnUpdate();
+                            guard = ModuleIndex.Mutex.GetLock();
+                        }
+                        if (priority_done)
+                        {
+                            // 0-priority is done now.
+                            CurrentPriority = CurrentPriority + 1;
+                            continue;
+                        }
+                    }
+                    CurrentPriority = CurrentPriority + 1;
+                }
 
                 if (Modules.GetCount() == 0)
                     break;
             }
+
+            ShouldTerminate = true;
+            pool_process();
+            for (int i = 0; i < threads_count; i++)
+                threads.GetItem(i).join();
 
             copy_list = Modules;
 
             guard = isRunning.Mutex.GetLock();
 
             isRunning = false;
-            copy_list.ForEach([](Module * Item) { Item->_Stop(); });
+            copy_list.ForEach([](Module * Item) { Item->_Stop(); }); // TODO: Analyze
             copy_list.Clear();
 
             Schedules.SetAutoShrink(true);
-            AsyncSchedules.SetAutoShrink(true);
             Schedules.Clear();
-            AsyncSchedules.Clear();
 
             Time = 0;
             TimeDiff = 0;
@@ -240,22 +489,19 @@ namespace Engine
             return isRunning;
         }
 
-        void Loop::Schedule(std::function<void()> Func, double Time, bool Async)
+        void Loop::Schedule(std::function<void()> Func, double Time, ExecutionType ExecutionType)
         {
-            if (Async) AsyncSchedules.Push(Func, Time);
-            else Schedules.Push(Func, Time);
+            Schedules.Push(std::pair(ExecutionType, Func), Time);
         }
 
-        void Loop::Schedule(double Time, std::function<void()> Func, bool Async)
+        void Loop::Schedule(double Time, std::function<void()> Func, ExecutionType ExecutionType)
         {
-            if (Async) AsyncSchedules.Push(Func, Time);
-            else Schedules.Push(Func, Time);
+            Schedules.Push(std::pair(ExecutionType, Func), Time);
         }
 
-        void Loop::Schedule(double Time, bool Async, std::function<void()> Func)
+        void Loop::Schedule(double Time, ExecutionType ExecutionType, std::function<void()> Func)
         {
-            if (Async) AsyncSchedules.Push(Func, Time);
-            else Schedules.Push(Func, Time);
+            Schedules.Push(std::pair(ExecutionType, Func), Time);
         }
     }
 }

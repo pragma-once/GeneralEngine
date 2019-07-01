@@ -33,30 +33,30 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.
             ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
-            /// @param Async Whether the call must be async.
-            void Schedule(std::function<void()> Task, double Time = 0, bool Async = false);
+            void Schedule(std::function<void()> Task, double Time = 0, ExecutionType ExecutionType = ExecutionType::BoundedAsync);
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.
             ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
-            /// @param Async Whether the call must be async.
-            void Schedule(double Time, std::function<void()> Task, bool Async = false);
+            void Schedule(double Time, std::function<void()> Task, ExecutionType ExecutionType = ExecutionType::BoundedAsync);
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
             ///
             /// @param Task The function that will be called.
             /// @param Time The time when the function will be called.
             ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
-            /// @param Async Whether the call must be async.
-            void Schedule(double Time, bool Async, std::function<void()> Task);
+            void Schedule(double Time, ExecutionType ExecutionType, std::function<void()> Task);
         private:
             int ZeroPriorityModulesStartIndex;
             int ZeroPriorityModulesEndIndex;
@@ -68,8 +68,7 @@ namespace Engine
             Data::Shared<float> TimeDiffFloat;
             Data::Shared<bool> ShouldStop;
 
-            Data::Collections::PriorityQueue<std::function<void()>, double> Schedules;
-            Data::Collections::PriorityQueue<std::function<void()>, double> AsyncSchedules;
+            Data::Collections::PriorityQueue<std::pair<ExecutionType, std::function<void()>>, double> Schedules;
         };
     }
 }
