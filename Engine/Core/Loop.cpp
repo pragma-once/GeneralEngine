@@ -204,7 +204,7 @@ namespace Engine
                 /// @brief Used to detect bugs
                 error
             };
-            Data::Collections::List<std::thread, false> threads(threads_count);
+            Data::Collections::List<std::thread*, false> threads(threads_count);
             Data::Collections::List<thread_state> thread_states(threads_count);
             threads.SetAutoShrink(false);
             thread_states.SetAutoShrink(false);
@@ -212,15 +212,15 @@ namespace Engine
             std::condition_variable condition;
             std::mutex condition_mutex;
 
-            Data::Shared<std::int> CurrentPriority = -128; // Only set by the main thread
+            Data::Shared<int> CurrentPriority = -128; // Only set by the main thread
             Data::Shared<int, true> ModuleIndex = 0;
             Data::Shared<bool> ShouldTerminate = false;
 
             for (int i = 0; i < threads_count; i++)
             {
                 thread_states.Add(done);
-                // Pool: Update
-                threads.Add(std::thread([&](int thread_index) {
+                // Update loop: thread pool
+                threads.Add(new std::thread([&](int thread_index) {
                     while (true)
                     {
                         std::unique_lock<std::mutex> condition_guard(condition_mutex);
@@ -242,7 +242,7 @@ namespace Engine
                             while (!Schedules.IsEmpty())
                             {
                                 func = nullptr;
-                                if (Schedules.GetFirstPriority <= Time)
+                                if (Schedules.GetFirstPriority() <= Time)
                                     switch (Schedules.GetFirstItem().first)
                                     {
                                         case ExecutionType::FreeAsync:
@@ -308,7 +308,7 @@ namespace Engine
                         condition_guard.unlock();
                         condition.notify_all();
                     }
-                }), i);
+                }, i));
             }
 
             auto pool_process = [&]()->thread_state {
@@ -320,7 +320,7 @@ namespace Engine
                 condition.notify_all();
                 // wait
                 thread_state result = thread_state::error;
-                std::unique_lock<std::mutex> condition_guard(condition_mutex);
+                condition_guard.lock();
                 condition.wait(condition_guard, [&]() {
                     int done_count = 0;
                     int passing_count = 0;
@@ -329,7 +329,7 @@ namespace Engine
                         {
                             case thread_state::done: done_count++; break;
                             case thread_state::passing: passing_count++; break;
-                            case default: return false;
+                            default: return false;
                         }
                     if (done_count == threads_count) result = thread_state::done;
                     else if (passing_count == threads_count) result = thread_state::passing;
@@ -343,7 +343,7 @@ namespace Engine
 
             thread_state pool_state = thread_state::done;
 
-            // Main thread: Update
+            // Update loop: main thread
             while (!ShouldStop)
             {
                 auto duration = std::chrono::steady_clock::now() - StartTime;
@@ -365,10 +365,10 @@ namespace Engine
                         if (CurrentPriority <= 0)
                             CurrentPriority = 0;
                         else break;
-                    else if (CurrentPriority < Modules.GetItem(ModuleItem)->GetPriority())
-                        if (CurrentPriority <= 0 && Modules.GetItem(ModuleItem)->GetPriority() > 0)
+                    else if (CurrentPriority < Modules.GetItem(ModuleIndex)->GetPriority())
+                        if (CurrentPriority <= 0 && Modules.GetItem(ModuleIndex)->GetPriority() > 0)
                             CurrentPriority = 0;
-                        else CurrentPriority = Modules.GetItem(ModuleItem)->GetPriority();
+                        else CurrentPriority = Modules.GetItem(ModuleIndex)->GetPriority();
                     //  Normal process
                     if (CurrentPriority == 0)
                     {
@@ -379,7 +379,7 @@ namespace Engine
                         while (!Schedules.IsEmpty())
                         {
                             func = nullptr;
-                            if (Schedules.GetFirstPriority <= Time)
+                            if (Schedules.GetFirstPriority() <= Time)
                                 switch (Schedules.GetFirstItem().first)
                                 {
                                     case ExecutionType::FreeAsync:
@@ -414,6 +414,7 @@ namespace Engine
                         int module_index;
                         auto guard = ModuleIndex.Mutex.GetLock();
                         bool pass_to_pool = false;
+                        bool priority_done = false;
                         while (ModuleIndex < Modules.GetCount()
                             && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
                         {
@@ -458,7 +459,10 @@ namespace Engine
             ShouldTerminate = true;
             pool_process();
             for (int i = 0; i < threads_count; i++)
-                threads.GetItem(i).join();
+            {
+                threads.GetItem(i)->join();
+                delete threads.GetItem(i);
+            }
 
             copy_list = Modules;
 
