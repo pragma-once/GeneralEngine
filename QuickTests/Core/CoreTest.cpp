@@ -9,6 +9,39 @@ class QuitException {};
 
 void Prompt(Engine::Core::Loop&);
 
+class PromptModule : public Engine::Core::Module
+{
+public:
+    std::string Name;
+
+    PromptModule(std::string Name, int Priority) : Module(Priority)
+    {
+        this->Name = Name;
+    }
+
+    virtual void OnStart() override {}
+
+    virtual void OnUpdate() override
+    {
+        print(GetTime() << ", " << GetTimeDiff() << ": Prompt: " << Name);
+        Prompt(*GetLoop());
+    }
+
+    virtual void OnStop() override {}
+    virtual void OnEnable() override {}
+    virtual void OnDisable() override {}
+
+    virtual std::string GetName() override
+    {
+        return Name;
+    }
+
+    virtual Engine::Core::ExecutionType GetExecutionType() override
+    {
+        return Engine::Core::ExecutionType::SingleThreaded;
+    }
+};
+
 class TestModule : public Engine::Core::Module
 {
 public:
@@ -27,7 +60,6 @@ public:
     virtual void OnUpdate() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Updating: " << Name);
-        Prompt(*GetLoop());
     }
 
     virtual void OnStop() override
@@ -54,11 +86,13 @@ public:
 void Prompt(Engine::Core::Loop& loop)
 {
     print("");
-    print("add Name Priority       => Add Module with Name and Priority");
-    print("ADD Name Priority Index => Add Module with Name and Priority and Index");
-    print("rem Name                => Remove Module with Name");
-    print("a   Name                => Enable Module with Name");
-    print("d   Name                => Disable Module with Name");
+    print("add Name Priority       => Add a TestModule");
+    print("ADD Name Priority Index => Add a TestModule");
+    print("adp Name Priority       => Add a PromptModule");
+    print("ADP Name Priority Index => Add a PromptModule");
+    print("rem Name                => Remove a Module by Name");
+    print("a   Name                => Enable a Module by Name");
+    print("d   Name                => Disable a Module by Name");
     print("");
     print("f => Loop.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
@@ -84,6 +118,18 @@ void Prompt(Engine::Core::Loop& loop)
             int arg1, arg2;
             input(option >> arg1 >> arg2);
             loop.Modules.Add(new TestModule(option, arg1), arg2);
+        }
+        else if (option == "adp")
+        {
+            int arg;
+            input(option >> arg);
+            loop.Modules.Add(new PromptModule(option, arg));
+        }
+        else if (option == "ADP")
+        {
+            int arg1, arg2;
+            input(option >> arg1 >> arg2);
+            loop.Modules.Add(new PromptModule(option, arg1), arg2);
         }
         else if (option == "rem")
         {
