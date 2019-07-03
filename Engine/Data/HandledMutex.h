@@ -134,8 +134,13 @@ namespace Engine
             bool HasOwner;
             std::thread::id Owner;
             Collections::Dictionary<std::thread::id, int, false> * SharedOwnersRef;
-
             int LockGuardCount;
+
+            bool LockOperation(std::unique_lock<std::mutex>&);
+            bool UnlockOperation();
+            bool LockSharedOperation(std::unique_lock<std::mutex>&);
+            bool UnlockSharedOperation();
+
             void LockByGuard();
             void UnlockByGuard();
             void LockSharedByGuard();

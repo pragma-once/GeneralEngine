@@ -111,7 +111,11 @@ namespace Engine
         bool HandledMutex::Lock()
         {
             std::unique_lock<std::mutex> m(MembersMutex);
+            return LockOperation(m);
+        }
 
+        inline bool HandledMutex::LockOperation(std::unique_lock<std::mutex>& m)
+        {
             if (HasOwner && (Owner == std::this_thread::get_id()))
                 return false;
 
@@ -147,6 +151,11 @@ namespace Engine
         bool HandledMutex::Unlock()
         {
             std::lock_guard<std::mutex> guard(MembersMutex);
+            return UnlockOperation();
+        }
+
+        inline bool HandledMutex::UnlockOperation()
+        {
             if (HasOwner && (Owner == std::this_thread::get_id()))
             {
                 Mutex.unlock();
@@ -179,6 +188,11 @@ namespace Engine
         {
             std::unique_lock<std::mutex> m(MembersMutex);
 
+            return LockSharedOperation(m);
+        }
+
+        inline bool HandledMutex::LockSharedOperation(std::unique_lock<std::mutex>& m)
+        {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
                 return false;
 
@@ -218,6 +232,11 @@ namespace Engine
         bool HandledMutex::UnlockShared()
         {
             std::lock_guard<std::mutex> guard(MembersMutex);
+            return UnlockSharedOperation();
+        }
+
+        inline bool HandledMutex::UnlockSharedOperation()
+        {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
             {
                 if (!(HasOwner && (Owner == std::this_thread::get_id())))
@@ -246,8 +265,8 @@ namespace Engine
 
         void HandledMutex::LockByGuard()
         {
-            std::lock_guard<std::mutex> guard(MembersMutex);
-            Lock();
+            std::unique_lock<std::mutex> m(MembersMutex);
+            LockOperation(m);
             LockGuardCount++;
         }
 
@@ -256,7 +275,7 @@ namespace Engine
             std::lock_guard<std::mutex> guard(MembersMutex);
             LockGuardCount--;
             if (LockGuardCount == 0)
-                Unlock();
+                UnlockOperation();
             else if (LockGuardCount < 0)
                 throw std::logic_error(
                     "This is a bug if the LockGuardCount member is not modified. Current LockGuardCount value is: "
@@ -266,8 +285,8 @@ namespace Engine
 
         void HandledMutex::LockSharedByGuard()
         {
-            std::lock_guard<std::mutex> guard(MembersMutex);
-            LockShared();
+            std::unique_lock<std::mutex> m(MembersMutex);
+            LockSharedOperation(m);
             SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedOwnersRef->GetValue(std::this_thread::get_id()) + 1);
         }
 
@@ -278,7 +297,7 @@ namespace Engine
             SharedLockGuardCounts--;
             SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedLockGuardCounts);
             if (SharedLockGuardCounts == 0)
-                UnlockShared();
+                UnlockSharedOperation();
             else if (SharedLockGuardCounts < 0)
                 throw std::logic_error(
                     "This is a bug if the SharedOwners member is not modified. Current SharedOwnersRef->GetValue(std::this_thread::get_id()) value is: "
