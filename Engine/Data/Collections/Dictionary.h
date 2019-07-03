@@ -211,7 +211,7 @@ namespace Engine
                     else s = c + 1;
                 }
 
-                if (PairsRef->GetItem(s).first != Key)
+                if (Count == 0 || PairsRef->GetItem(s).first != Key)
                 {
                     while (Count >= PairsRef->GetLength())
                         if (PairsRef->GetLength() > 0)
@@ -261,6 +261,8 @@ namespace Engine
             bool ENGINE_DICTIONARY_CLASS_NAME::Contains(KeyType Key)
             {
                 ENGINE_COLLECTION_READ_ACCESS;
+
+                if (Count == 0) return false;
 
                 int s = 0;
                 int e = Count - 1;
@@ -367,6 +369,9 @@ namespace Engine
             template <typename KeyType, typename ValueType>
             int ENGINE_DICTIONARY_CLASS_NAME::Find(KeyType Key)
             {
+                if (Count == 0)
+                    throw std::domain_error("Key not found.");
+
                 int s = 0;
                 int e = Count - 1;
                 while (s < e)
