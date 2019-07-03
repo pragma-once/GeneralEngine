@@ -285,6 +285,7 @@ namespace Engine
                                         break;
                                     case ExecutionType::BoundedAsync:
                                         module_index = ModuleIndex;
+                                        ModuleIndex = ModuleIndex + 1;
                                         break;
                                     case ExecutionType::SingleThreaded:
                                         condition_guard.lock();
@@ -427,6 +428,7 @@ namespace Engine
                                     break;
                                 case ExecutionType::SingleThreaded:
                                     module_index = ModuleIndex;
+                                    ModuleIndex = ModuleIndex + 1;
                                     break;
                                 case ExecutionType::BoundedAsync:
                                     pass_to_pool = true;
