@@ -211,7 +211,7 @@ namespace Engine
                     else s = c + 1;
                 }
 
-                if (Count == 0 || PairsRef->GetItem(s).first != Key)
+                if (Count == 0 || s >= Count || PairsRef->GetItem(s).first != Key)
                 {
                     while (Count >= PairsRef->GetLength())
                         if (PairsRef->GetLength() > 0)
