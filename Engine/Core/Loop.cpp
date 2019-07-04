@@ -230,6 +230,8 @@ namespace Engine
                         if (ShouldTerminate)
                         {
                             thread_states.SetItem(thread_index, thread_state::done);
+                            condition_guard.unlock();
+                            condition.notify_all();
                             return;
                         }
                         thread_states.SetItem(thread_index, thread_state::working);
