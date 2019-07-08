@@ -19,8 +19,8 @@ namespace Engine
         /// and is much easier to use than a normal shared mutex.
         /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
         class HandledMutex;
-        /// @brief Object that uses a setter and/or a getter to be set or get.
-        template <typename Type, bool HasSetter = true, bool HasGetter = true> class Property;
+        /// @brief Provides objects that act on set and/or get.
+        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Triggered;
         /// @brief Shared object with automatic mutex locking on set/get.
         /// @tparam AllowManualLocking If true, The class will use a public HandledMutex that
         ///         can also be controlled by user.

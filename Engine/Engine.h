@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Data/HandledMutex.h"
-#include "Data/Property.h"
+#include "Data/Triggered.h"
 #include "Data/Shared.h"
 
 #include "Data/Collections/ResizableArray.h"

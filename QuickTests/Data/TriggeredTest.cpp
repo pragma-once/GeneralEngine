@@ -10,10 +10,10 @@ class TestClass
 {
 public:
     std::string Name = "Unknown";
-    Engine::Data::Property<TestType> A;
-    Engine::Data::Property<TestType, false, true> B;
-    Engine::Data::Property<TestType, true, false> C;
-    // Engine::Data::Property<TestType, false, false> D; //-> error
+    Engine::Data::Triggered<TestType> A;
+    Engine::Data::Triggered<TestType, false, true> B;
+    Engine::Data::Triggered<TestType, true, false> C;
+    // Engine::Data::Triggered<TestType, false, false> D; //-> error
 
     TestClass(TestType A, TestType B, TestType C)
         : A([this](TestType Value) { a = Value; print(Name << ".A set to " << Value); }, [this]() { print("Getting " << Name << ".A: " << a); return a; })
@@ -47,7 +47,7 @@ int main()
     print((std::string)test.B);
 
     float f = 0;
-    Engine::Data::Property<float> F(
+    Engine::Data::Triggered<float> F(
         [&f](float val) { f = val; print("F set to " << val); },
         [&f]() { print("Getting F: " << f); return f; }
     );
