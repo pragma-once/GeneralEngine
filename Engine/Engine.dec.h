@@ -18,7 +18,7 @@ namespace Engine
         /// This class is meant for sharing data between different threads
         /// and is much easier to use than a normal shared mutex.
         /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
-        class HandledMutex;
+        class HandledMutex; // TODO: Rename
         /// @brief Provides objects that act on set and/or get.
         template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Triggered;
         /// @brief Shared object with automatic mutex locking on set/get.
