@@ -278,6 +278,11 @@ namespace Engine
                             while (ModuleIndex < Modules.GetCount()
                                 && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
                             {
+                                if (!Modules.GetItem(ModuleIndex)->isEnabled)
+                                {
+                                    ModuleIndex = ModuleIndex + 1;
+                                    continue;
+                                }
                                 module_index = -1;
                                 switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
                                 {
@@ -421,6 +426,11 @@ namespace Engine
                         while (ModuleIndex < Modules.GetCount()
                             && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
                         {
+                            if (!Modules.GetItem(ModuleIndex)->isEnabled)
+                            {
+                                ModuleIndex = ModuleIndex + 1;
+                                continue;
+                            }
                             module_index = -1;
                             switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
                             {
