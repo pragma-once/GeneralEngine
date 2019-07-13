@@ -239,8 +239,8 @@ namespace Engine
                         if (CurrentPriority == 0)
                         {
                             std::function<void()> func;
-                            auto guard = ModuleIndex.Mutex.GetLock();
                             bool done_for_now = false;
+                            auto guard = ModuleIndex.Mutex.GetLock();
                             while (!Schedules.IsEmpty())
                             {
                                 func = nullptr;
@@ -273,8 +273,8 @@ namespace Engine
                         }
                         {
                             int module_index;
-                            auto guard = ModuleIndex.Mutex.GetLock();
                             bool done_for_now = false;
+                            auto guard = ModuleIndex.Mutex.GetLock();
                             while (ModuleIndex < Modules.GetCount()
                                 && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
                             {
@@ -362,9 +362,7 @@ namespace Engine
                 TimeDiffFloat = (float)TimeDiff;
 
                 CurrentPriority = -128;
-                auto guard = ModuleIndex.Mutex.GetLock();
                 ModuleIndex = 0;
-                guard.Unlock();
 
                 while (true)
                 {
@@ -381,9 +379,9 @@ namespace Engine
                     if (CurrentPriority == 0)
                     {
                         std::function<void()> func;
-                        auto guard = ModuleIndex.Mutex.GetLock();
                         bool pass_to_pool = false;
                         bool priority_done = false;
+                        auto guard = ModuleIndex.Mutex.GetLock();
                         while (!Schedules.IsEmpty())
                         {
                             func = nullptr;
@@ -420,9 +418,9 @@ namespace Engine
                     }
                     {
                         int module_index;
-                        auto guard = ModuleIndex.Mutex.GetLock();
                         bool pass_to_pool = false;
                         bool priority_done = false;
+                        auto guard = ModuleIndex.Mutex.GetLock();
                         while (ModuleIndex < Modules.GetCount()
                             && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
                         {
