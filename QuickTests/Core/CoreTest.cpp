@@ -90,6 +90,9 @@ void Prompt(Engine::Core::Loop& loop)
     print("ADD Name Priority Index => Add a TestModule");
     print("adp Name Priority       => Add a PromptModule");
     print("ADP Name Priority Index => Add a PromptModule");
+    print("sch Name Time           => Schedule (BoundedAsync)");
+    print("scs Name Time           => Schedule (SingleThreaded)");
+    print("scf Name Time           => Schedule (FreeAsync)");
     print("rem Name                => Remove a Module by Name");
     print("a   Name                => Enable a Module by Name");
     print("d   Name                => Disable a Module by Name");
@@ -130,6 +133,30 @@ void Prompt(Engine::Core::Loop& loop)
             int arg1, arg2;
             input(option >> arg1 >> arg2);
             loop.Modules.Add(new PromptModule(option, arg1), arg2);
+        }
+        else if (option == "sch")
+        {
+            double arg;
+            input(option >> arg);
+            loop.Schedule(arg, Engine::Core::ExecutionType::BoundedAsync, [option] {
+                print("Executing the schedule: " << option);
+            });
+        }
+        else if (option == "scs")
+        {
+            double arg;
+            input(option >> arg);
+            loop.Schedule(arg, Engine::Core::ExecutionType::SingleThreaded, [option] {
+                print("Executing the schedule: " << option);
+            });
+        }
+        else if (option == "scf")
+        {
+            double arg;
+            input(option >> arg);
+            loop.Schedule(arg, Engine::Core::ExecutionType::FreeAsync, [option] {
+                print("Executing the schedule: " << option);
+            });
         }
         else if (option == "rem")
         {
