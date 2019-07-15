@@ -462,12 +462,6 @@ namespace Engine
                             if (module != nullptr) module->OnUpdate();
                             guard = ModuleIndex.Mutex.GetLock();
                         }
-                        if (priority_done)
-                        {
-                            // 0-priority is done now.
-                            CurrentPriority = CurrentPriority + 1;
-                            continue;
-                        }
                     }
                     CurrentPriority = CurrentPriority + 1;
                 }
