@@ -248,7 +248,9 @@ namespace Engine
                                     switch (Schedules.GetFirstItem().first)
                                     {
                                         case ExecutionType::FreeAsync:
-                                            std::thread([&]() { Schedules.Pop().second(); }).detach();
+                                            std::thread([](std::function<void()> func) {
+                                                func();
+                                            }, Schedules.Pop().second).detach();
                                             break;
                                         case ExecutionType::BoundedAsync:
                                             func = Schedules.Pop().second;
@@ -272,7 +274,7 @@ namespace Engine
                             if (done_for_now) continue;
                         }
                         {
-                            int module_index;
+                            Module * module;
                             bool done_for_now = false;
                             auto guard = ModuleIndex.Mutex.GetLock();
                             while (ModuleIndex < Modules.GetCount()
@@ -283,15 +285,17 @@ namespace Engine
                                     ModuleIndex = ModuleIndex + 1;
                                     continue;
                                 }
-                                module_index = -1;
+                                module = nullptr;
                                 switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
                                 {
                                     case ExecutionType::FreeAsync:
-                                        std::thread([&]() { Modules.GetItem(ModuleIndex)->OnUpdate(); }).detach();
+                                        std::thread([](Module * module) {
+                                            module->OnUpdate();
+                                        }, Modules.GetItem(ModuleIndex)).detach();
                                         ModuleIndex = ModuleIndex + 1;
                                         break;
                                     case ExecutionType::BoundedAsync:
-                                        module_index = ModuleIndex;
+                                        module = Modules.GetItem(ModuleIndex);
                                         ModuleIndex = ModuleIndex + 1;
                                         break;
                                     case ExecutionType::SingleThreaded:
@@ -304,7 +308,7 @@ namespace Engine
                                 }
                                 guard.Unlock();
                                 if (done_for_now) break;
-                                if (module_index != -1) Modules.GetItem(module_index)->OnUpdate();
+                                if (module != nullptr) module->OnUpdate();
                                 guard = ModuleIndex.Mutex.GetLock();
                             }
                             // Wait for the main thread to continue to run the modules.
@@ -389,7 +393,9 @@ namespace Engine
                                 switch (Schedules.GetFirstItem().first)
                                 {
                                     case ExecutionType::FreeAsync:
-                                        std::thread([&]() { Schedules.Pop().second(); }).detach();
+                                        std::thread([](std::function<void()> func) {
+                                            func();
+                                        }, Schedules.Pop().second).detach();
                                         break;
                                     case ExecutionType::SingleThreaded:
                                         func = Schedules.Pop().second;
@@ -417,7 +423,7 @@ namespace Engine
                         }
                     }
                     {
-                        int module_index;
+                        Module * module;
                         bool pass_to_pool = false;
                         bool priority_done = false;
                         auto guard = ModuleIndex.Mutex.GetLock();
@@ -429,15 +435,17 @@ namespace Engine
                                 ModuleIndex = ModuleIndex + 1;
                                 continue;
                             }
-                            module_index = -1;
+                            module = nullptr;
                             switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
                             {
                                 case ExecutionType::FreeAsync:
-                                    std::thread([&]() { Modules.GetItem(ModuleIndex)->OnUpdate(); }).detach();
+                                    std::thread([](Module * module) {
+                                        module->OnUpdate();
+                                    }, Modules.GetItem(ModuleIndex)).detach();
                                     ModuleIndex = ModuleIndex + 1;
                                     break;
                                 case ExecutionType::SingleThreaded:
-                                    module_index = ModuleIndex;
+                                    module = Modules.GetItem(ModuleIndex);
                                     ModuleIndex = ModuleIndex + 1;
                                     break;
                                 case ExecutionType::BoundedAsync:
@@ -451,7 +459,7 @@ namespace Engine
                                 if (priority_done) break;
                                 pass_to_pool = false;
                             }
-                            if (module_index != -1) Modules.GetItem(module_index)->OnUpdate();
+                            if (module != nullptr) module->OnUpdate();
                             guard = ModuleIndex.Mutex.GetLock();
                         }
                         if (priority_done)
