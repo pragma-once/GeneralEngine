@@ -71,12 +71,9 @@ namespace Engine
 
                     // Add the module
                     Parent->Add(Item, Index);
-
-                    Item->Acquire(this);
-                    auto guard = isRunning.Mutex.GetSharedLock();
                     if (isRunning)
-                        Item->_Start();
-                    guard.Unlock();
+                        // This kind of std::tuple construction requires C++17
+                        ToEditModules.Push(std::tuple(Add, Index, Item));
                 },
 
                 // OnSetItem
@@ -87,19 +84,9 @@ namespace Engine
                         if ((Index == 0 || Parent->GetItem(Index - 1)->GetPriority() <= Value->GetPriority())
                             && (Index == Parent->GetCount() - 1 || Value->GetPriority() <= Parent->GetItem(Index + 1)->GetPriority()))
                         {
-                            auto guard = isRunning.Mutex.GetSharedLock();
-                            if (isRunning)
-                                Parent->GetItem(Index)->_Stop();
-                            guard.Unlock();
-                            Parent->GetItem(Index)->Release();
-
                             Parent->SetItem(Index, Value);
-
-                            Value->Acquire(this);
-                            guard = isRunning.Mutex.GetSharedLock();
                             if (isRunning)
-                                Value->_Start();
-                            guard.Unlock();
+                                ToEditModules.Push(std::tuple(Replace, Index, Value));
                         }
                         else throw std::invalid_argument("Module's priority doesn't match the index.");
                     }
@@ -111,16 +98,12 @@ namespace Engine
                 {
                     try
                     {
-                        Module * Item = Parent->GetItem(Index);
+                        int Priority = Parent->GetItem(Index)->GetPriority();
 
-                        auto guard = isRunning.Mutex.GetSharedLock();
-                        if (isRunning)
-                            Item->_Stop();
-                        guard.Unlock();
-                        Item->Release();
-
-                        int Priority = Item->GetPriority();
                         Parent->RemoveByIndex(Index);
+                        if (isRunning)
+                            ToEditModules.Push(std::tuple(Remove, Index, nullptr));
+
                         if (Priority <= 0)
                             ZeroPriorityModulesEndIndex--;
                         if (Priority < 0)
@@ -132,17 +115,9 @@ namespace Engine
                 // OnClear
                 [this](Data::Collections::List<Module*> * Parent)
                 {
-                    auto guard = isRunning.Mutex.GetSharedLock();
-                    if (isRunning) Parent->ForEach([](Module * Item) {
-                        Item->_Stop();
-                        Item->Release();
-                    });
-                    else Parent->ForEach([](Module * Item) {
-                        Item->Release();
-                    });
-                    guard.Unlock();
-
                     Parent->Clear();
+                    if (isRunning)
+                        ToEditModules.Push(std::tuple(Clear, -1, nullptr));
                     ZeroPriorityModulesStartIndex = 0;
                     ZeroPriorityModulesEndIndex = 0;
                 }
@@ -153,13 +128,20 @@ namespace Engine
 
         void Loop::Run()
         {
-            // Mutex lock to: 1. Not allowing more than one async starts.
-            //                2. Provide thread safety for _Start and _Stop calls
-            //                   on modifications on the Modules list.
-            auto guard = isRunning.Mutex.GetLock();
-
-            if (isRunning)
-                throw std::logic_error("Cannot start twice.");
+            // Using Modules list lock to: 1. Prevent more than one async starts.
+            //                             2. Provide thread safety for ToEditModules modifications.
+            // NOTE: should not use the Modules list while locking isRunning to prevent deadlock
+            //       as the Modules list uses this mutex inside (OnAdd, ...).
+            Modules.LockAndDo([&] {                     // Lock #1
+                auto guard = isRunning.Mutex.GetLock(); // Lock #2 => no deadlock, guaranteed
+                if (isRunning)
+                    throw std::logic_error("Cannot start twice.");
+                ToEditModules.Clear(); // Just to be sure
+                UpdatingModules = Modules;
+                ToSchedule.Clear(); // Just to be sure
+                ToSchedule.SetAutoShrink(false);
+                isRunning = true;
+            });
 
             auto StartTime = std::chrono::steady_clock::now();
             double PreviousTime = 0;
@@ -172,20 +154,7 @@ namespace Engine
             Schedules.Clear();
             Schedules.SetAutoShrink(false);
 
-            Data::Collections::List<Module*> copy_list = Modules;
-            isRunning = true;
-            copy_list.ForEach([](Module * Item) { Item->_Start(); }); // TODO: Analyze, What if some module gets removed on start
-                                                                      // Potential fix: by scheduling Start and End calls when IsRunning?
-                                                                      // Or just add them to Start/End priority*-queues to schedule
-                                                                      // When removing a started module, it's not added to the ending priority-queue,
-                                                                      // and removed from the starting priority-queue.
-                                                                      // Also! SCHEDULE to add to or remove from a separate updating modules list
-                                                                      // so that they can be used to decide what modules to update.
-                                                                      // ALSO! do it for schedules!
-
-            guard.Unlock();
-
-            copy_list.Clear();
+            UpdatingModules.ForEach([this](Module * Item) { Item->Acquire(this); Item->_Start(); });
 
             // Threads initialization
 
@@ -277,25 +246,25 @@ namespace Engine
                             Module * module;
                             bool done_for_now = false;
                             auto guard = ModuleIndex.Mutex.GetLock();
-                            while (ModuleIndex < Modules.GetCount()
-                                && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
+                            while (ModuleIndex < UpdatingModules.GetCount()
+                                && CurrentPriority == UpdatingModules.GetItem(ModuleIndex)->GetPriority())
                             {
-                                if (!Modules.GetItem(ModuleIndex)->isEnabled)
+                                if (!UpdatingModules.GetItem(ModuleIndex)->isEnabled)
                                 {
                                     ModuleIndex = ModuleIndex + 1;
                                     continue;
                                 }
                                 module = nullptr;
-                                switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
+                                switch (UpdatingModules.GetItem(ModuleIndex)->GetExecutionType())
                                 {
                                     case ExecutionType::FreeAsync:
                                         std::thread([](Module * module) {
                                             module->OnUpdate();
-                                        }, Modules.GetItem(ModuleIndex)).detach();
+                                        }, UpdatingModules.GetItem(ModuleIndex)).detach();
                                         ModuleIndex = ModuleIndex + 1;
                                         break;
                                     case ExecutionType::BoundedAsync:
-                                        module = Modules.GetItem(ModuleIndex);
+                                        module = UpdatingModules.GetItem(ModuleIndex);
                                         ModuleIndex = ModuleIndex + 1;
                                         break;
                                     case ExecutionType::SingleThreaded:
@@ -358,6 +327,52 @@ namespace Engine
             // Update loop: main thread
             while (!ShouldStop)
             {
+                // Update Modules list changes
+                while (!ToEditModules.IsEmpty())
+                {
+                    auto item = ToEditModules.Pop();
+                    Module * to_remove;
+                    switch(std::get<0>(item))
+                    {
+                        case Add:
+                            std::get<2>(item)->Acquire(this);
+                            std::get<2>(item)->_Start();
+                            UpdatingModules.Add(std::get<2>(item), std::get<1>(item));
+                            break;
+                        case Replace:
+                            to_remove = UpdatingModules.GetItem(std::get<1>(item));
+                            to_remove->_Stop();
+                            to_remove->Release();
+                            std::get<2>(item)->Acquire(this);
+                            std::get<2>(item)->_Start();
+                            UpdatingModules.SetItem(std::get<1>(item), std::get<2>(item));
+                            break;
+                        case Remove:
+                            to_remove = UpdatingModules.GetItem(std::get<1>(item));
+                            to_remove->_Stop();
+                            to_remove->Release();
+                            UpdatingModules.RemoveByIndex(std::get<1>(item));
+                            break;
+                        case Clear:
+                            UpdatingModules.ForEach([](Module * module) {
+                                module->_Stop();
+                                module->Release();
+                            });
+                            UpdatingModules.Clear();
+                            break;
+                    }
+                }
+
+                // Update Schedules
+                while (!ToSchedule.IsEmpty())
+                {
+                    auto item = ToSchedule.Pop();
+                    Schedules.Push(std::pair(std::get<0>(item), std::get<1>(item)), std::get<2>(item));
+                }
+
+                if (UpdatingModules.GetCount() == 0)
+                    break;
+
                 auto duration = std::chrono::steady_clock::now() - StartTime;
                 PreviousTime = Time;
                 Time = (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
@@ -371,14 +386,14 @@ namespace Engine
                 while (true)
                 {
                     // Set ModuleIndex
-                    if (ModuleIndex >= Modules.GetCount())
+                    if (ModuleIndex >= UpdatingModules.GetCount())
                         if (CurrentPriority <= 0)
                             CurrentPriority = 0;
                         else break;
-                    else if (CurrentPriority < Modules.GetItem(ModuleIndex)->GetPriority())
-                        if (CurrentPriority <= 0 && Modules.GetItem(ModuleIndex)->GetPriority() > 0)
+                    else if (CurrentPriority < UpdatingModules.GetItem(ModuleIndex)->GetPriority())
+                        if (CurrentPriority <= 0 && UpdatingModules.GetItem(ModuleIndex)->GetPriority() > 0)
                             CurrentPriority = 0;
-                        else CurrentPriority = Modules.GetItem(ModuleIndex)->GetPriority();
+                        else CurrentPriority = UpdatingModules.GetItem(ModuleIndex)->GetPriority();
                     //  Normal process
                     if (CurrentPriority == 0)
                     {
@@ -427,25 +442,25 @@ namespace Engine
                         bool pass_to_pool = false;
                         bool priority_done = false;
                         auto guard = ModuleIndex.Mutex.GetLock();
-                        while (ModuleIndex < Modules.GetCount()
-                            && CurrentPriority == Modules.GetItem(ModuleIndex)->GetPriority())
+                        while (ModuleIndex < UpdatingModules.GetCount()
+                            && CurrentPriority == UpdatingModules.GetItem(ModuleIndex)->GetPriority())
                         {
-                            if (!Modules.GetItem(ModuleIndex)->isEnabled)
+                            if (!UpdatingModules.GetItem(ModuleIndex)->isEnabled)
                             {
                                 ModuleIndex = ModuleIndex + 1;
                                 continue;
                             }
                             module = nullptr;
-                            switch (Modules.GetItem(ModuleIndex)->GetExecutionType())
+                            switch (UpdatingModules.GetItem(ModuleIndex)->GetExecutionType())
                             {
                                 case ExecutionType::FreeAsync:
                                     std::thread([](Module * module) {
                                         module->OnUpdate();
-                                    }, Modules.GetItem(ModuleIndex)).detach();
+                                    }, UpdatingModules.GetItem(ModuleIndex)).detach();
                                     ModuleIndex = ModuleIndex + 1;
                                     break;
                                 case ExecutionType::SingleThreaded:
-                                    module = Modules.GetItem(ModuleIndex);
+                                    module = UpdatingModules.GetItem(ModuleIndex);
                                     ModuleIndex = ModuleIndex + 1;
                                     break;
                                 case ExecutionType::BoundedAsync:
@@ -465,9 +480,6 @@ namespace Engine
                     }
                     CurrentPriority = CurrentPriority + 1;
                 }
-
-                if (Modules.GetCount() == 0)
-                    break;
             }
 
             ShouldTerminate = true;
@@ -478,13 +490,8 @@ namespace Engine
                 delete threads.GetItem(i);
             }
 
-            copy_list = Modules;
-
-            guard = isRunning.Mutex.GetLock();
-
-            isRunning = false;
-            copy_list.ForEach([](Module * Item) { Item->_Stop(); }); // TODO: Analyze
-            copy_list.Clear();
+            UpdatingModules.ForEach([](Module * Item) { Item->_Stop(); Item->Release(); });
+            UpdatingModules.Clear();
 
             Schedules.SetAutoShrink(true);
             Schedules.Clear();
@@ -494,7 +501,13 @@ namespace Engine
             TimeFloat = 0;
             TimeDiffFloat = 0;
 
-            guard.Unlock();
+            Modules.LockAndDo([&] {
+                auto guard = isRunning.Mutex.GetLock();
+                ToSchedule.SetAutoShrink(true);
+                ToSchedule.Clear();
+                ToEditModules.Clear();
+                isRunning = false;
+            });
         }
 
         void Loop::Stop()
@@ -509,17 +522,23 @@ namespace Engine
 
         void Loop::Schedule(std::function<void()> Func, double Time, ExecutionType ExecutionType)
         {
-            Schedules.Push(std::pair(ExecutionType, Func), Time);
+            auto guard = isRunning.Mutex.GetLock();
+            if (isRunning)
+                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
         }
 
         void Loop::Schedule(double Time, std::function<void()> Func, ExecutionType ExecutionType)
         {
-            Schedules.Push(std::pair(ExecutionType, Func), Time);
+            auto guard = isRunning.Mutex.GetLock();
+            if (isRunning)
+                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
         }
 
         void Loop::Schedule(double Time, ExecutionType ExecutionType, std::function<void()> Func)
         {
-            Schedules.Push(std::pair(ExecutionType, Func), Time);
+            auto guard = isRunning.Mutex.GetLock();
+            if (isRunning)
+                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
         }
     }
 }

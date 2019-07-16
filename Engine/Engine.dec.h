@@ -7,6 +7,7 @@
 #include <shared_mutex>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <utility>
 
 namespace Engine
