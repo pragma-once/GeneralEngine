@@ -176,6 +176,11 @@ namespace Engine
                 /// @param Body The foreach body function, can be a lambda.
                 ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithBreakFunction Body);
+
+#ifdef ENGINE_LIST_USE_MUTEX
+                /// @brief Calls the passed function while locking the list's mutex.
+                void LockAndDo(std::function<void()> Process);
+#endif
             private:
                 class LoopBreaker {};
 
@@ -897,6 +902,15 @@ namespace Engine
                 }
                 catch (LoopBreaker&) { break; }
             }
+
+#ifdef ENGINE_LIST_USE_MUTEX
+            template <typename ItemsType>
+            void ENGINE_LIST_CLASS_NAME::LockAndDo(std::function<void()> Process)
+            {
+                ENGINE_COLLECTION_WRITE_ACCESS;
+                Process();
+            }
+#endif
 
 
 
