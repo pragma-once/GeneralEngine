@@ -45,6 +45,13 @@ namespace Engine
                 HandledMutex * m;
             };
 
+            enum TryResult : std::int_fast8_t
+            {
+                LockedByOtherThreads = 0,
+                LockedByThisThread = -1,
+                LockSuccessful = 1
+            };
+
             friend LockGuard;
             friend SharedLockGuard;
 
@@ -65,7 +72,7 @@ namespace Engine
             /// It's recommended to use TryGetLock instead.
             ///
             /// @return Whether the mutex was not locked and is locked by this call.
-            bool TryLock();
+            TryResult TryLock();
             /// @brief Unlocks the mutex manually.
             ///
             /// It's recommended to use the lock guards returned by GetLock or TryGetLock instead.
@@ -105,7 +112,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked, or shared-locked by this thread
             ///         and is shared-locked by this call.
-            bool TryLockShared();
+            TryResult TryLockShared();
             /// @brief Shared-unlocks the mutex manually.
             ///
             /// It's recommended to use the lock guards returned by GetSharedLock or TryGetSharedLock instead.
@@ -129,17 +136,19 @@ namespace Engine
             ///         and is shared-locked by this call.
             bool TryGetSharedLock(SharedLockGuard &GuardOut);
         private:
-            std::mutex MembersMutex;
-            std::shared_mutex Mutex;
+            std::mutex StateMutex;
+            std::condition_variable ConditionVariable;
+
             bool HasOwner;
             std::thread::id Owner;
-            Collections::Dictionary<std::thread::id, int, false> * SharedOwnersRef;
             int LockGuardCount;
 
+            Collections::Dictionary<std::thread::id, int, false> * SharedOwnersRef;
+
             bool LockOperation(std::unique_lock<std::mutex>&);
-            bool UnlockOperation();
+            bool UnlockOperation(std::unique_lock<std::mutex>&);
             bool LockSharedOperation(std::unique_lock<std::mutex>&);
-            bool UnlockSharedOperation();
+            bool UnlockSharedOperation(std::unique_lock<std::mutex>&);
 
             void LockByGuard();
             void UnlockByGuard();
