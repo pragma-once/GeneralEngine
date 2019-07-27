@@ -9,7 +9,7 @@ namespace Engine
                                                         : -128),
                                                     isEnabled(true), loop(nullptr) {}
 
-        Module::~Module() {};
+        Module::~Module() {}
 
         void Module::Enable()
         {
