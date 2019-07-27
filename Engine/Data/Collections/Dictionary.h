@@ -8,10 +8,12 @@
 #include "ResizableArray.h"
 
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
-    #include "../HandledMutex.h"
+    #include "../MutexContained.h"
     #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, true>
+    #define ENGINE_DICTIONARY_DERIVATION : public MutexContained
 #else
     #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, false>
+    #define ENGINE_DICTIONARY_DERIVATION
 #endif
 
 namespace Engine
@@ -21,7 +23,7 @@ namespace Engine
         namespace Collections
         {
             template <typename KeyType, typename ValueType>
-            class ENGINE_DICTIONARY_CLASS_NAME final
+            class ENGINE_DICTIONARY_CLASS_NAME final ENGINE_DICTIONARY_DERIVATION
             {
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
                 friend Dictionary<KeyType, ValueType, false>;
@@ -90,9 +92,6 @@ namespace Engine
             private:
                 class LoopBreaker {};
 
-#ifdef ENGINE_DICTIONARY_USE_MUTEX
-                HandledMutex Mutex;
-#endif
                 int Count;
                 ResizableArray<std::pair<KeyType, ValueType>, false> * PairsRef;
 
@@ -395,6 +394,7 @@ namespace Engine
 #undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_DICTIONARY_CLASS_NAME
+#undef ENGINE_DICTIONARY_DERIVATION
 
 #ifndef ENGINE_DICTIONARY_USE_MUTEX
     #define ENGINE_DICTIONARY_USE_MUTEX

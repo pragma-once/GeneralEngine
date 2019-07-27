@@ -20,13 +20,16 @@ namespace Engine
         /// and is much easier to use than a normal shared mutex.
         /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
         class HandledMutex; // TODO: Rename
-        /// @brief Provides objects that act on set and/or get.
-        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Triggered;
+        /// @brief To be the base class for the classes that use a HandledMutex
+        ///        and need a LockAndDo function.
+        class MutexContained;
         /// @brief Shared object with automatic mutex locking on set/get.
         /// @tparam AllowManualLocking If true, The class will use a public HandledMutex that
         ///         can also be controlled by user.
         ///         Else, a private std::shared_mutex will be used.
         template <typename Type, bool AllowManualLocking = false> class Shared;
+        /// @brief Provides objects that act on set and/or get.
+        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Triggered;
 
         namespace Collections
         {

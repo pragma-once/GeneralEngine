@@ -8,10 +8,12 @@
 #include "ResizableArray.h"
 
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
-    #include "../HandledMutex.h"
+    #include "../MutexContained.h"
     #define ENGINE_PRIORITY_QUEUE_CLASS_NAME PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, true>
+    #define ENGINE_PRIORITY_QUEUE_DERIVATION : public MutexContained
 #else
     #define ENGINE_PRIORITY_QUEUE_CLASS_NAME PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, false>
+    #define ENGINE_PRIORITY_QUEUE_DERIVATION
 #endif
 
 namespace Engine
@@ -21,7 +23,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType, typename PriorityType, bool LessPriorityFirst>
-            class ENGINE_PRIORITY_QUEUE_CLASS_NAME final
+            class ENGINE_PRIORITY_QUEUE_CLASS_NAME final ENGINE_PRIORITY_QUEUE_DERIVATION
             {
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
                 friend PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, false>;
@@ -95,9 +97,6 @@ namespace Engine
                 /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
             private:
-#ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
-                HandledMutex Mutex;
-#endif
                 ResizableArray<ItemsType, false> * ItemsRef;
                 ResizableArray<PriorityType, false> * PrioritiesRef;
                 int Count;
@@ -439,6 +438,7 @@ namespace Engine
 #undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_PRIORITY_QUEUE_CLASS_NAME
+#undef ENGINE_PRIORITY_QUEUE_DERIVATION
 
 #ifndef ENGINE_PRIORITY_QUEUE_USE_MUTEX
     #define ENGINE_PRIORITY_QUEUE_USE_MUTEX

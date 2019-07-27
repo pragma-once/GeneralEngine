@@ -8,10 +8,12 @@
 #include "ResizableArray.h"
 
 #ifdef ENGINE_QUEUE_USE_MUTEX
-    #include "../HandledMutex.h"
+    #include "../MutexContained.h"
     #define ENGINE_QUEUE_CLASS_NAME Queue<ItemsType, true>
+    #define ENGINE_QUEUE_DERIVATION : public MutexContained
 #else
     #define ENGINE_QUEUE_CLASS_NAME Queue<ItemsType, false>
+    #define ENGINE_QUEUE_DERIVATION
 #endif
 
 namespace Engine
@@ -21,7 +23,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_QUEUE_CLASS_NAME final
+            class ENGINE_QUEUE_CLASS_NAME final ENGINE_QUEUE_DERIVATION
             {
 #ifdef ENGINE_QUEUE_USE_MUTEX
                 friend Queue<ItemsType, false>;
@@ -88,9 +90,6 @@ namespace Engine
                 /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
             private:
-#ifdef ENGINE_QUEUE_USE_MUTEX
-                HandledMutex Mutex;
-#endif
                 ResizableArray<ItemsType, false> * ItemsRef;
                 int First;
                 int Count;
@@ -424,6 +423,7 @@ namespace Engine
 #undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_QUEUE_CLASS_NAME
+#undef ENGINE_QUEUE_DERIVATION
 
 #ifndef ENGINE_QUEUE_USE_MUTEX
     #define ENGINE_QUEUE_USE_MUTEX

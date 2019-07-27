@@ -8,10 +8,12 @@
 #include "ResizableArray.h"
 
 #ifdef ENGINE_LIST_USE_MUTEX
-    #include "../HandledMutex.h"
+    #include "../MutexContained.h"
     #define ENGINE_LIST_CLASS_NAME List<ItemsType, true>
+    #define ENGINE_LIST_DERIVATION : public MutexContained
 #else
     #define ENGINE_LIST_CLASS_NAME List<ItemsType, false>
+    #define ENGINE_LIST_DERIVATION
 #endif
 
 namespace Engine
@@ -21,7 +23,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_LIST_CLASS_NAME final
+            class ENGINE_LIST_CLASS_NAME final ENGINE_LIST_DERIVATION
             {
 #ifdef ENGINE_LIST_USE_MUTEX
                 friend List<ItemsType, false>;
@@ -176,17 +178,9 @@ namespace Engine
                 /// @param Body The foreach body function, can be a lambda.
                 ///        Call Break function provided by the parameters to break the loop.
                 void ForEach(ForEachBodyWithBreakFunction Body);
-
-#ifdef ENGINE_LIST_USE_MUTEX
-                /// @brief Calls the passed function while locking the list's mutex.
-                void LockAndDo(std::function<void()> Process);
-#endif
             private:
                 class LoopBreaker {};
 
-#ifdef ENGINE_LIST_USE_MUTEX
-                HandledMutex Mutex;
-#endif
                 ResizableArray<ItemsType, false> * ItemsRef;
                 int * CountRef;
                 bool * AutoShrinkRef;
@@ -903,15 +897,6 @@ namespace Engine
                 catch (LoopBreaker&) { break; }
             }
 
-#ifdef ENGINE_LIST_USE_MUTEX
-            template <typename ItemsType>
-            void ENGINE_LIST_CLASS_NAME::LockAndDo(std::function<void()> Process)
-            {
-                ENGINE_COLLECTION_WRITE_ACCESS;
-                Process();
-            }
-#endif
-
 
 
             template <typename ItemsType>
@@ -960,6 +945,7 @@ namespace Engine
 #undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_LIST_CLASS_NAME
+#undef ENGINE_LIST_DERIVATION
 
 #ifndef ENGINE_LIST_USE_MUTEX
     #define ENGINE_LIST_USE_MUTEX

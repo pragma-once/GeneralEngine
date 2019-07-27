@@ -8,10 +8,12 @@
 #include "ResizableArray.h"
 
 #ifdef ENGINE_STACK_USE_MUTEX
-    #include "../HandledMutex.h"
+    #include "../MutexContained.h"
     #define ENGINE_STACK_CLASS_NAME Stack<ItemsType, true>
+    #define ENGINE_STACK_DERIVATION : public MutexContained
 #else
     #define ENGINE_STACK_CLASS_NAME Stack<ItemsType, false>
+    #define ENGINE_STACK_DERIVATION
 #endif
 
 namespace Engine
@@ -21,7 +23,7 @@ namespace Engine
         namespace Collections
         {
             template <typename ItemsType>
-            class ENGINE_STACK_CLASS_NAME final
+            class ENGINE_STACK_CLASS_NAME final ENGINE_STACK_DERIVATION
             {
 #ifdef ENGINE_STACK_USE_MUTEX
                 friend Stack<ItemsType, false>;
@@ -90,9 +92,6 @@ namespace Engine
                 /// @brief Gets the current capacity of the allocated memory.
                 int GetCapacity();
             private:
-#ifdef ENGINE_STACK_USE_MUTEX
-                HandledMutex Mutex;
-#endif
                 ResizableArray<ItemsType, false> * ItemsRef;
                 int Count;
                 bool AutoShrink;
@@ -370,6 +369,7 @@ namespace Engine
 #undef ENGINE_COLLECTION_READ_ACCESS
 
 #undef ENGINE_STACK_CLASS_NAME
+#undef ENGINE_STACK_DERIVATION
 
 #ifndef ENGINE_STACK_USE_MUTEX
     #define ENGINE_STACK_USE_MUTEX
