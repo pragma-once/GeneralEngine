@@ -33,7 +33,7 @@ void Lock(int id)
 void SharedLock(int id)
 {
     print(id << space << id << ": pre: shared-lock");
-    m.LockShared();
+    m.SharedLock();
     print(id << ": post: shared-lock");
 }
 
@@ -47,7 +47,7 @@ void Unlock(int id)
 void SharedUnlock(int id)
 {
     print(id << space << id << ": pre: shared-unlock");
-    m.UnlockShared();
+    m.SharedUnlock();
     print(id << ": post: shared-unlock");
 }
 

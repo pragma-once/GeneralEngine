@@ -122,7 +122,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked, or shared-locked in the same thread
             ///         and is shared-locked by this call.
-            bool LockShared();
+            bool SharedLock();
             /// @brief Tries to shared-lock the mutex manually.
             ///
             /// It's recommended to use TryGetSharedLock instead.
@@ -135,7 +135,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked, or shared-locked by this thread
             ///         and is shared-locked by this call.
-            TryResult TryLockShared();
+            TryResult TrySharedLock();
             /// @brief Shared-unlocks the mutex manually.
             ///
             /// It's recommended to use the lock guards returned by GetSharedLock or TryGetSharedLock instead.
@@ -145,7 +145,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was shared-locked by this thread
             ///         and is unlocked by this call.
-            bool UnlockShared();
+            bool SharedUnlock();
             /// @brief Shared-locks the mutex and returns the lock guard.
             ///
             /// Avoid shared-locking and then locking,
@@ -176,13 +176,13 @@ namespace Engine
 
             bool LockOperation(std::unique_lock<std::mutex>&);
             bool UnlockOperation(std::unique_lock<std::mutex>&);
-            bool LockSharedOperation(std::unique_lock<std::mutex>&);
-            bool UnlockSharedOperation(std::unique_lock<std::mutex>&);
+            bool SharedLockOperation(std::unique_lock<std::mutex>&);
+            bool SharedUnlockOperation(std::unique_lock<std::mutex>&);
 
             void LockByGuard();
             void UnlockByGuard();
-            void LockSharedByGuard();
-            void UnlockSharedByGuard();
+            void SharedLockByGuard();
+            void SharedUnlockByGuard();
         };
     }
 }

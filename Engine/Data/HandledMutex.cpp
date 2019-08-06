@@ -61,7 +61,7 @@ namespace Engine
         HandledMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard& op)
         {
             m = op.m;
-            m->LockSharedByGuard();
+            m->SharedLockByGuard();
         }
 
         HandledMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard&& op)
@@ -72,16 +72,16 @@ namespace Engine
         HandledMutex::SharedLockGuard& HandledMutex::SharedLockGuard::operator=(SharedLockGuard& op)
         {
             if (m != nullptr)
-                m->UnlockSharedByGuard();
+                m->SharedUnlockByGuard();
             m = op.m;
-            m->LockSharedByGuard();
+            m->SharedLockByGuard();
             return *this;
         }
 
         HandledMutex::SharedLockGuard& HandledMutex::SharedLockGuard::operator=(SharedLockGuard&& op)
         {
             if (m != nullptr)
-                m->UnlockSharedByGuard();
+                m->SharedUnlockByGuard();
             m = std::exchange(op.m, nullptr);
             return *this;
         }
@@ -90,7 +90,7 @@ namespace Engine
         {
             if (m != nullptr)
             {
-                m->UnlockSharedByGuard();
+                m->SharedUnlockByGuard();
                 m = nullptr;
             }
         }
@@ -98,10 +98,10 @@ namespace Engine
         HandledMutex::SharedLockGuard::~SharedLockGuard()
         {
             if (m != nullptr)
-                m->UnlockSharedByGuard();
+                m->SharedUnlockByGuard();
         }
 
-        HandledMutex::SharedLockGuard::SharedLockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->LockSharedByGuard(); }
+        HandledMutex::SharedLockGuard::SharedLockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->SharedLockByGuard(); }
 
 // -------- DEADLOCK EXCEPTION -------- //
 
@@ -188,8 +188,8 @@ namespace Engine
         {
             if (HasOwner && (Owner == std::this_thread::get_id()))
             {
-                // Replaces with shared lock if this->LockShared() was called
-                //                           and this->UnlockShared() isn't called yet
+                // Replaces with shared lock if this->SharedLock() was called
+                //                           and this->SharedUnlock() isn't called yet
                 HasOwner = false;
                 m.unlock();
                 ConditionVariable.notify_all(); // worst case: multiple shared-locks waiting
@@ -213,13 +213,13 @@ namespace Engine
             else return false;
         }
 
-        bool HandledMutex::LockShared()
+        bool HandledMutex::SharedLock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
-            return LockSharedOperation(m);
+            return SharedLockOperation(m);
         }
 
-        inline bool HandledMutex::LockSharedOperation(std::unique_lock<std::mutex>& m)
+        inline bool HandledMutex::SharedLockOperation(std::unique_lock<std::mutex>& m)
         {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
                 return false;
@@ -236,7 +236,7 @@ namespace Engine
             return true;
         }
 
-        HandledMutex::TryResult HandledMutex::TryLockShared()
+        HandledMutex::TryResult HandledMutex::TrySharedLock()
         {
             std::lock_guard<std::mutex> guard(StateMutex);
 
@@ -249,13 +249,13 @@ namespace Engine
             return LockSuccessful;
         }
 
-        bool HandledMutex::UnlockShared()
+        bool HandledMutex::SharedUnlock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
-            return UnlockSharedOperation(m); // May unlock m before returning
+            return SharedUnlockOperation(m); // May unlock m before returning
         }
 
-        inline bool HandledMutex::UnlockSharedOperation(std::unique_lock<std::mutex>& m)
+        inline bool HandledMutex::SharedUnlockOperation(std::unique_lock<std::mutex>& m)
         {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
             {
@@ -274,7 +274,7 @@ namespace Engine
 
         bool HandledMutex::TryGetSharedLock(SharedLockGuard &GuardOut)
         {
-            if (TryLockShared() != LockedByOtherThreads)
+            if (TrySharedLock() != LockedByOtherThreads)
             {
                 GuardOut = SharedLockGuard(this);
                 return true;
@@ -302,21 +302,21 @@ namespace Engine
                     );
         }
 
-        void HandledMutex::LockSharedByGuard()
+        void HandledMutex::SharedLockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
-            LockSharedOperation(m);
+            SharedLockOperation(m);
             SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedOwnersRef->GetValue(std::this_thread::get_id()) + 1);
         }
 
-        void HandledMutex::UnlockSharedByGuard()
+        void HandledMutex::SharedUnlockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             int SharedLockGuardsCount = SharedOwnersRef->GetValue(std::this_thread::get_id());
             SharedLockGuardsCount--;
             SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedLockGuardsCount);
             if (SharedLockGuardsCount == 0)
-                UnlockSharedOperation(m); // May unlock m before returning
+                SharedUnlockOperation(m); // May unlock m before returning
             else if (SharedLockGuardsCount < 0)
                 throw std::logic_error(
                     "This is a bug if the SharedOwners member is not modified. "
