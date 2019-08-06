@@ -45,6 +45,13 @@ namespace Engine
                 HandledMutex * m;
             };
 
+            class DeadlockException : public std::runtime_error
+            {
+                friend HandledMutex;
+            private:
+                DeadlockException();
+            };
+
             enum TryResult : std::int_fast8_t
             {
                 LockedByOtherThreads = 0,
@@ -61,6 +68,7 @@ namespace Engine
             /// @brief Locks the mutex manually.
             ///
             /// It's recommended to use GetLock instead.
+            ///
             /// The mutex will lock anyway if it was shared-locked by this thread only.
             /// Only locks if the mutex was not locked in the same thread.
             ///
@@ -71,11 +79,15 @@ namespace Engine
             ///
             /// It's recommended to use TryGetLock instead.
             ///
+            /// Avoid shared-locking and then trying to lock,
+            /// doing this on multiple threads may result in a deadlock.
+            ///
             /// @return Whether the mutex was not locked and is locked by this call.
             TryResult TryLock();
             /// @brief Unlocks the mutex manually.
             ///
             /// It's recommended to use the lock guards returned by GetLock or TryGetLock instead.
+            ///
             /// The mutex will shared-lock if it was shared-locked by this thread alone
             /// before locking.
             ///
@@ -88,6 +100,10 @@ namespace Engine
             /// Only locks if the mutex was not locked in the same thread.
             LockGuard GetLock();
             /// @brief Tries to lock the mutex and gives the lock guard if locked.
+            ///
+            /// Avoid shared-locking and then trying to lock,
+            /// doing this on multiple threads may result in a deadlock.
+            ///
             /// @param GuardOut The lock guard if any.
             /// @return Whether the mutex was not locked and is locked by this call.
             bool TryGetLock(LockGuard &GuardOut);
@@ -95,6 +111,10 @@ namespace Engine
             /// @brief Shared-locks the mutex manually.
             ///
             /// It's recommended to use GetSharedLock instead.
+            ///
+            /// Avoid shared-locking and then locking,
+            /// doing this on multiple threads may result in a deadlock.
+            ///
             /// Only shared-locks if the mutex was not shared-locked in the same thread.
             ///
             /// Shared-lock is used for reads. Multiple threads can shared-lock but
@@ -106,6 +126,9 @@ namespace Engine
             /// @brief Tries to shared-lock the mutex manually.
             ///
             /// It's recommended to use TryGetSharedLock instead.
+            ///
+            /// Avoid shared-locking and then locking,
+            /// doing this on multiple threads may result in a deadlock.
             ///
             /// Shared-lock is used for reads. Multiple threads can shared-lock but
             /// no other thread can lock the mutex for writes while it is shared-locked.
@@ -125,6 +148,9 @@ namespace Engine
             bool UnlockShared();
             /// @brief Shared-locks the mutex and returns the lock guard.
             ///
+            /// Avoid shared-locking and then locking,
+            /// doing this on multiple threads may result in a deadlock.
+            ///
             /// Only shared-locks if the mutex was not shared-locked in the same thread.
             ///
             /// Shared-lock is used for reads. Multiple threads can shared-lock but
@@ -143,7 +169,10 @@ namespace Engine
             std::thread::id Owner;
             int LockGuardCount;
 
+            // Values: GuardCount
             Collections::Dictionary<std::thread::id, int, false> * SharedOwnersRef;
+
+            bool RequestingToLockWhileSharedLocked;
 
             bool LockOperation(std::unique_lock<std::mutex>&);
             bool UnlockOperation(std::unique_lock<std::mutex>&);

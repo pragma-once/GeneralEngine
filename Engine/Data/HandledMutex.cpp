@@ -4,6 +4,9 @@ namespace Engine
 {
     namespace Data
     {
+
+// -------- LOCK GUARD -------- //
+
         HandledMutex::LockGuard::LockGuard() : m(nullptr) {}
 
         HandledMutex::LockGuard::LockGuard(LockGuard& op)
@@ -50,6 +53,8 @@ namespace Engine
         }
 
         HandledMutex::LockGuard::LockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->LockByGuard(); }
+
+// -------- SHARED-LOCK GUARD -------- //
 
         HandledMutex::SharedLockGuard::SharedLockGuard() : m(nullptr) {}
 
@@ -98,7 +103,16 @@ namespace Engine
 
         HandledMutex::SharedLockGuard::SharedLockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->LockSharedByGuard(); }
 
-        HandledMutex::HandledMutex() : HasOwner(false), LockGuardCount(0)
+// -------- DEADLOCK EXCEPTION -------- //
+
+        HandledMutex::DeadlockException::DeadlockException() : std::runtime_error(
+            "Deadlock occurred: "
+            "2 or more threads are trying to lock after they have shared-locked."
+        ) {}
+
+// -------- ACTUAL MUTEX -------- //
+
+        HandledMutex::HandledMutex() : HasOwner(false), LockGuardCount(0), RequestingToLockWhileSharedLocked(false)
         {
             SharedOwnersRef = new Collections::Dictionary<std::thread::id, int, false>();
         }
@@ -121,9 +135,19 @@ namespace Engine
 
             bool IsSharedOwner = SharedOwnersRef->Contains(std::this_thread::get_id());
 
+            if (IsSharedOwner)
+            {
+                if (RequestingToLockWhileSharedLocked)
+                    throw DeadlockException();
+                RequestingToLockWhileSharedLocked = true;
+            }
+
             ConditionVariable.wait(m, [&] {
                 return !HasOwner && SharedOwnersRef->GetCount() <= (IsSharedOwner ? 1 : 0);
             });
+
+            if (IsSharedOwner)
+                RequestingToLockWhileSharedLocked = false;
 
             // Replaces shared lock with lock if it exists only by this thread
             Owner = std::this_thread::get_id();
@@ -142,6 +166,10 @@ namespace Engine
                     return LockedByOtherThreads;
 
             bool IsSharedOwner = SharedOwnersRef->Contains(std::this_thread::get_id());
+
+            if (IsSharedOwner && RequestingToLockWhileSharedLocked)
+                throw DeadlockException();
+
             if (SharedOwnersRef->GetCount() > (IsSharedOwner ? 1 : 0))
                 return LockedByOtherThreads;
 
@@ -291,7 +319,8 @@ namespace Engine
                 UnlockSharedOperation(m); // May unlock m before returning
             else if (SharedLockGuardsCount < 0)
                 throw std::logic_error(
-                    "This is a bug if the SharedOwners member is not modified. Current SharedOwnersRef->GetValue(std::this_thread::get_id()) value is: "
+                    "This is a bug if the SharedOwners member is not modified. "
+                    "Current SharedOwnersRef->GetValue(std::this_thread::get_id()) value is: "
                     + std::to_string(SharedLockGuardsCount)
                     );
         }
