@@ -7,6 +7,7 @@
 
 class QuitException {};
 
+bool should_quit = false;
 void Prompt(Engine::Core::Loop&);
 
 class PromptModule : public Engine::Core::Module
@@ -24,7 +25,8 @@ public:
     virtual void OnUpdate() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Prompt: " << Name);
-        Prompt(*GetLoop());
+        try { Prompt(*GetLoop()); }
+        catch (QuitException&) { should_quit = true; GetLoop()->Stop(); }
     }
 
     virtual void OnStop() override {}
@@ -189,6 +191,7 @@ void Prompt(Engine::Core::Loop& loop)
         else if (option == "s")
         {
             loop.Run();
+            if (should_quit) throw QuitException();
         }
         else if (option == "e")
         {
