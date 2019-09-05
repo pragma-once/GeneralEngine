@@ -30,7 +30,7 @@ namespace Engine
         ///         Else, a private std::shared_mutex will be used.
         template <typename Type, bool AllowManualLocking = false> class Shared;
         /// @brief Provides objects that act on set and/or get.
-        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Triggered;
+        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
 
         namespace Collections
         {
