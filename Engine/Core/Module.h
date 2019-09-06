@@ -55,8 +55,12 @@ namespace Engine
             virtual void OnStart() = 0;
             /// @brief Is called on activation if the loop is running or just after OnStart.
             virtual void OnEnable() = 0;
-            // @brief Synchronous update called by the loop.
+            /// @brief Update called by the loop.
             virtual void OnUpdate() = 0;
+            /// @brief Is called when the OnUpdate or a Schedule created by this module throws an exception.
+            ///
+            /// Ignores the exceptions by default if not implemented.
+            virtual void OnException(std::exception&);
             /// @brief Is called on deactivation if the loop is running or just before OnStop.
             virtual void OnDisable() = 0;
             /// @brief Is called on loop stop or when being removed
@@ -74,6 +78,52 @@ namespace Engine
 
             /// @brief Gets the loop which this module is added to.
             Loop * GetLoop();
+
+            /// @brief Schedules to call a function.
+            ///
+            /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
+            ///
+            /// The exceptions thrown by the Task will be handled by this module
+            ///
+            /// @param Task The function that will be called.
+            /// @param Time The time when the function will be called.
+            ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
+            void Schedule(
+                std::function<void()> Task,
+                double Time = 0,
+                ExecutionType ExecutionType = ExecutionType::BoundedAsync
+            );
+            /// @brief Schedules to call a function.
+            ///
+            /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
+            ///
+            /// The exceptions thrown by the Task will be handled by this module
+            ///
+            /// @param Task The function that will be called.
+            /// @param Time The time when the function will be called.
+            ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
+            void Schedule(
+                double Time,
+                std::function<void()> Task,
+                ExecutionType ExecutionType = ExecutionType::BoundedAsync
+            );
+            /// @brief Schedules to call a function.
+            ///
+            /// Will not call if the Loop is stopped before the call.
+            /// Is executed right before 0-Priority Modules.
+            ///
+            /// The exceptions thrown by the Task will be handled by this module
+            ///
+            /// @param Task The function that will be called.
+            /// @param Time The time when the function will be called.
+            ///        Time = 0 or Time <= CurrentTime results in calling the function shortly.
+            void Schedule(
+                double Time,
+                ExecutionType ExecutionType,
+                std::function<void()> Task
+            );
         private:
             const std::int_fast8_t Priority;
 

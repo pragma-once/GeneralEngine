@@ -51,6 +51,8 @@ namespace Engine
             return ExecutionType::BoundedAsync;
         }
 
+        void Module::OnException(std::exception& e) {} // ignore
+
         double Module::GetTime()
         {
             if (loop == nullptr)
@@ -82,6 +84,36 @@ namespace Engine
         Loop * Module::GetLoop()
         {
             return loop;
+        }
+
+        void Module::Schedule(
+                std::function<void()> Task,
+                double Time,
+                ExecutionType ExecutionType
+        ) {
+            if (GetLoop() == nullptr)
+                throw std::runtime_error("No loop to schedule in.");
+            GetLoop()->Schedule(Time, ExecutionType, Task, [&](std::exception& e) { OnException(e); });
+        }
+
+        void Module::Schedule(
+                double Time,
+                std::function<void()> Task,
+                ExecutionType ExecutionType
+        ) {
+            if (GetLoop() == nullptr)
+                throw std::runtime_error("No loop to schedule in.");
+            GetLoop()->Schedule(Time, ExecutionType, Task, [&](std::exception& e) { OnException(e); });
+        }
+
+        void Module::Schedule(
+                double Time,
+                ExecutionType ExecutionType,
+                std::function<void()> Task
+        ) {
+            if (GetLoop() == nullptr)
+                throw std::runtime_error("No loop to schedule in.");
+            GetLoop()->Schedule(Time, ExecutionType, Task, [&](std::exception& e) { OnException(e); });
         }
 
         void Module::Acquire(Loop * loop)

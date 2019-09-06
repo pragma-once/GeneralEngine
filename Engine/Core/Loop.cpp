@@ -206,22 +206,22 @@ namespace Engine
                         condition_guard.unlock();
                         if (CurrentPriority == 0)
                         {
-                            std::function<void()> func;
+                            ScheduledJob job;
                             bool done_for_now = false;
                             auto guard = ModuleIndex.Mutex.GetLock();
                             while (!Schedules.IsEmpty())
                             {
-                                func = nullptr;
+                                job = ScheduledJob(nullptr, nullptr);
                                 if (Schedules.GetFirstPriority() <= Time)
                                     switch (Schedules.GetFirstItem().first)
                                     {
                                         case ExecutionType::FreeAsync:
-                                            std::thread([](std::function<void()> func) {
-                                                func();
+                                            std::thread([&](ScheduledJob job) {
+                                                ExecuteScheduledJob(job);
                                             }, Schedules.Pop().second).detach();
                                             break;
                                         case ExecutionType::BoundedAsync:
-                                            func = Schedules.Pop().second;
+                                            job = Schedules.Pop().second;
                                             break;
                                         case ExecutionType::SingleThreaded:
                                             condition_guard.lock();
@@ -234,7 +234,7 @@ namespace Engine
                                 else break;
                                 guard.Unlock();
                                 if (done_for_now) break;
-                                if (func != nullptr) func();
+                                if (job.Task != nullptr) ExecuteScheduledJob(job);
                                 guard = ModuleIndex.Mutex.GetLock();
                             }
                             // Wait for the main thread to continue to run the schedules.
@@ -257,8 +257,8 @@ namespace Engine
                                 switch (UpdatingModules.GetItem(ModuleIndex)->GetExecutionType())
                                 {
                                     case ExecutionType::FreeAsync:
-                                        std::thread([](Module * module) {
-                                            module->OnUpdate();
+                                        std::thread([&](Module * module) {
+                                            ExecuteUpdate(module);
                                         }, UpdatingModules.GetItem(ModuleIndex)).detach();
                                         ModuleIndex = ModuleIndex + 1;
                                         break;
@@ -276,7 +276,7 @@ namespace Engine
                                 }
                                 guard.Unlock();
                                 if (done_for_now) break;
-                                if (module != nullptr) module->OnUpdate();
+                                if (module != nullptr) ExecuteUpdate(module);
                                 guard = ModuleIndex.Mutex.GetLock();
                             }
                             // Wait for the main thread to continue to run the modules.
@@ -396,23 +396,23 @@ namespace Engine
                     //  Normal process
                     if (CurrentPriority == 0)
                     {
-                        std::function<void()> func;
+                        ScheduledJob job;
                         bool pass_to_pool = false;
                         bool priority_done = false;
                         auto guard = ModuleIndex.Mutex.GetLock();
                         while (!Schedules.IsEmpty())
                         {
-                            func = nullptr;
+                            job = ScheduledJob(nullptr, nullptr);
                             if (Schedules.GetFirstPriority() <= Time)
                                 switch (Schedules.GetFirstItem().first)
                                 {
                                     case ExecutionType::FreeAsync:
-                                        std::thread([](std::function<void()> func) {
-                                            func();
+                                        std::thread([&](ScheduledJob job) {
+                                            ExecuteScheduledJob(job);
                                         }, Schedules.Pop().second).detach();
                                         break;
                                     case ExecutionType::SingleThreaded:
-                                        func = Schedules.Pop().second;
+                                        job = Schedules.Pop().second;
                                         break;
                                     case ExecutionType::BoundedAsync:
                                         pass_to_pool = true;
@@ -426,7 +426,7 @@ namespace Engine
                                 if (priority_done) break;
                                 pass_to_pool = false;
                             }
-                            if (func != nullptr) func();
+                            if (job.Task != nullptr) ExecuteScheduledJob(job);
                             guard = ModuleIndex.Mutex.GetLock();
                         }
                         if (priority_done)
@@ -453,8 +453,8 @@ namespace Engine
                             switch (UpdatingModules.GetItem(ModuleIndex)->GetExecutionType())
                             {
                                 case ExecutionType::FreeAsync:
-                                    std::thread([](Module * module) {
-                                        module->OnUpdate();
+                                    std::thread([&](Module * module) {
+                                        ExecuteUpdate(module);
                                     }, UpdatingModules.GetItem(ModuleIndex)).detach();
                                     ModuleIndex = ModuleIndex + 1;
                                     break;
@@ -473,7 +473,7 @@ namespace Engine
                                 if (priority_done) break;
                                 pass_to_pool = false;
                             }
-                            if (module != nullptr) module->OnUpdate();
+                            if (module != nullptr) ExecuteUpdate(module);
                             guard = ModuleIndex.Mutex.GetLock();
                         }
                     }
@@ -519,25 +519,86 @@ namespace Engine
             return isRunning;
         }
 
-        void Loop::Schedule(std::function<void()> Func, double Time, ExecutionType ExecutionType)
-        {
+        void Loop::Schedule(
+                std::function<void()> Func,
+                std::function<void(std::exception&)> ExceptionHandler,
+                double Time, ExecutionType ExecutionType
+        ) {
             auto guard = isRunning.Mutex.GetLock();
             if (isRunning)
-                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
+                ToSchedule.Push(std::tuple(ExecutionType, ScheduledJob(Func, ExceptionHandler), Time));
         }
 
-        void Loop::Schedule(double Time, std::function<void()> Func, ExecutionType ExecutionType)
-        {
+        void Loop::Schedule(
+                double Time,
+                std::function<void()> Func,
+                std::function<void(std::exception&)> ExceptionHandler,
+                ExecutionType ExecutionType
+        ) {
             auto guard = isRunning.Mutex.GetLock();
             if (isRunning)
-                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
+                ToSchedule.Push(std::tuple(ExecutionType, ScheduledJob(Func, ExceptionHandler), Time));
         }
 
-        void Loop::Schedule(double Time, ExecutionType ExecutionType, std::function<void()> Func)
-        {
+        void Loop::Schedule(
+                double Time, ExecutionType ExecutionType,
+                std::function<void()> Func,
+                std::function<void(std::exception&)> ExceptionHandler
+        ) {
             auto guard = isRunning.Mutex.GetLock();
             if (isRunning)
-                ToSchedule.Push(std::tuple(ExecutionType, Func, Time));
+                ToSchedule.Push(std::tuple(ExecutionType, ScheduledJob(Func, ExceptionHandler), Time));
+        }
+
+        Loop::ScheduledJob::ScheduledJob(
+            std::function<void()> Task,
+            std::function<void(std::exception&)> ExceptionHandler
+        ) : Task(Task), ExceptionHandler(ExceptionHandler) {}
+
+        inline void Loop::ExecuteScheduledJob(ScheduledJob& job)
+        {
+            try
+            {
+                job.Task();
+            }
+            catch (std::exception& e)
+            {
+                if (job.ExceptionHandler != nullptr) try
+                {
+                    job.ExceptionHandler(e);
+                }
+                catch (...) {} // ignore
+            }
+            catch (...)
+            {
+                if (job.ExceptionHandler != nullptr) try
+                {
+                    std::runtime_error e("Unknown exception (not derived from std::exception)");
+                    job.ExceptionHandler(e);
+                }
+                catch (...) {} // ignore
+            }
+        }
+        inline void Loop::ExecuteUpdate(Module * module)
+        {
+            try
+            {
+                module->OnUpdate();
+            }
+            catch (std::exception& e)
+            {
+                try { module->OnException(e); }
+                catch (...) {} // ignore
+            }
+            catch (...)
+            {
+                try
+                {
+                    std::runtime_error e("Unknown exception (not derived from std::exception)");
+                    module->OnException(e);
+                }
+                catch (...) {} // ignore
+            }
         }
     }
 }
