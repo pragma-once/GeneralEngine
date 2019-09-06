@@ -6,6 +6,7 @@
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <tuple>
