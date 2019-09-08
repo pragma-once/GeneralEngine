@@ -6,6 +6,11 @@
 #define input(var) (std::cin >> var)
 
 class QuitException {};
+class UnknownException {};
+class KnownException : public std::runtime_error
+{
+    public: KnownException() : std::runtime_error("A known exception") {}
+};
 
 bool should_quit = false;
 void Prompt(Engine::Core::Loop&);
@@ -27,6 +32,11 @@ public:
         print(GetTime() << ", " << GetTimeDiff() << ": Prompt: " << Name);
         try { Prompt(*GetLoop()); }
         catch (QuitException&) { should_quit = true; GetLoop()->Stop(); }
+    }
+
+    virtual void OnException(std::exception& e) override
+    {
+        print(GetTime() << ", " << GetTimeDiff() << ": " << Name << ": PromptModule::OnException: " << e.what());
     }
 
     virtual void OnStop() override {}
@@ -85,6 +95,41 @@ public:
     }
 };
 
+class SchedulerModule : public Engine::Core::Module
+{
+public:
+    std::string Name;
+
+    SchedulerModule(std::string Name, int Priority) : Module(Priority)
+    {
+        this->Name = Name;
+    }
+
+    virtual void OnStart() override {}
+
+    virtual void OnUpdate() override
+    {
+        Schedule([&]() {
+            print(GetTime() << ", " << GetTimeDiff() << ": Executing the schedule created by: " << Name);
+            throw KnownException();
+        });
+    }
+
+    virtual void OnException(std::exception& e) override
+    {
+        print(GetTime() << ", " << GetTimeDiff() << ": " << Name << ": SchedulerModule::OnException: " << e.what());
+    }
+
+    virtual void OnStop() override {}
+    virtual void OnEnable() override {}
+    virtual void OnDisable() override {}
+
+    virtual std::string GetName() override
+    {
+        return Name;
+    }
+};
+
 void Prompt(Engine::Core::Loop& loop)
 {
     print("");
@@ -92,12 +137,17 @@ void Prompt(Engine::Core::Loop& loop)
     print("ADD Name Priority Index => Add a TestModule");
     print("adp Name Priority       => Add a PromptModule");
     print("ADP Name Priority Index => Add a PromptModule");
+    print("ads Name Priority       => Add a SchedulerModule");
+    print("ADS Name Priority Index => Add a SchedulerModule");
     print("sch Name Time           => Schedule (BoundedAsync)");
     print("scs Name Time           => Schedule (SingleThreaded)");
     print("scf Name Time           => Schedule (FreeAsync)");
     print("rem Name                => Remove a Module by Name");
     print("a   Name                => Enable a Module by Name");
     print("d   Name                => Disable a Module by Name");
+    print("");
+    print("ex  => Throw a known exception");
+    print("uex => Throw an unknown exception");
     print("");
     print("f => Loop.Modules.ForEach([](Item) { print(Item.GetName()); })");
     print("");
@@ -136,12 +186,25 @@ void Prompt(Engine::Core::Loop& loop)
             input(option >> arg1 >> arg2);
             loop.Modules.Add(new PromptModule(option, arg1), arg2);
         }
+        else if (option == "ads")
+        {
+            int arg;
+            input(option >> arg);
+            loop.Modules.Add(new SchedulerModule(option, arg));
+        }
+        else if (option == "ADS")
+        {
+            int arg1, arg2;
+            input(option >> arg1 >> arg2);
+            loop.Modules.Add(new SchedulerModule(option, arg1), arg2);
+        }
         else if (option == "sch")
         {
             double arg;
             input(option >> arg);
             loop.Schedule(arg, Engine::Core::ExecutionType::BoundedAsync, [option] {
                 print("Executing the schedule: " << option);
+                throw KnownException(); // should be ignored
             });
         }
         else if (option == "scs")
@@ -150,6 +213,7 @@ void Prompt(Engine::Core::Loop& loop)
             input(option >> arg);
             loop.Schedule(arg, Engine::Core::ExecutionType::SingleThreaded, [option] {
                 print("Executing the schedule: " << option);
+                throw KnownException(); // should be ignored
             });
         }
         else if (option == "scf")
@@ -158,6 +222,7 @@ void Prompt(Engine::Core::Loop& loop)
             input(option >> arg);
             loop.Schedule(arg, Engine::Core::ExecutionType::FreeAsync, [option] {
                 print("Executing the schedule: " << option);
+                throw KnownException(); // should be ignored
             });
         }
         else if (option == "rem")
@@ -183,6 +248,14 @@ void Prompt(Engine::Core::Loop& loop)
                 [option](Engine::Core::Module * Item)->bool { return option == Item->GetName(); }
                 ))->Disable(); }
             catch (std::out_of_range&) { print("Module with name '" << option << "' doesn't exist."); }
+        }
+        else if (option == "ex")
+        {
+            throw KnownException();
+        }
+        else if (option == "uex")
+        {
+            throw UnknownException();
         }
         else if (option == "f")
         {
