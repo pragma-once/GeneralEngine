@@ -26,6 +26,7 @@ public:
     }
 
     virtual void OnStart() override {}
+    virtual void OnEnable() override {}
 
     virtual void OnUpdate() override
     {
@@ -39,9 +40,8 @@ public:
         print(GetTime() << ", " << GetTimeDiff() << ": " << Name << ": PromptModule::OnException: " << e.what());
     }
 
-    virtual void OnStop() override {}
-    virtual void OnEnable() override {}
     virtual void OnDisable() override {}
+    virtual void OnStop() override {}
 
     virtual std::string GetName() override
     {
@@ -69,24 +69,24 @@ public:
         print(GetTime() << ", " << GetTimeDiff() << ": Starting: " << Name);
     }
 
-    virtual void OnUpdate() override
-    {
-        print(GetTime() << ", " << GetTimeDiff() << ": Updating: " << Name);
-    }
-
-    virtual void OnStop() override
-    {
-        print(GetTime() << ", " << GetTimeDiff() << ": Ending: " << Name);
-    }
-
     virtual void OnEnable() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Enabling: " << Name);
     }
 
+    virtual void OnUpdate() override
+    {
+        print(GetTime() << ", " << GetTimeDiff() << ": Updating: " << Name);
+    }
+
     virtual void OnDisable() override
     {
         print(GetTime() << ", " << GetTimeDiff() << ": Disabling: " << Name);
+    }
+
+    virtual void OnStop() override
+    {
+        print(GetTime() << ", " << GetTimeDiff() << ": Ending: " << Name);
     }
 
     virtual std::string GetName() override
@@ -106,6 +106,7 @@ public:
     }
 
     virtual void OnStart() override {}
+    virtual void OnEnable() override {}
 
     virtual void OnUpdate() override
     {
@@ -120,9 +121,8 @@ public:
         print(GetTime() << ", " << GetTimeDiff() << ": " << Name << ": SchedulerModule::OnException: " << e.what());
     }
 
-    virtual void OnStop() override {}
-    virtual void OnEnable() override {}
     virtual void OnDisable() override {}
+    virtual void OnStop() override {}
 
     virtual std::string GetName() override
     {
