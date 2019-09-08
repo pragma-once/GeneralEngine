@@ -86,7 +86,7 @@ public:
 
     virtual void OnStop() override
     {
-        print(GetTime() << ", " << GetTimeDiff() << ": Ending: " << Name);
+        print(GetTime() << ", " << GetTimeDiff() << ": Stopping: " << Name);
     }
 
     virtual std::string GetName() override
