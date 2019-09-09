@@ -21,12 +21,12 @@ namespace Engine
         /// This class is meant for sharing data between different threads
         /// and is much easier to use than a normal shared mutex.
         /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
-        class HandledMutex; // TODO: Rename
-        /// @brief To be the base class for the classes that use a HandledMutex
+        class SmartMutex;
+        /// @brief To be the base class for the classes that use a SmartMutex
         ///        and need a LockAndDo function.
         class MutexContained;
         /// @brief Shared object with automatic mutex locking on set/get.
-        /// @tparam AllowManualLocking If true, The class will use a public HandledMutex that
+        /// @tparam AllowManualLocking If true, The class will use a public SmartMutex that
         ///         can also be controlled by user.
         ///         Else, a private std::shared_mutex will be used.
         template <typename Type, bool AllowManualLocking = false> class Shared;

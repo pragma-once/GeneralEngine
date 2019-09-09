@@ -7,20 +7,20 @@ namespace Engine
 
 // -------- LOCK GUARD -------- //
 
-        HandledMutex::LockGuard::LockGuard() : m(nullptr) {}
+        SmartMutex::LockGuard::LockGuard() : m(nullptr) {}
 
-        HandledMutex::LockGuard::LockGuard(LockGuard& op)
+        SmartMutex::LockGuard::LockGuard(LockGuard& op)
         {
             m = op.m;
             m->LockByGuard();
         }
 
-        HandledMutex::LockGuard::LockGuard(LockGuard&& op)
+        SmartMutex::LockGuard::LockGuard(LockGuard&& op)
         {
             m = std::exchange(op.m, nullptr);
         }
 
-        HandledMutex::LockGuard& HandledMutex::LockGuard::operator=(LockGuard& op)
+        SmartMutex::LockGuard& SmartMutex::LockGuard::operator=(LockGuard& op)
         {
             if (m != nullptr)
                 m->UnlockByGuard();
@@ -29,7 +29,7 @@ namespace Engine
             return *this;
         }
 
-        HandledMutex::LockGuard& HandledMutex::LockGuard::operator=(LockGuard&& op)
+        SmartMutex::LockGuard& SmartMutex::LockGuard::operator=(LockGuard&& op)
         {
             if (m != nullptr)
                 m->UnlockByGuard();
@@ -37,7 +37,7 @@ namespace Engine
             return *this;
         }
 
-        void HandledMutex::LockGuard::Unlock()
+        void SmartMutex::LockGuard::Unlock()
         {
             if (m != nullptr)
             {
@@ -46,30 +46,30 @@ namespace Engine
             }
         }
 
-        HandledMutex::LockGuard::~LockGuard()
+        SmartMutex::LockGuard::~LockGuard()
         {
             if (m != nullptr)
                 m->UnlockByGuard();
         }
 
-        HandledMutex::LockGuard::LockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->LockByGuard(); }
+        SmartMutex::LockGuard::LockGuard(SmartMutex * m) : m(m) { if (m != nullptr) m->LockByGuard(); }
 
 // -------- SHARED-LOCK GUARD -------- //
 
-        HandledMutex::SharedLockGuard::SharedLockGuard() : m(nullptr) {}
+        SmartMutex::SharedLockGuard::SharedLockGuard() : m(nullptr) {}
 
-        HandledMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard& op)
+        SmartMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard& op)
         {
             m = op.m;
             m->SharedLockByGuard();
         }
 
-        HandledMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard&& op)
+        SmartMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard&& op)
         {
             m = std::exchange(op.m, nullptr);
         }
 
-        HandledMutex::SharedLockGuard& HandledMutex::SharedLockGuard::operator=(SharedLockGuard& op)
+        SmartMutex::SharedLockGuard& SmartMutex::SharedLockGuard::operator=(SharedLockGuard& op)
         {
             if (m != nullptr)
                 m->SharedUnlockByGuard();
@@ -78,7 +78,7 @@ namespace Engine
             return *this;
         }
 
-        HandledMutex::SharedLockGuard& HandledMutex::SharedLockGuard::operator=(SharedLockGuard&& op)
+        SmartMutex::SharedLockGuard& SmartMutex::SharedLockGuard::operator=(SharedLockGuard&& op)
         {
             if (m != nullptr)
                 m->SharedUnlockByGuard();
@@ -86,7 +86,7 @@ namespace Engine
             return *this;
         }
 
-        void HandledMutex::SharedLockGuard::Unlock()
+        void SmartMutex::SharedLockGuard::Unlock()
         {
             if (m != nullptr)
             {
@@ -95,40 +95,40 @@ namespace Engine
             }
         }
 
-        HandledMutex::SharedLockGuard::~SharedLockGuard()
+        SmartMutex::SharedLockGuard::~SharedLockGuard()
         {
             if (m != nullptr)
                 m->SharedUnlockByGuard();
         }
 
-        HandledMutex::SharedLockGuard::SharedLockGuard(HandledMutex * m) : m(m) { if (m != nullptr) m->SharedLockByGuard(); }
+        SmartMutex::SharedLockGuard::SharedLockGuard(SmartMutex * m) : m(m) { if (m != nullptr) m->SharedLockByGuard(); }
 
 // -------- DEADLOCK EXCEPTION -------- //
 
-        HandledMutex::DeadlockException::DeadlockException() : std::runtime_error(
+        SmartMutex::DeadlockException::DeadlockException() : std::runtime_error(
             "Deadlock occurred: "
             "2 or more threads are trying to lock after they have shared-locked."
         ) {}
 
 // -------- ACTUAL MUTEX -------- //
 
-        HandledMutex::HandledMutex() : HasOwner(false), LockGuardCount(0), RequestingToLockWhileSharedLocked(false)
+        SmartMutex::SmartMutex() : HasOwner(false), LockGuardCount(0), RequestingToLockWhileSharedLocked(false)
         {
             SharedOwnersRef = new Collections::Dictionary<std::thread::id, int, false>();
         }
 
-        HandledMutex::~HandledMutex()
+        SmartMutex::~SmartMutex()
         {
             delete SharedOwnersRef;
         }
 
-        bool HandledMutex::Lock()
+        bool SmartMutex::Lock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return LockOperation(m);
         }
 
-        inline bool HandledMutex::LockOperation(std::unique_lock<std::mutex>& m)
+        inline bool SmartMutex::LockOperation(std::unique_lock<std::mutex>& m)
         {
             if (HasOwner && (Owner == std::this_thread::get_id()))
                 return false;
@@ -155,7 +155,7 @@ namespace Engine
             return true;
         }
 
-        HandledMutex::TryResult HandledMutex::TryLock()
+        SmartMutex::TryResult SmartMutex::TryLock()
         {
             std::lock_guard<std::mutex> guard(StateMutex);
 
@@ -178,13 +178,13 @@ namespace Engine
             return LockSuccessful;
         }
 
-        bool HandledMutex::Unlock()
+        bool SmartMutex::Unlock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return UnlockOperation(m); // May unlock m before returning
         }
 
-        inline bool HandledMutex::UnlockOperation(std::unique_lock<std::mutex>& m)
+        inline bool SmartMutex::UnlockOperation(std::unique_lock<std::mutex>& m)
         {
             if (HasOwner && (Owner == std::this_thread::get_id()))
             {
@@ -198,12 +198,12 @@ namespace Engine
             return false;
         }
 
-        HandledMutex::LockGuard HandledMutex::GetLock()
+        SmartMutex::LockGuard SmartMutex::GetLock()
         {
             return LockGuard(this);
         }
 
-        bool HandledMutex::TryGetLock(LockGuard &GuardOut)
+        bool SmartMutex::TryGetLock(LockGuard &GuardOut)
         {
             if (TryLock() != LockedByOtherThreads)
             {
@@ -213,13 +213,13 @@ namespace Engine
             else return false;
         }
 
-        bool HandledMutex::SharedLock()
+        bool SmartMutex::SharedLock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return SharedLockOperation(m);
         }
 
-        inline bool HandledMutex::SharedLockOperation(std::unique_lock<std::mutex>& m)
+        inline bool SmartMutex::SharedLockOperation(std::unique_lock<std::mutex>& m)
         {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
                 return false;
@@ -236,7 +236,7 @@ namespace Engine
             return true;
         }
 
-        HandledMutex::TryResult HandledMutex::TrySharedLock()
+        SmartMutex::TryResult SmartMutex::TrySharedLock()
         {
             std::lock_guard<std::mutex> guard(StateMutex);
 
@@ -249,13 +249,13 @@ namespace Engine
             return LockSuccessful;
         }
 
-        bool HandledMutex::SharedUnlock()
+        bool SmartMutex::SharedUnlock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return SharedUnlockOperation(m); // May unlock m before returning
         }
 
-        inline bool HandledMutex::SharedUnlockOperation(std::unique_lock<std::mutex>& m)
+        inline bool SmartMutex::SharedUnlockOperation(std::unique_lock<std::mutex>& m)
         {
             if (SharedOwnersRef->Contains(std::this_thread::get_id()))
             {
@@ -267,12 +267,12 @@ namespace Engine
             return false;
         }
 
-        HandledMutex::SharedLockGuard HandledMutex::GetSharedLock()
+        SmartMutex::SharedLockGuard SmartMutex::GetSharedLock()
         {
             return SharedLockGuard(this);
         }
 
-        bool HandledMutex::TryGetSharedLock(SharedLockGuard &GuardOut)
+        bool SmartMutex::TryGetSharedLock(SharedLockGuard &GuardOut)
         {
             if (TrySharedLock() != LockedByOtherThreads)
             {
@@ -282,14 +282,14 @@ namespace Engine
             else return false;
         }
 
-        void HandledMutex::LockByGuard()
+        void SmartMutex::LockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             LockOperation(m);
             LockGuardCount++;
         }
 
-        void HandledMutex::UnlockByGuard()
+        void SmartMutex::UnlockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             LockGuardCount--;
@@ -302,14 +302,14 @@ namespace Engine
                     );
         }
 
-        void HandledMutex::SharedLockByGuard()
+        void SmartMutex::SharedLockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             SharedLockOperation(m);
             SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedOwnersRef->GetValue(std::this_thread::get_id()) + 1);
         }
 
-        void HandledMutex::SharedUnlockByGuard()
+        void SmartMutex::SharedUnlockByGuard()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             int SharedLockGuardsCount = SharedOwnersRef->GetValue(std::this_thread::get_id());

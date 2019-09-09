@@ -7,7 +7,7 @@
 #include "../Engine.dec.h"
 
 #ifdef ENGINE_SHARED_MANUAL
-    #include "HandledMutex.h"
+    #include "SmartMutex.h"
     #define ENGINE_SHARED_CLASS_NAME Shared<Type, true>
 #else
     #define ENGINE_SHARED_CLASS_NAME Shared<Type, false>
@@ -31,7 +31,7 @@ namespace Engine
             /// @brief The mutex used by this shared variable.
             ///
             /// Can be used to perform locks in larger/other program sections.
-            HandledMutex Mutex;
+            SmartMutex Mutex;
 #endif
 
             Shared(Shared<Type, false>&);

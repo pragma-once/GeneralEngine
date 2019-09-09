@@ -6,13 +6,13 @@ namespace Engine
 {
     namespace Data
     {
-        class HandledMutex final
+        class SmartMutex final
         {
         public:
-            /// @brief Unlocks a HandledMutex lock on destruction.
+            /// @brief Unlocks a SmartMutex lock on destruction.
             class LockGuard final
             {
-                friend HandledMutex;
+                friend SmartMutex;
             public:
                 LockGuard();
                 LockGuard(LockGuard&);
@@ -23,14 +23,14 @@ namespace Engine
                 void Unlock();
                 ~LockGuard();
             private:
-                LockGuard(HandledMutex * m);
-                HandledMutex * m;
+                LockGuard(SmartMutex * m);
+                SmartMutex * m;
             };
 
-            /// @brief Unlocks a HandledMutex shared lock on destruction.
+            /// @brief Unlocks a SmartMutex shared lock on destruction.
             class SharedLockGuard final
             {
-                friend HandledMutex;
+                friend SmartMutex;
             public:
                 SharedLockGuard();
                 SharedLockGuard(SharedLockGuard&);
@@ -41,13 +41,13 @@ namespace Engine
                 void Unlock();
                 ~SharedLockGuard();
             private:
-                SharedLockGuard(HandledMutex * m);
-                HandledMutex * m;
+                SharedLockGuard(SmartMutex * m);
+                SmartMutex * m;
             };
 
             class DeadlockException : public std::runtime_error
             {
-                friend HandledMutex;
+                friend SmartMutex;
             private:
                 DeadlockException();
             };
@@ -62,8 +62,8 @@ namespace Engine
             friend LockGuard;
             friend SharedLockGuard;
 
-            HandledMutex();
-            ~HandledMutex();
+            SmartMutex();
+            ~SmartMutex();
             
             /// @brief Locks the mutex manually.
             ///

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Data/HandledMutex.h"
+#include "Data/SmartMutex.h"
 #include "Data/MutexContained.h"
 #include "Data/Shared.h"
 #include "Data/Accessor.h"
