@@ -16,6 +16,8 @@ namespace Engine
 {
     namespace Utilities
     {
+        /// @brief Provides objects that act on set and/or get.
+        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
         /// @brief Shared mutex that handles recursive locking in a thread.
         ///
         /// This class is meant for sharing data between different threads
@@ -30,8 +32,6 @@ namespace Engine
         ///         can also be controlled by user.
         ///         Else, a private std::shared_mutex will be used.
         template <typename Type, bool AllowManualLocking = false> class Shared;
-        /// @brief Provides objects that act on set and/or get.
-        template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
 
         namespace Collections
         {
