@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         namespace Collections
         {
@@ -118,7 +118,7 @@ namespace Engine
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         namespace Collections
         {

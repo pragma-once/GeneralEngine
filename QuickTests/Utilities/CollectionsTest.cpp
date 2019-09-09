@@ -3,18 +3,18 @@
 #include <string>
 
 // To check the compilation errors
-template class Engine::Data::Collections::ResizableArray<int, true>;
-template class Engine::Data::Collections::ResizableArray<int, false>;
-template class Engine::Data::Collections::List<int, true>;
-template class Engine::Data::Collections::List<int, false>;
-template class Engine::Data::Collections::Stack<int, true>;
-template class Engine::Data::Collections::Stack<int, false>;
-template class Engine::Data::Collections::Queue<int, true>;
-template class Engine::Data::Collections::Queue<int, false>;
-template class Engine::Data::Collections::PriorityQueue<int, int, true, true>;
-template class Engine::Data::Collections::PriorityQueue<int, int, true, false>;
-template class Engine::Data::Collections::Dictionary<int, int, true>;
-template class Engine::Data::Collections::Dictionary<int, int, false>;
+template class Engine::Utilities::Collections::ResizableArray<int, true>;
+template class Engine::Utilities::Collections::ResizableArray<int, false>;
+template class Engine::Utilities::Collections::List<int, true>;
+template class Engine::Utilities::Collections::List<int, false>;
+template class Engine::Utilities::Collections::Stack<int, true>;
+template class Engine::Utilities::Collections::Stack<int, false>;
+template class Engine::Utilities::Collections::Queue<int, true>;
+template class Engine::Utilities::Collections::Queue<int, false>;
+template class Engine::Utilities::Collections::PriorityQueue<int, int, true, true>;
+template class Engine::Utilities::Collections::PriorityQueue<int, int, true, false>;
+template class Engine::Utilities::Collections::Dictionary<int, int, true>;
+template class Engine::Utilities::Collections::Dictionary<int, int, false>;
 
 #define print(context) (std::cout << context << '\n')
 #define input(var) (std::cin >> var)
@@ -98,7 +98,7 @@ int main()
 void TestList()
 {
     
-    Engine::Data::Collections::List<ITEMS_TYPE> * list = new Engine::Data::Collections::List<ITEMS_TYPE>();
+    Engine::Utilities::Collections::List<ITEMS_TYPE> * list = new Engine::Utilities::Collections::List<ITEMS_TYPE>();
     while (true)
     {
         print("");
@@ -186,11 +186,11 @@ void TestList()
                 break;
             case 'd':
                 delete list;
-                list = new Engine::Data::Collections::List<ITEMS_TYPE>();
+                list = new Engine::Utilities::Collections::List<ITEMS_TYPE>();
                 break;
             case 'n':
                 input(arg_int);
-                list = new Engine::Data::Collections::List<ITEMS_TYPE>(arg_int);
+                list = new Engine::Utilities::Collections::List<ITEMS_TYPE>(arg_int);
                 delete old_list;
                 break;
             case 'E':
@@ -220,7 +220,7 @@ void TestList()
 
 void TestStack()
 {
-    Engine::Data::Collections::Stack<ITEMS_TYPE> * stack = new Engine::Data::Collections::Stack<ITEMS_TYPE>();
+    Engine::Utilities::Collections::Stack<ITEMS_TYPE> * stack = new Engine::Utilities::Collections::Stack<ITEMS_TYPE>();
     while (true) try
     {
         print("");
@@ -287,7 +287,7 @@ void TestStack()
 
 void TestQueue()
 {
-    Engine::Data::Collections::Queue<ITEMS_TYPE> * queue = new Engine::Data::Collections::Queue<ITEMS_TYPE>();
+    Engine::Utilities::Collections::Queue<ITEMS_TYPE> * queue = new Engine::Utilities::Collections::Queue<ITEMS_TYPE>();
     while (true) try
     {
         print("");
@@ -349,7 +349,7 @@ void TestQueue()
 
 void TestPriorityQueue()
 {
-    Engine::Data::Collections::PriorityQueue<ITEMS_TYPE> * queue = new Engine::Data::Collections::PriorityQueue<ITEMS_TYPE>();
+    Engine::Utilities::Collections::PriorityQueue<ITEMS_TYPE> * queue = new Engine::Utilities::Collections::PriorityQueue<ITEMS_TYPE>();
     while (true) try
     {
         print("");
@@ -426,7 +426,7 @@ void TestPriorityQueue()
 
 void TestDictionary()
 {
-    Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> * dict = new Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE>();
+    Engine::Utilities::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> * dict = new Engine::Utilities::Collections::Dictionary<KEY_TYPE, VALUE_TYPE>();
     while (true) try
     {
         print("");
@@ -486,7 +486,7 @@ void TestDictionary()
 
 void TestMultipleLists()
 {
-    Engine::Data::Collections::List<ITEMS_TYPE> lists[4];
+    Engine::Utilities::Collections::List<ITEMS_TYPE> lists[4];
     while (true) try
     {
         print("");
@@ -574,7 +574,7 @@ void TestMultipleLists()
 
 void TestMultipleStacks()
 {
-    Engine::Data::Collections::Stack<ITEMS_TYPE> stacks[5];
+    Engine::Utilities::Collections::Stack<ITEMS_TYPE> stacks[5];
     while (true) try
     {
         print("");
@@ -651,7 +651,7 @@ void TestMultipleStacks()
 
 void TestMultipleQueues()
 {
-    Engine::Data::Collections::Queue<ITEMS_TYPE> queues[5];
+    Engine::Utilities::Collections::Queue<ITEMS_TYPE> queues[5];
     while (true) try
     {
         print("");
@@ -728,7 +728,7 @@ void TestMultipleQueues()
 
 void TestMultiplePriorityQueues()
 {
-    Engine::Data::Collections::PriorityQueue<ITEMS_TYPE> queues[5];
+    Engine::Utilities::Collections::PriorityQueue<ITEMS_TYPE> queues[5];
     while (true) try
     {
         print("");
@@ -813,7 +813,7 @@ void TestMultiplePriorityQueues()
 
 void TestMultipleDictionaries()
 {
-    Engine::Data::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> dicts[4];
+    Engine::Utilities::Collections::Dictionary<KEY_TYPE, VALUE_TYPE> dicts[4];
     while (true) try
     {
         print("");

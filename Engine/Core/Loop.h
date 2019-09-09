@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../Engine.dec.h"
-#include "../Data/Shared.h"
-#include "../Data/Collections/List.h"
-#include "../Data/Collections/PriorityQueue.h"
+#include "../Utilities/Shared.h"
+#include "../Utilities/Collections/List.h"
+#include "../Utilities/Collections/PriorityQueue.h"
 
 namespace Engine
 {
@@ -16,7 +16,7 @@ namespace Engine
             /// @brief The modules that are going to be running.
             ///
             /// Add the modules to this list.
-            Data::Collections::List<Module*> Modules;
+            Utilities::Collections::List<Module*> Modules;
 
             Loop();
 
@@ -79,12 +79,12 @@ namespace Engine
             int ZeroPriorityModulesStartIndex;
             int ZeroPriorityModulesEndIndex;
 
-            Data::Shared<bool, true> isRunning;
-            Data::Shared<double> Time;
-            Data::Shared<double> TimeDiff;
-            Data::Shared<float> TimeFloat;
-            Data::Shared<float> TimeDiffFloat;
-            Data::Shared<bool> ShouldStop;
+            Utilities::Shared<bool, true> isRunning;
+            Utilities::Shared<double> Time;
+            Utilities::Shared<double> TimeDiff;
+            Utilities::Shared<float> TimeFloat;
+            Utilities::Shared<float> TimeDiffFloat;
+            Utilities::Shared<bool> ShouldStop;
 
             struct ScheduledJob
             {
@@ -97,12 +97,12 @@ namespace Engine
                 );
             };
 
-            Data::Collections::PriorityQueue<std::pair<ExecutionType, ScheduledJob>, double> Schedules;
+            Utilities::Collections::PriorityQueue<std::pair<ExecutionType, ScheduledJob>, double> Schedules;
 
             enum ModulesEditType : std::int_fast8_t { Add, Replace, Remove, Clear };
-            Data::Collections::Queue<std::tuple<ModulesEditType, int, Module*>> ToEditModules;
-            Data::Collections::List<Module*> UpdatingModules;
-            Data::Collections::Queue<std::tuple<ExecutionType, ScheduledJob, double>> ToSchedule;
+            Utilities::Collections::Queue<std::tuple<ModulesEditType, int, Module*>> ToEditModules;
+            Utilities::Collections::List<Module*> UpdatingModules;
+            Utilities::Collections::Queue<std::tuple<ExecutionType, ScheduledJob, double>> ToSchedule;
 
             void ExecuteScheduledJob(ScheduledJob&);
             void ExecuteUpdate(Module*);

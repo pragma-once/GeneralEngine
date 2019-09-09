@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Data/SmartMutex.h"
-#include "Data/MutexContained.h"
-#include "Data/Shared.h"
-#include "Data/Accessor.h"
+#include "Utilities/SmartMutex.h"
+#include "Utilities/MutexContained.h"
+#include "Utilities/Shared.h"
+#include "Utilities/Accessor.h"
 
-#include "Data/Collections/ResizableArray.h"
-#include "Data/Collections/List.h"
-#include "Data/Collections/Stack.h"
-#include "Data/Collections/Queue.h"
-#include "Data/Collections/PriorityQueue.h"
-#include "Data/Collections/Dictionary.h"
+#include "Utilities/Collections/ResizableArray.h"
+#include "Utilities/Collections/List.h"
+#include "Utilities/Collections/Stack.h"
+#include "Utilities/Collections/Queue.h"
+#include "Utilities/Collections/PriorityQueue.h"
+#include "Utilities/Collections/Dictionary.h"
 
 #include "Core/Loop.h"
 #include "Core/Module.h"

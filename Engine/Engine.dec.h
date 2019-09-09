@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         /// @brief Shared mutex that handles recursive locking in a thread.
         ///

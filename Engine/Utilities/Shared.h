@@ -15,7 +15,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         template <typename Type>
         class ENGINE_SHARED_CLASS_NAME final
@@ -69,7 +69,7 @@ namespace Engine
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         template <typename Type>
         ENGINE_SHARED_CLASS_NAME::Shared(Shared<Type, false>& Operand)

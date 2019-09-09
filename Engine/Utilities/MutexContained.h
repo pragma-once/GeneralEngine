@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         class MutexContained
         {

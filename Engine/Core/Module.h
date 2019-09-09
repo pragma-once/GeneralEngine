@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Engine.dec.h"
-#include "../Data/Shared.h"
+#include "../Utilities/Shared.h"
 
 namespace Engine
 {
@@ -127,8 +127,8 @@ namespace Engine
         private:
             const std::int_fast8_t Priority;
 
-            Data::Shared<bool> isEnabled;
-            Data::Shared<Loop*> loop;
+            Utilities::Shared<bool> isEnabled;
+            Utilities::Shared<Loop*> loop;
 
             void Acquire(Loop*);
             void Release();

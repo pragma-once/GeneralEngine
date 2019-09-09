@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         template <typename Type>
         class ENGINE_ACCESSOR_CLASS_NAME final
@@ -104,7 +104,7 @@ namespace Engine
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
 #if ENGINE_ACCESSOR_NO_GETTER
 

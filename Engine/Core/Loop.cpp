@@ -11,7 +11,7 @@ namespace Engine
                                  Modules(
 
                 // OnAdd
-                [this](Data::Collections::List<Module*> * Parent, Module *& Item, int& Index)
+                [this](Utilities::Collections::List<Module*> * Parent, Module *& Item, int& Index)
                 {
                     // Don't add a module if it already exists in the list
                     if (Parent->Contains(Item))
@@ -76,7 +76,7 @@ namespace Engine
                 },
 
                 // OnSetItem
-                [this](Data::Collections::List<Module*> * Parent, int& Index, Module *& Value)
+                [this](Utilities::Collections::List<Module*> * Parent, int& Index, Module *& Value)
                 {
                     try
                     {
@@ -93,7 +93,7 @@ namespace Engine
                 },
 
                 // OnRemove
-                [this](Data::Collections::List<Module*> * Parent, int& Index)
+                [this](Utilities::Collections::List<Module*> * Parent, int& Index)
                 {
                     try
                     {
@@ -112,7 +112,7 @@ namespace Engine
                 },
 
                 // OnClear
-                [this](Data::Collections::List<Module*> * Parent)
+                [this](Utilities::Collections::List<Module*> * Parent)
                 {
                     Parent->Clear();
                     if (isRunning)
@@ -172,17 +172,17 @@ namespace Engine
                 /// @brief Used to detect bugs
                 error
             };
-            Data::Collections::List<std::thread*, false> threads(threads_count);
-            Data::Collections::List<thread_state> thread_states(threads_count);
+            Utilities::Collections::List<std::thread*, false> threads(threads_count);
+            Utilities::Collections::List<thread_state> thread_states(threads_count);
             threads.SetAutoShrink(false);
             thread_states.SetAutoShrink(false);
 
             std::condition_variable condition;
             std::mutex condition_mutex;
 
-            Data::Shared<int> CurrentPriority = -128; // Only set by the main thread
-            Data::Shared<int, true> ModuleIndex = 0;
-            Data::Shared<bool> ShouldTerminate = false;
+            Utilities::Shared<int> CurrentPriority = -128; // Only set by the main thread
+            Utilities::Shared<int, true> ModuleIndex = 0;
+            Utilities::Shared<bool> ShouldTerminate = false;
 
             for (int i = 0; i < threads_count; i++)
             {

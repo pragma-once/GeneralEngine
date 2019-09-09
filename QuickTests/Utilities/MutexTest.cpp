@@ -9,8 +9,8 @@ using namespace std::literals::chrono_literals;
 #define print(context) (std::cout << context << '\n')
 #define input(var) (std::cin >> var)
 
-Engine::Data::SmartMutex m;
-Engine::Data::Shared<int, true> NextThreadID = 0;
+Engine::Utilities::SmartMutex m;
+Engine::Utilities::Shared<int, true> NextThreadID = 0;
 
 int GetID()
 {

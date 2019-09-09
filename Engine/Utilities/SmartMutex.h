@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    namespace Data
+    namespace Utilities
     {
         class SmartMutex final
         {
