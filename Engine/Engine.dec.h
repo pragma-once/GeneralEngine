@@ -18,11 +18,10 @@ namespace Engine
     {
         /// @brief Provides objects that act on set and/or get.
         template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
-        /// @brief Shared mutex that handles recursive locking in a thread.
+        /// @brief Shared mutex that supports recursive locking in a thread.
         ///
         /// This class is meant for sharing data between different threads
         /// and is much easier to use than a normal shared mutex.
-        /// Try to use GetLock or GetSharedLock and avoid using Locking/Unlocking functions.
         class SmartMutex;
         /// @brief To be the base class for the classes that use a SmartMutex
         ///        and need a LockAndDo function.
