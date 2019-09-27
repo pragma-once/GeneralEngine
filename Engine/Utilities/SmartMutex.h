@@ -65,7 +65,7 @@ namespace Engine
             SmartMutex();
             ~SmartMutex();
             
-            /// @brief Locks the mutex manually.
+            /// @brief Locks the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use GetLock instead.
             ///
@@ -74,8 +74,8 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked in the same thread
             ///         and is locked by this call.
-            bool Lock();
-            /// @brief Tries to lock the mutex manually.
+            bool ForceLock();
+            /// @brief Tries to lock the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use TryGetLock instead.
             ///
@@ -83,8 +83,8 @@ namespace Engine
             /// doing this on multiple threads may result in a deadlock.
             ///
             /// @return Whether the mutex was not locked and is locked by this call.
-            TryResult TryLock();
-            /// @brief Unlocks the mutex manually.
+            TryResult TryForceLock();
+            /// @brief Unlocks the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use the lock guards returned by GetLock or TryGetLock instead.
             ///
@@ -93,7 +93,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was locked by this thread
             ///         and is unlocked by this call.
-            bool Unlock();
+            bool ForceUnlock();
             /// @brief Locks the mutex and returns the lock guard.
             ///
             /// The mutex will lock anyway if it was shared-locked by this thread only.
@@ -108,7 +108,7 @@ namespace Engine
             /// @return Whether the mutex was not locked and is locked by this call.
             bool TryGetLock(LockGuard &GuardOut);
 
-            /// @brief Shared-locks the mutex manually.
+            /// @brief Shared-locks the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use GetSharedLock instead.
             ///
@@ -122,8 +122,8 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked, or shared-locked in the same thread
             ///         and is shared-locked by this call.
-            bool SharedLock();
-            /// @brief Tries to shared-lock the mutex manually.
+            bool ForceSharedLock();
+            /// @brief Tries to shared-lock the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use TryGetSharedLock instead.
             ///
@@ -135,8 +135,8 @@ namespace Engine
             ///
             /// @return Whether the mutex was not locked, or shared-locked by this thread
             ///         and is shared-locked by this call.
-            TryResult TrySharedLock();
-            /// @brief Shared-unlocks the mutex manually.
+            TryResult TryForceSharedLock();
+            /// @brief Shared-unlocks the mutex manually. DO NOT USE THIS.
             ///
             /// It's recommended to use the lock guards returned by GetSharedLock or TryGetSharedLock instead.
             ///
@@ -145,7 +145,7 @@ namespace Engine
             ///
             /// @return Whether the mutex was shared-locked by this thread
             ///         and is unlocked by this call.
-            bool SharedUnlock();
+            bool ForceSharedUnlock();
             /// @brief Shared-locks the mutex and returns the lock guard.
             ///
             /// Avoid shared-locking and then locking,

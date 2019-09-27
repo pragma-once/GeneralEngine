@@ -122,10 +122,17 @@ namespace Engine
             delete SharedOwnersRef;
         }
 
-        bool SmartMutex::Lock()
+        bool SmartMutex::ForceLock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return LockOperation(m);
+        }
+
+        void SmartMutex::LockByGuard()
+        {
+            std::unique_lock<std::mutex> m(StateMutex);
+            LockOperation(m);
+            LockGuardCount++;
         }
 
         inline bool SmartMutex::LockOperation(std::unique_lock<std::mutex>& m)
@@ -155,7 +162,7 @@ namespace Engine
             return true;
         }
 
-        SmartMutex::TryResult SmartMutex::TryLock()
+        SmartMutex::TryResult SmartMutex::TryForceLock()
         {
             std::lock_guard<std::mutex> guard(StateMutex);
 
@@ -178,10 +185,23 @@ namespace Engine
             return LockSuccessful;
         }
 
-        bool SmartMutex::Unlock()
+        bool SmartMutex::ForceUnlock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return UnlockOperation(m); // May unlock m before returning
+        }
+
+        void SmartMutex::UnlockByGuard()
+        {
+            std::unique_lock<std::mutex> m(StateMutex);
+            LockGuardCount--;
+            if (LockGuardCount == 0)
+                UnlockOperation(m); // May unlock m before returning
+            else if (LockGuardCount < 0)
+                throw std::logic_error(
+                    "This is a bug if the LockGuardCount member is not modified. Current LockGuardCount value is: "
+                    + std::to_string(LockGuardCount)
+                    );
         }
 
         inline bool SmartMutex::UnlockOperation(std::unique_lock<std::mutex>& m)
@@ -205,7 +225,7 @@ namespace Engine
 
         bool SmartMutex::TryGetLock(LockGuard &GuardOut)
         {
-            if (TryLock() != LockedByOtherThreads)
+            if (TryForceLock() != LockedByOtherThreads)
             {
                 GuardOut = LockGuard(this);
                 return true;
@@ -213,10 +233,17 @@ namespace Engine
             else return false;
         }
 
-        bool SmartMutex::SharedLock()
+        bool SmartMutex::ForceSharedLock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return SharedLockOperation(m);
+        }
+
+        void SmartMutex::SharedLockByGuard()
+        {
+            std::unique_lock<std::mutex> m(StateMutex);
+            SharedLockOperation(m);
+            SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedOwnersRef->GetValue(std::this_thread::get_id()) + 1);
         }
 
         inline bool SmartMutex::SharedLockOperation(std::unique_lock<std::mutex>& m)
@@ -236,7 +263,7 @@ namespace Engine
             return true;
         }
 
-        SmartMutex::TryResult SmartMutex::TrySharedLock()
+        SmartMutex::TryResult SmartMutex::TryForceSharedLock()
         {
             std::lock_guard<std::mutex> guard(StateMutex);
 
@@ -249,10 +276,26 @@ namespace Engine
             return LockSuccessful;
         }
 
-        bool SmartMutex::SharedUnlock()
+        bool SmartMutex::ForceSharedUnlock()
         {
             std::unique_lock<std::mutex> m(StateMutex);
             return SharedUnlockOperation(m); // May unlock m before returning
+        }
+
+        void SmartMutex::SharedUnlockByGuard()
+        {
+            std::unique_lock<std::mutex> m(StateMutex);
+            int SharedLockGuardsCount = SharedOwnersRef->GetValue(std::this_thread::get_id());
+            SharedLockGuardsCount--;
+            SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedLockGuardsCount);
+            if (SharedLockGuardsCount == 0)
+                SharedUnlockOperation(m); // May unlock m before returning
+            else if (SharedLockGuardsCount < 0)
+                throw std::logic_error(
+                    "This is a bug if the SharedOwners member is not modified. "
+                    "Current SharedOwnersRef->GetValue(std::this_thread::get_id()) value is: "
+                    + std::to_string(SharedLockGuardsCount)
+                    );
         }
 
         inline bool SmartMutex::SharedUnlockOperation(std::unique_lock<std::mutex>& m)
@@ -274,55 +317,12 @@ namespace Engine
 
         bool SmartMutex::TryGetSharedLock(SharedLockGuard &GuardOut)
         {
-            if (TrySharedLock() != LockedByOtherThreads)
+            if (TryForceSharedLock() != LockedByOtherThreads)
             {
                 GuardOut = SharedLockGuard(this);
                 return true;
             }
             else return false;
-        }
-
-        void SmartMutex::LockByGuard()
-        {
-            std::unique_lock<std::mutex> m(StateMutex);
-            LockOperation(m);
-            LockGuardCount++;
-        }
-
-        void SmartMutex::UnlockByGuard()
-        {
-            std::unique_lock<std::mutex> m(StateMutex);
-            LockGuardCount--;
-            if (LockGuardCount == 0)
-                UnlockOperation(m); // May unlock m before returning
-            else if (LockGuardCount < 0)
-                throw std::logic_error(
-                    "This is a bug if the LockGuardCount member is not modified. Current LockGuardCount value is: "
-                    + std::to_string(LockGuardCount)
-                    );
-        }
-
-        void SmartMutex::SharedLockByGuard()
-        {
-            std::unique_lock<std::mutex> m(StateMutex);
-            SharedLockOperation(m);
-            SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedOwnersRef->GetValue(std::this_thread::get_id()) + 1);
-        }
-
-        void SmartMutex::SharedUnlockByGuard()
-        {
-            std::unique_lock<std::mutex> m(StateMutex);
-            int SharedLockGuardsCount = SharedOwnersRef->GetValue(std::this_thread::get_id());
-            SharedLockGuardsCount--;
-            SharedOwnersRef->SetValue(std::this_thread::get_id(), SharedLockGuardsCount);
-            if (SharedLockGuardsCount == 0)
-                SharedUnlockOperation(m); // May unlock m before returning
-            else if (SharedLockGuardsCount < 0)
-                throw std::logic_error(
-                    "This is a bug if the SharedOwners member is not modified. "
-                    "Current SharedOwnersRef->GetValue(std::this_thread::get_id()) value is: "
-                    + std::to_string(SharedLockGuardsCount)
-                    );
         }
     }
 }
