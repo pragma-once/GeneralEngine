@@ -6,7 +6,9 @@ namespace Engine
     namespace Core
     {
         Loop::Loop() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
-                                 isRunning(false), Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
+                                 isRunning(false),
+                                 StartTime(std::chrono::time_point<std::chrono::steady_clock>()),
+                                 Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
                                  ShouldStop(false),
                                  Modules(
 
@@ -140,9 +142,11 @@ namespace Engine
                 ToSchedule.Clear(); // Just to be sure
                 ToSchedule.SetAutoShrink(false);
                 isRunning = true;
+                StartTime = std::chrono::steady_clock::now();
             });
 
-            auto StartTime = std::chrono::steady_clock::now();
+            // No need to shared-lock the mutex on time updates
+            std::chrono::time_point<std::chrono::steady_clock> StartTimeLocalCopy = StartTime;
             double PreviousTime = 0;
             Time = 0;
             TimeDiff = 0;
@@ -372,7 +376,7 @@ namespace Engine
                 if (UpdatingModules.GetCount() == 0)
                     break;
 
-                auto duration = std::chrono::steady_clock::now() - StartTime;
+                auto duration = std::chrono::steady_clock::now() - StartTimeLocalCopy;
                 PreviousTime = Time;
                 Time = (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
                 TimeDiff = Time - PreviousTime;

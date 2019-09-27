@@ -80,6 +80,7 @@ namespace Engine
             int ZeroPriorityModulesEndIndex;
 
             Utilities::Shared<bool, true> isRunning;
+            Utilities::Shared<std::chrono::time_point<std::chrono::steady_clock>> StartTime;
             Utilities::Shared<double> Time;
             Utilities::Shared<double> TimeDiff;
             Utilities::Shared<float> TimeFloat;

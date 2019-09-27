@@ -81,6 +81,16 @@ namespace Engine
             return loop.Get()->TimeDiffFloat;
         }
 
+        double Module::GetPresentTime()
+        {
+            if (loop == nullptr)
+                return 0;
+            if (!loop.Get()->isRunning)
+                return 0;
+            auto duration = std::chrono::steady_clock::now() - loop.Get()->StartTime.Get();
+            return (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
+        }
+
         Loop * Module::GetLoop()
         {
             return loop;

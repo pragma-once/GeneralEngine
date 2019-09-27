@@ -67,14 +67,24 @@ namespace Engine
             ///        from the loop while the loop is running.
             virtual void OnStop() = 0;
 
-            /// @brief Gets the time since the Loop is started.
+            /// @brief Gets the update time since the Loop is started.
+            ///
+            /// This is frozen for each Loop iteration/update.
             double GetTime();
-            /// @brief Gets the time between the last 2 updates.
+            /// @brief Gets the time difference between the last 2 updates.
             double GetTimeDiff();
-            /// @brief Gets the time since the Loop is started as float.
+            /// @brief Gets the update time since the Loop is started as float.
+            ///
+            /// This is frozen for each Loop iteration/update.
             float GetTimeFloat();
-            /// @brief Gets the time between the last 2 updates as float.
+            /// @brief Gets the time difference between the last 2 updates as float.
             float GetTimeDiffFloat();
+
+            /// @brief Calculates the actual time since the Loop is started.
+            ///
+            /// DO NOT use this unless you know what you are doing. Use GetTime instead.
+            /// This is not frozen for each Loop iteration/update.
+            double GetPresentTime(); // TODO: Rename
 
             /// @brief Gets the loop which this module is added to.
             Loop * GetLoop();
