@@ -76,9 +76,9 @@ namespace Engine
             /// @brief Gets the update time since the Loop is started as float.
             ///
             /// The value is frozen for each Loop iteration/update.
-            float GetTimeFloat();
+            float GetTimeAsFloat();
             /// @brief Gets the time difference between the last 2 updates as float.
-            float GetTimeDiffFloat();
+            float GetTimeDiffAsFloat();
 
             /// @brief Calculates the actual time since the Loop is started.
             ///

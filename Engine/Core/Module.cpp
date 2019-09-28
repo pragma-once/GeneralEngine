@@ -67,18 +67,18 @@ namespace Engine
             return loop.Get()->TimeDiff;
         }
 
-        float Module::GetTimeFloat()
+        float Module::GetTimeAsFloat()
         {
             if (loop == nullptr)
                 return 0;
-            return loop.Get()->TimeFloat;
+            return loop.Get()->TimeAsFloat;
         }
 
-        float Module::GetTimeDiffFloat()
+        float Module::GetTimeDiffAsFloat()
         {
             if (loop == nullptr)
                 return 0;
-            return loop.Get()->TimeDiffFloat;
+            return loop.Get()->TimeDiffAsFloat;
         }
 
         double Module::GetPresentTime()

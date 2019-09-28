@@ -83,8 +83,8 @@ namespace Engine
             Utilities::Shared<std::chrono::time_point<std::chrono::steady_clock>> StartTime;
             Utilities::Shared<double> Time;
             Utilities::Shared<double> TimeDiff;
-            Utilities::Shared<float> TimeFloat;
-            Utilities::Shared<float> TimeDiffFloat;
+            Utilities::Shared<float> TimeAsFloat;
+            Utilities::Shared<float> TimeDiffAsFloat;
             Utilities::Shared<bool> ShouldStop;
 
             struct ScheduledJob

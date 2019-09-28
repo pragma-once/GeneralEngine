@@ -8,7 +8,7 @@ namespace Engine
         Loop::Loop() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
                                  isRunning(false),
                                  StartTime(std::chrono::time_point<std::chrono::steady_clock>()),
-                                 Time(0), TimeDiff(0), TimeFloat(0), TimeDiffFloat(0),
+                                 Time(0), TimeDiff(0), TimeAsFloat(0), TimeDiffAsFloat(0),
                                  ShouldStop(false),
                                  Modules(
 
@@ -150,8 +150,8 @@ namespace Engine
             double PreviousTime = 0;
             Time = 0;
             TimeDiff = 0;
-            TimeFloat = 0;
-            TimeDiffFloat = 0;
+            TimeAsFloat = 0;
+            TimeDiffAsFloat = 0;
 
             ShouldStop = false;
             Schedules.Clear();
@@ -380,8 +380,8 @@ namespace Engine
                 PreviousTime = Time;
                 Time = (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
                 TimeDiff = Time - PreviousTime;
-                TimeFloat = (float)Time;
-                TimeDiffFloat = (float)TimeDiff;
+                TimeAsFloat = (float)Time;
+                TimeDiffAsFloat = (float)TimeDiff;
 
                 CurrentPriority = -128;
                 ModuleIndex = 0;
@@ -501,8 +501,8 @@ namespace Engine
 
             Time = 0;
             TimeDiff = 0;
-            TimeFloat = 0;
-            TimeDiffFloat = 0;
+            TimeAsFloat = 0;
+            TimeDiffAsFloat = 0;
 
             Modules.LockAndDo([&] {
                 auto guard = isRunning.Mutex.GetLock();
