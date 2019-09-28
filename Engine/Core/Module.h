@@ -80,11 +80,12 @@ namespace Engine
             /// @brief Gets the time difference between the last 2 updates as float.
             float GetTimeDiffAsFloat();
 
-            /// @brief Calculates the actual time since the Loop is started.
+            /// @brief Gets the actual time passed from the start of the Loop
+            ///        to the execution of this function.
             ///
             /// DO NOT use this unless you know what you are doing. Use GetTime instead.
             /// The value is not frozen for each Loop iteration/update.
-            double GetPresentTime(); // TODO: Rename
+            double GetActualTime();
 
             /// @brief Gets the loop which this module is added to.
             Loop * GetLoop();

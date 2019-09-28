@@ -81,7 +81,7 @@ namespace Engine
             return loop.Get()->TimeDiffAsFloat;
         }
 
-        double Module::GetPresentTime()
+        double Module::GetActualTime()
         {
             if (loop == nullptr)
                 return 0;
