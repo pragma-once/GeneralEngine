@@ -9,7 +9,7 @@ namespace Engine
 
         SmartMutex::LockGuard::LockGuard() : m(nullptr) {}
 
-        SmartMutex::LockGuard::LockGuard(LockGuard& op)
+        SmartMutex::LockGuard::LockGuard(const LockGuard& op)
         {
             m = op.m;
             m->LockByGuard();
@@ -20,7 +20,7 @@ namespace Engine
             m = std::exchange(op.m, nullptr);
         }
 
-        SmartMutex::LockGuard& SmartMutex::LockGuard::operator=(LockGuard& op)
+        SmartMutex::LockGuard& SmartMutex::LockGuard::operator=(const LockGuard& op)
         {
             if (m != nullptr)
                 m->UnlockByGuard();
@@ -58,7 +58,7 @@ namespace Engine
 
         SmartMutex::SharedLockGuard::SharedLockGuard() : m(nullptr) {}
 
-        SmartMutex::SharedLockGuard::SharedLockGuard(SharedLockGuard& op)
+        SmartMutex::SharedLockGuard::SharedLockGuard(const SharedLockGuard& op)
         {
             m = op.m;
             m->SharedLockByGuard();
@@ -69,7 +69,7 @@ namespace Engine
             m = std::exchange(op.m, nullptr);
         }
 
-        SmartMutex::SharedLockGuard& SmartMutex::SharedLockGuard::operator=(SharedLockGuard& op)
+        SmartMutex::SharedLockGuard& SmartMutex::SharedLockGuard::operator=(const SharedLockGuard& op)
         {
             if (m != nullptr)
                 m->SharedUnlockByGuard();

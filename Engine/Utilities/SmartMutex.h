@@ -15,9 +15,9 @@ namespace Engine
                 friend SmartMutex;
             public:
                 LockGuard();
-                LockGuard(LockGuard&);
+                LockGuard(const LockGuard&);
                 LockGuard(LockGuard&&);
-                LockGuard& operator=(LockGuard&);
+                LockGuard& operator=(const LockGuard&);
                 LockGuard& operator=(LockGuard&&);
                 /// @brief Unlocks the guard manually.
                 void Unlock();
@@ -33,9 +33,9 @@ namespace Engine
                 friend SmartMutex;
             public:
                 SharedLockGuard();
-                SharedLockGuard(SharedLockGuard&);
+                SharedLockGuard(const SharedLockGuard&);
                 SharedLockGuard(SharedLockGuard&&);
-                SharedLockGuard& operator=(SharedLockGuard&);
+                SharedLockGuard& operator=(const SharedLockGuard&);
                 SharedLockGuard& operator=(SharedLockGuard&&);
                 /// @brief Unlocks the guard manually.
                 void Unlock();
