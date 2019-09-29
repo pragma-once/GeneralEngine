@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------
+
+// Example test inputs:
+
+// dead-lock and live-lock exceptions:
+// c n sl 0 s 500 l 0 s 500 d n sl 0 s 500 tl 0 s 500 d n sl 0 s 500 l 0 s 500 d s
+
+// ----------------------------------------------------------------
+
 #include "../../Engine/Engine.h"
 #include <iostream>
 #include <memory>
@@ -34,7 +43,11 @@ enum CommandType
     GlobalLock,
     GlobalUnlock,
     GlobalSharedLock,
-    GlobalSharedUnlock
+    GlobalSharedUnlock,
+    TryLock,
+    TrySharedLock,
+    GlobalTryLock,
+    GlobalTrySharedLock
 };
 CommandType NameToCommandType(std::string name)
 {
@@ -47,6 +60,10 @@ CommandType NameToCommandType(std::string name)
     else if (name == "gu") return GlobalUnlock;
     else if (name == "gsl") return GlobalSharedLock;
     else if (name == "gsu") return GlobalSharedUnlock;
+    else if (name == "tl") return TryLock;
+    else if (name == "tsl") return TrySharedLock;
+    else if (name == "gtl") return GlobalTryLock;
+    else if (name == "gtsl") return GlobalTrySharedLock;
     else throw std::domain_error("Undefined command");
 }
 
@@ -78,7 +95,7 @@ private:
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on locking " << guard_id << " locally: " << e.what());
+            print(ID << ": exception on lock attempt, local " << guard_id << ": " << e.what());
         }
     }
     void Unlock(std::string guard_id)
@@ -98,6 +115,33 @@ private:
         SharedLockGuards.Remove(guard_id);
         print(ID << ": shared-unlocked " << guard_id << " locally");
     }
+    void TryLock(std::string guard_id)
+    {
+        try
+        {
+            SmartMutex::LockGuard guard;
+            if (m.TryGetLock(guard))
+            {
+                LockGuards.SetValue(guard_id, new SmartMutex::LockGuard(guard));
+                print(ID << ": try-lock successful: local " << guard_id);
+            }
+            else print(ID << ": try-lock failed: local " << guard_id);
+        }
+        catch (std::exception& e)
+        {
+            print(ID << ": exception on try-lock attempt, local " << guard_id << ": " << e.what());
+        }
+    }
+    void TrySharedLock(std::string guard_id)
+    {
+        SmartMutex::SharedLockGuard guard;
+        if (m.TryGetSharedLock(guard))
+        {
+            SharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(guard));
+            print(ID << ": try-shared-lock successful: local " << guard_id);
+        }
+        else print(ID << ": try-shared-lock failed: local " << guard_id);
+    }
 
     void GlobalLock(std::string guard_id)
     {
@@ -108,7 +152,7 @@ private:
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on locking " << guard_id << " globally: " << e.what());
+            print(ID << ": exception on lock attempt, global " << guard_id << ": " << e.what());
         }
     }
     void GlobalUnlock(std::string guard_id)
@@ -129,6 +173,33 @@ private:
         GlobalSharedLockGuards.Remove(guard_id);
         print(ID << ": shared-unlocked " << guard_id << " globally");
     }
+    void GlobalTryLock(std::string guard_id)
+    {
+        try
+        {
+            SmartMutex::LockGuard guard;
+            if (m.TryGetLock(guard))
+            {
+                GlobalLockGuards.SetValue(guard_id, new SmartMutex::LockGuard(guard));
+                print(ID << ": try-lock successful: global " << guard_id);
+            }
+            else print(ID << ": try-lock failed: global " << guard_id);
+        }
+        catch (std::exception& e)
+        {
+            print(ID << ": exception on try-lock attempt, global " << guard_id << ": " << e.what());
+        }
+    }
+    void GlobalTrySharedLock(std::string guard_id)
+    {
+        SmartMutex::SharedLockGuard guard;
+        if (m.TryGetSharedLock(guard))
+        {
+            GlobalSharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(guard));
+            print(ID << ": try-shared-lock successful: global " << guard_id);
+        }
+        else print(ID << ": try-shared-lock failed: global " << guard_id);
+    }
 
     void ExecuteCommand(Command cmd)
     {
@@ -143,6 +214,10 @@ private:
             case CommandType::GlobalUnlock: GlobalUnlock(cmd.GuardId); break;
             case CommandType::GlobalSharedLock: GlobalSharedLock(cmd.GuardId); break;
             case CommandType::GlobalSharedUnlock: GlobalSharedUnlock(cmd.GuardId); break;
+            case CommandType::TryLock: TryLock(cmd.GuardId); break;
+            case CommandType::TrySharedLock: TrySharedLock(cmd.GuardId); break;
+            case CommandType::GlobalTryLock: GlobalTryLock(cmd.GuardId); break;
+            case CommandType::GlobalTrySharedLock: GlobalTrySharedLock(cmd.GuardId); break;
         }
     }
 
@@ -155,16 +230,15 @@ public:
             std::string str;
             double number;
             std::string guard_id;
-            print("Commands:");
-            print("  s <milliseconds> => Sleep");
-            print("  l <guard_id>     => Lock");
-            print("  u <guard_id>     => Unlock");
-            print("  sl <guard_id>    => SharedLock");
-            print("  su <guard_id>    => SharedUnlock");
-            print("  gl <guard_id>    => GlobalLock");
-            print("  gu <guard_id>    => GlobalUnlock");
-            print("  gsl <guard_id>   => GlobalSharedLock");
-            print("  gsu <guard_id>   => GlobalSharedUnlock");
+            print("Command:");
+            print("  s <milliseconds>          => Sleep");
+            print("  <mutex_command> <guard_id> => Mutex commands");
+            print("Local guard mutex commands:");
+            print("  l:  Lock,    u: Unlock, sl:  SharedLock,    su: SharedUnlock");
+            print("  tl: TryLock,            tsl: TrySharedLock");
+            print("Global guard mutex commands");
+            print("  gl:  Lock,    gu: Unlock, gsl:  SharedLock,    gsu: SharedUnlock");
+            print("  gtl: TryLock,             gtsl: TrySharedLock");
             print("Enter a command to add to thread " << ID << " or d (or q or e) to finish:");
             input(str);
             if (str == "d" || str == "q" || str == "e")
