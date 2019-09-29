@@ -7,5 +7,5 @@ target_link_libraries(AccessorTest GeneralEngine)
 add_executable(CoreTest Core/CoreTest.cpp)
 target_link_libraries(CoreTest GeneralEngine)
 
-add_executable(MutexTest Utilities/MutexTest.cpp)
-target_link_libraries(MutexTest GeneralEngine)
+add_executable(SmartMutexTest Utilities/SmartMutexTest.cpp)
+target_link_libraries(SmartMutexTest GeneralEngine)
