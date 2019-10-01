@@ -88,117 +88,128 @@ private:
 
     void Lock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-" + guard_id;
         try
         {
             LockGuards.SetValue(guard_id, new SmartMutex::LockGuard(m.GetLock()));
-            print(ID << ": locked " << guard_id << " locally");
+            print(ID << ": locked: " << expanded_guard_id);
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on lock attempt, local " << guard_id << ": " << e.what());
+            print(ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
     void Unlock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-" + guard_id;
         delete LockGuards.GetValue(guard_id);
         LockGuards.Remove(guard_id);
-        print(ID << ": unlocked " << guard_id << " locally");
+        print(ID << ": unlocked: " << expanded_guard_id);
     }
     void SharedLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-shared-" + guard_id;
         SharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(m.GetSharedLock()));
-        print(ID << ": shared-locked " << guard_id << " locally");
+        print(ID << ": shared-locked: " << expanded_guard_id);
     }
     void SharedUnlock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-shared-" + guard_id;
         delete SharedLockGuards.GetValue(guard_id);
         SharedLockGuards.Remove(guard_id);
-        print(ID << ": shared-unlocked " << guard_id << " locally");
+        print(ID << ": shared-unlocked: " << expanded_guard_id);
     }
     void TryLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-" + guard_id;
         try
         {
             SmartMutex::LockGuard guard;
             if (m.TryGetLock(guard))
             {
                 LockGuards.SetValue(guard_id, new SmartMutex::LockGuard(guard));
-                print(ID << ": try-lock successful: local " << guard_id);
+                print(ID << ": try-lock successful: " << expanded_guard_id);
             }
-            else print(ID << ": try-lock failed: local " << guard_id);
+            else print(ID << ": try-lock failed: " << expanded_guard_id);
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on try-lock attempt, local " << guard_id << ": " << e.what());
+            print(ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
     void TrySharedLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-shared-" + guard_id;
         SmartMutex::SharedLockGuard guard;
         if (m.TryGetSharedLock(guard))
         {
             SharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(guard));
-            print(ID << ": try-shared-lock successful: local " << guard_id);
+            print(ID << ": try-shared-lock successful: " << expanded_guard_id);
         }
-        else print(ID << ": try-shared-lock failed: local " << guard_id);
+        else print(ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
     void GlobalLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "global-" + guard_id;
         try
         {
             GlobalLockGuards.SetValue(guard_id, new SmartMutex::LockGuard(m.GetLock()));
-            print(ID << ": locked " << guard_id << " globally");
+            print(ID << ": locked: " << expanded_guard_id);
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on lock attempt, global " << guard_id << ": " << e.what());
+            print(ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
     void GlobalUnlock(std::string guard_id)
     {
+        std::string expanded_guard_id = "global-" + guard_id;
         delete GlobalLockGuards.GetValue(guard_id);
         GlobalLockGuards.Remove(guard_id);
-        print(ID << ": unlocked " << guard_id << " globally");
+        print(ID << ": unlocked: " << expanded_guard_id);
     }
     void GlobalSharedLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "global-shared-" + guard_id;
         GlobalSharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(m.GetSharedLock()));
-        print(ID << ": shared-locked " << guard_id << " globally");
+        print(ID << ": shared-locked: " << expanded_guard_id);
     }
     void GlobalSharedUnlock(std::string guard_id)
     {
-
+        std::string expanded_guard_id = "global-shared-" + guard_id;
         delete GlobalSharedLockGuards.GetValue(guard_id);
         GlobalSharedLockGuards.Remove(guard_id);
-        print(ID << ": shared-unlocked " << guard_id << " globally");
+        print(ID << ": shared-unlocked: " << expanded_guard_id);
     }
     void GlobalTryLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "global-" + guard_id;
         try
         {
             SmartMutex::LockGuard guard;
             if (m.TryGetLock(guard))
             {
                 GlobalLockGuards.SetValue(guard_id, new SmartMutex::LockGuard(guard));
-                print(ID << ": try-lock successful: global " << guard_id);
+                print(ID << ": try-lock successful: " << expanded_guard_id);
             }
-            else print(ID << ": try-lock failed: global " << guard_id);
+            else print(ID << ": try-lock failed: " << expanded_guard_id);
         }
         catch (std::exception& e)
         {
-            print(ID << ": exception on try-lock attempt, global " << guard_id << ": " << e.what());
+            print(ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
     void GlobalTrySharedLock(std::string guard_id)
     {
+        std::string expanded_guard_id = "global-shared-" + guard_id;
         SmartMutex::SharedLockGuard guard;
         if (m.TryGetSharedLock(guard))
         {
             GlobalSharedLockGuards.SetValue(guard_id, new SmartMutex::SharedLockGuard(guard));
-            print(ID << ": try-shared-lock successful: global " << guard_id);
+            print(ID << ": try-shared-lock successful: " << expanded_guard_id);
         }
-        else print(ID << ": try-shared-lock failed: global " << guard_id);
+        else print(ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
     void ExecuteCommand(Command cmd)
@@ -289,7 +300,7 @@ int main()
             std::string str;
             print("Enter c to clear, n to create a new thread, s to start, or q (or e) to quit:");
             input(str);
-            if (str == "c") Threads.clear();
+            if (str == "c") { NextThreadID = 0; Threads.clear(); }
             else if (str == "n") Threads.push_back(std::shared_ptr<TestThread>(new TestThread()));
             else if (str == "s") break;
             else if (str == "q" || str == "e") return 0;
