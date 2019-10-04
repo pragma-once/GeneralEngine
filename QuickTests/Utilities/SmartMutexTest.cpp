@@ -327,7 +327,7 @@ public:
             std::string guard_id;
 
             print("Command:");
-            print("  s <milliseconds>          => Sleep");
+            print("  s <milliseconds>           => Sleep");
             print("  <mutex_command> <guard_id> => Mutex commands");
             print("Local guard mutex commands:");
             print("  l:  Lock,    u: Unlock, sl:  SharedLock,    su: SharedUnlock");
