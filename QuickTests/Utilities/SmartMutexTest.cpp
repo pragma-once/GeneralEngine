@@ -26,6 +26,7 @@ SmartMutex GlobalMutex;
 
 /// @brief Used to assign IDs to new TestThreads.
 Shared<int, true> NextThreadID = 0;
+
 /// @brief Gets the next ID to be assigned to the newly created TestThreads.
 int GetNextThreadID()
 {
@@ -33,6 +34,23 @@ int GetNextThreadID()
     int id = NextThreadID;
     NextThreadID = NextThreadID + 1;
     return id;
+}
+
+/// @brief Test start time, used to print the time passed since the start of the test.
+std::chrono::time_point<std::chrono::steady_clock> TestStartTime;
+
+/// @brief Sets the TestStartTime to now
+void SetTestStartTime()
+{
+    TestStartTime = std::chrono::steady_clock::now();
+}
+
+/// @brief Gets the time passed since the start of the test.
+std::string GetStrTimeSinceStart()
+{
+    auto duration = std::chrono::steady_clock::now() - TestStartTime;
+    double time = (double)std::chrono::duration_cast<std::chrono::microseconds>(duration).count() / 1000000.0;
+    return std::to_string(time);
 }
 
 Collections::Dictionary<std::string, SmartMutex::LockGuard*> GlobalLockGuards;
@@ -115,11 +133,11 @@ private:
         {
             EnsureGuardExistence(LockGuards, guard_id);
             *LockGuards.GetValue(guard_id) = GlobalMutex.GetLock();
-            print(ID << ": locked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
         catch (std::exception& e) // SmartMutex::DeadLockException
         {
-            print(ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -130,12 +148,12 @@ private:
         try
         {
             LockGuards.GetValue(guard_id)->Unlock();
-            print(ID << ": unlocked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": unlocked: " << expanded_guard_id);
         }
         catch (std::exception& e) // std::domain_error("Key not found.") thrown by LockGuards
         {
-            print(ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
-            print(ID << ": hint: Are you unlocking an existing guard? "
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "LockGuards are created when you lock (l or tl).");
         }
     }
@@ -146,7 +164,7 @@ private:
         std::string expanded_guard_id = "local" + std::to_string(ID) + "-shared-" + guard_id;
         EnsureGuardExistence(SharedLockGuards, guard_id);
         *SharedLockGuards.GetValue(guard_id) = GlobalMutex.GetSharedLock();
-        print(ID << ": shared-locked: " << expanded_guard_id);
+        print(GetStrTimeSinceStart() << ": thread-" << ID << ": shared-locked: " << expanded_guard_id);
     }
 
     /// @brief Implementation of commands of type CommandType::SharedUnlock
@@ -156,12 +174,12 @@ private:
         try
         {
             SharedLockGuards.GetValue(guard_id)->Unlock();
-            print(ID << ": shared-unlocked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": shared-unlocked: " << expanded_guard_id);
         }
         catch (std::exception& e) // std::domain_error("Key not found.") thrown by SharedLockGuards
         {
-            print(ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
-            print(ID << ": hint: Are you unlocking an existing guard? "
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "SharedLockGuards are created when you shared-lock (sl or tsl).");
         }
     }
@@ -177,13 +195,13 @@ private:
             if (GlobalMutex.TryGetLock(guard))
             {
                 *LockGuards.GetValue(guard_id) = guard;
-                print(ID << ": try-lock successful: " << expanded_guard_id);
+                print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock successful: " << expanded_guard_id);
             }
-            else print(ID << ": try-lock failed: " << expanded_guard_id);
+            else print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
         catch (std::exception& e) // SmartMutex::PossibleLivelockException
         {
-            print(ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -196,9 +214,9 @@ private:
         if (GlobalMutex.TryGetSharedLock(guard))
         {
             *SharedLockGuards.GetValue(guard_id) = guard;
-            print(ID << ": try-shared-lock successful: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock successful: " << expanded_guard_id);
         }
-        else print(ID << ": try-shared-lock failed: " << expanded_guard_id);
+        else print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
     /// @brief Implementation of commands of type CommandType::GlobalLock
@@ -209,11 +227,11 @@ private:
         {
             EnsureGuardExistence(GlobalLockGuards, guard_id);
             *GlobalLockGuards.GetValue(guard_id) = GlobalMutex.GetLock();
-            print(ID << ": locked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
         catch (std::exception& e) // SmartMutex::DeadLockException
         {
-            print(ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -224,12 +242,12 @@ private:
         try
         {
             GlobalLockGuards.GetValue(guard_id)->Unlock();
-            print(ID << ": unlocked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": unlocked: " << expanded_guard_id);
         }
         catch (std::exception& e) // std::domain_error("Key not found.") thrown by GlobalLockGuards
         {
-            print(ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
-            print(ID << ": hint: Are you unlocking an existing guard? "
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "Global LockGuards are created when you lock globally (gl or gtl).");
         }
     }
@@ -240,7 +258,7 @@ private:
         std::string expanded_guard_id = "global-shared-" + guard_id;
         EnsureGuardExistence(GlobalSharedLockGuards, guard_id);
         *GlobalSharedLockGuards.GetValue(guard_id) = GlobalMutex.GetSharedLock();
-        print(ID << ": shared-locked: " << expanded_guard_id);
+        print(GetStrTimeSinceStart() << ": thread-" << ID << ": shared-locked: " << expanded_guard_id);
     }
 
     /// @brief Implementation of commands of type CommandType::GlobalSharedUnlock
@@ -250,12 +268,12 @@ private:
         try
         {
             GlobalSharedLockGuards.GetValue(guard_id)->Unlock();
-            print(ID << ": shared-unlocked: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": shared-unlocked: " << expanded_guard_id);
         }
         catch (std::exception& e) // std::domain_error("Key not found.") thrown by GlobalSharedLockGuards
         {
-            print(ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
-            print(ID << ": hint: Are you unlocking an existing guard? "
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "Global SharedLockGuards are created when you shared-lock globally (gsl or gtsl).");
         }
     }
@@ -271,13 +289,13 @@ private:
             if (GlobalMutex.TryGetLock(guard))
             {
                 *GlobalLockGuards.GetValue(guard_id) = guard;
-                print(ID << ": try-lock successful: " << expanded_guard_id);
+                print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock successful: " << expanded_guard_id);
             }
-            else print(ID << ": try-lock failed: " << expanded_guard_id);
+            else print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
         catch (std::exception& e) // SmartMutex::PossibleLivelockException
         {
-            print(ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -290,9 +308,9 @@ private:
         if (GlobalMutex.TryGetSharedLock(guard))
         {
             *GlobalSharedLockGuards.GetValue(guard_id) = guard;
-            print(ID << ": try-shared-lock successful: " << expanded_guard_id);
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock successful: " << expanded_guard_id);
         }
-        else print(ID << ": try-shared-lock failed: " << expanded_guard_id);
+        else print(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
     void ExecuteCommand(Command cmd)
@@ -370,7 +388,7 @@ public:
         Thread = std::thread([&] {
             for (auto command : Commands)
                 ExecuteCommand(command);
-            print(ID << ": done, destroying all local guards...");
+            print(GetStrTimeSinceStart() << ": thread-" << ID << ": done, destroying all local guards...");
             LockGuards.ForEach([](std::string key, SmartMutex::LockGuard * value) { delete value; });
             LockGuards.Clear();
             SharedLockGuards.ForEach([](std::string key, SmartMutex::SharedLockGuard * value) { delete value; });
@@ -402,6 +420,7 @@ int main()
             else print("Invalid input.");
         }
         if (Threads.size() == 0) print("No threads to execute.");
+        SetTestStartTime();
         for (auto t : Threads) t->Start();
         for (auto t : Threads) t->Join();
         GlobalLockGuards.ForEach([](std::string key, SmartMutex::LockGuard * value) { delete value; });
