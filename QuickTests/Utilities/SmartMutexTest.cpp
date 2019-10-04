@@ -1,11 +1,101 @@
-// ----------------------------------------------------------------
+/* ---------------------------------------------------------------- //
+Example tests:
 
-// Example test inputs:
+- lock and shared-lock:
 
-// dead-lock and live-lock exceptions:
-// c n sl 0 s 500 l 0 s 500 d n sl 0 s 500 tl 0 s 500 d n sl 0 s 500 l 0 s 500 d s
+    input: c  n l 0 s 250 d    n sl 0 s 250 d    n sl 0 s 250 d    n l 0 s 250 d  s
 
-// ----------------------------------------------------------------
+    possible output:
+        0.000683: thread-0: locked: local0-0
+        0.250888: thread-0: done, destroying all local guards...
+        0.250988: thread-1: shared-locked: local1-shared-0
+        0.250998: thread-2: shared-locked: local2-shared-0
+        0.501267: thread-1: done, destroying all local guards...
+        0.501294: thread-2: done, destroying all local guards...
+        0.501589: thread-3: locked: local3-0
+        0.751795: thread-3: done, destroying all local guards...
+
+- try-lock and try-shared-lock:
+
+    input: c  n tl 0 s 200 d    n tl 0 s 200 d    n tsl 0 s 400 tsl 0 s 250 d    n tsl 0 s 400 tsl 0 s 250 d    n s 600 tl 0 d  s
+
+    possible output:
+        0.000514: thread-0: try-lock successful: local0-0
+        0.001386: thread-1: try-lock failed: local1-0
+        0.001746: thread-2: try-shared-lock failed: local2-shared-0
+        0.003798: thread-3: try-shared-lock failed: local3-shared-0
+        0.200654: thread-0: done, destroying all local guards...
+        0.201500: thread-1: done, destroying all local guards...
+        0.401957: thread-2: try-shared-lock successful: local2-shared-0
+        0.403946: thread-3: try-shared-lock successful: local3-shared-0
+        0.604575: thread-4: try-lock failed: local4-0
+        0.604613: thread-4: done, destroying all local guards...
+        0.652105: thread-2: done, destroying all local guards...
+        0.654063: thread-3: done, destroying all local guards...
+
+- dead-lock and live-lock exceptions (transition from shared-lock to lock):
+
+    input: c  n sl 0 s 400 l 0 s 500 d    n sl 0 s 600 tl 0 s 500 d    n sl 0 s 800 l 0 s 500 d  s
+
+    possible output:
+        0.000688: thread-0: shared-locked: local0-shared-0
+        0.001943: thread-1: shared-locked: local1-shared-0
+        0.002431: thread-2: shared-locked: local2-shared-0
+        0.602221: thread-1: exception on try-lock attempt, local1-0: Livelock may have occurred: ... .
+        0.802690: thread-2: exception on lock attempt, local2-0: Deadlock occurred: ... .
+        1.102447: thread-1: done, destroying all local guards...
+        1.302917: thread-2: done, destroying all local guards...
+        1.303037: thread-0: locked: local0-0
+        1.803263: thread-0: done, destroying all local guards...
+
+- transition from lock to shared-lock:
+
+    input: c  n l 0 s 200 sl 0 u 0 s 200 d    n l 0 s 200 sl 0 u 0 s 200 d    n sl 0 s 250 d    n sl 0 s 300 d  s
+
+    possible output:
+        0.000703: thread-0: locked: local0-0
+        0.200915: thread-0: shared-locked: local0-shared-0
+        0.200986: thread-0: unlocked: local0-0
+        0.201014: thread-2: shared-locked: local2-shared-0
+        0.201113: thread-3: shared-locked: local3-shared-0
+        0.401189: thread-0: done, destroying all local guards...
+        0.451216: thread-2: done, destroying all local guards...
+        0.501295: thread-3: done, destroying all local guards...
+        0.501406: thread-1: locked: local1-0
+        0.701677: thread-1: shared-locked: local1-shared-0
+        0.701742: thread-1: unlocked: local1-0
+        0.901963: thread-1: done, destroying all local guards...
+
+- recursive locking
+
+    input: c  n l 0 l 0 l 1 s 250 u 1 u 0 s 600 l 0 d  n l 0 l 1 s 250 u 0 u 1 d  n s 400 l 0 l 1 s 250 d  n s 600 sl 0 sl 1 s 250 d  s
+
+    possible output:
+        0.000650: thread-0: locked: local0-0
+        0.000700: thread-0: locked: local0-0
+        0.000724: thread-0: locked: local0-1
+        0.250918: thread-0: unlocked: local0-1
+        0.250982: thread-0: unlocked: local0-0
+        0.251032: thread-1: locked: local1-0
+        0.251106: thread-1: locked: local1-1
+        0.501303: thread-1: unlocked: local1-0
+        0.501364: thread-1: unlocked: local1-1
+        0.501463: thread-1: done, destroying all local guards...
+        0.501530: thread-2: locked: local2-0
+        0.501621: thread-2: locked: local2-1
+        0.751798: thread-2: done, destroying all local guards...
+        0.751896: thread-3: shared-locked: local3-shared-0
+        0.751955: thread-3: shared-locked: local3-shared-1
+        1.002077: thread-3: done, destroying all local guards...
+        1.002293: thread-0: locked: local0-0
+        1.002361: thread-0: done, destroying all local guards...
+
+SmartMutexTest tests:
+    print locking:   c  n l 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  s
+    lock exceptions: c  n sl 0 s 200 l 0 s 500 d  n sl 0 s 250 l 0 tl 0 gl 0 gtl 0 d  s
+    dict exceptions: c  n u 0 l 0 u 0 u 0 u 1 su 0 gu 0 gsu 0 d  s
+
+// ---------------------------------------------------------------- */
 
 #include "../../Engine/Engine.h"
 #include <chrono>
