@@ -6,13 +6,13 @@ namespace Engine
 {
     namespace Utilities
     {
-        class SmartMutex final
+        class RecursiveMutex final
         {
         public:
-            /// @brief Unlocks a SmartMutex lock on destruction.
+            /// @brief Unlocks a RecursiveMutex lock on destruction.
             class LockGuard final
             {
-                friend SmartMutex;
+                friend RecursiveMutex;
             public:
                 LockGuard();
                 LockGuard(const LockGuard&);
@@ -23,14 +23,14 @@ namespace Engine
                 void Unlock();
                 ~LockGuard();
             private:
-                LockGuard(SmartMutex * m);
-                SmartMutex * m;
+                LockGuard(RecursiveMutex * m);
+                RecursiveMutex * m;
             };
 
-            /// @brief Unlocks a SmartMutex shared lock on destruction.
+            /// @brief Unlocks a RecursiveMutex shared lock on destruction.
             class SharedLockGuard final
             {
-                friend SmartMutex;
+                friend RecursiveMutex;
             public:
                 SharedLockGuard();
                 SharedLockGuard(const SharedLockGuard&);
@@ -41,20 +41,20 @@ namespace Engine
                 void Unlock();
                 ~SharedLockGuard();
             private:
-                SharedLockGuard(SmartMutex * m);
-                SmartMutex * m;
+                SharedLockGuard(RecursiveMutex * m);
+                RecursiveMutex * m;
             };
 
             class DeadlockException : public std::runtime_error
             {
-                friend SmartMutex;
+                friend RecursiveMutex;
             private:
                 DeadlockException();
             };
 
             class PossibleLivelockException : public std::runtime_error
             {
-                friend SmartMutex;
+                friend RecursiveMutex;
             private:
                 PossibleLivelockException();
             };
@@ -62,8 +62,8 @@ namespace Engine
             friend LockGuard;
             friend SharedLockGuard;
 
-            SmartMutex();
-            ~SmartMutex();
+            RecursiveMutex();
+            ~RecursiveMutex();
 
             /// @brief Locks the mutex and returns the lock guard.
             ///

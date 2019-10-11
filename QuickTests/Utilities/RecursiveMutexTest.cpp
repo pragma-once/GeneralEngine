@@ -90,7 +90,7 @@ Example tests:
         1.002293: thread-0: locked: local0-0
         1.002361: thread-0: done, destroying all local guards...
 
-SmartMutexTest tests:
+RecursiveMutexTest tests:
     print locking:   c  n l 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  s
     lock exceptions: c  n sl 0 s 200 l 0 s 500 d  n sl 0 s 250 l 0 tl 0 gl 0 gtl 0 d  s
     dict exceptions: c  n u 0 l 0 u 0 u 0 u 1 su 0 gu 0 gsu 0 d  s
@@ -117,7 +117,7 @@ std::mutex PrintingMutex;
 #define print_locked(context) PrintingMutex.lock(); (std::cout << context << '\n'); PrintingMutex.unlock()
 
 /// @brief The mutex that is tested by TestThreads.
-SmartMutex GlobalTestMutex;
+RecursiveMutex GlobalTestMutex;
 
 /// @brief Used to assign IDs to new TestThreads.
 Shared<int, true> NextThreadID = 0;
@@ -148,8 +148,8 @@ std::string GetStrTimeSinceStart()
     return std::to_string(time);
 }
 
-Collections::Dictionary<std::string, SmartMutex::LockGuard*> GlobalLockGuards;
-Collections::Dictionary<std::string, SmartMutex::SharedLockGuard*> GlobalSharedLockGuards;
+Collections::Dictionary<std::string, RecursiveMutex::LockGuard*> GlobalLockGuards;
+Collections::Dictionary<std::string, RecursiveMutex::SharedLockGuard*> GlobalSharedLockGuards;
 
 /// @brief The command types available to use in a TestThread.
 enum CommandType
@@ -206,8 +206,8 @@ class TestThread
 {
 private:
     int ID;
-    Collections::Dictionary<std::string, SmartMutex::LockGuard*> LockGuards;
-    Collections::Dictionary<std::string, SmartMutex::SharedLockGuard*> SharedLockGuards;
+    Collections::Dictionary<std::string, RecursiveMutex::LockGuard*> LockGuards;
+    Collections::Dictionary<std::string, RecursiveMutex::SharedLockGuard*> SharedLockGuards;
     std::vector<Command> Commands;
     std::thread Thread;
 
@@ -230,7 +230,7 @@ private:
             *LockGuards.GetValue(guard_id) = GlobalTestMutex.GetLock();
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
-        catch (SmartMutex::DeadlockException& e) // SmartMutex::DeadlockException
+        catch (RecursiveMutex::DeadlockException& e) // RecursiveMutex::DeadlockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
@@ -286,7 +286,7 @@ private:
         try
         {
             EnsureGuardExistence(LockGuards, guard_id);
-            SmartMutex::LockGuard guard;
+            RecursiveMutex::LockGuard guard;
             if (GlobalTestMutex.TryGetLock(guard))
             {
                 *LockGuards.GetValue(guard_id) = guard;
@@ -294,7 +294,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
-        catch (SmartMutex::PossibleLivelockException& e) // SmartMutex::PossibleLivelockException
+        catch (RecursiveMutex::PossibleLivelockException& e) // RecursiveMutex::PossibleLivelockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
@@ -305,7 +305,7 @@ private:
     {
         std::string expanded_guard_id = "local" + std::to_string(ID) + "-shared-" + guard_id;
         EnsureGuardExistence(SharedLockGuards, guard_id);
-        SmartMutex::SharedLockGuard guard;
+        RecursiveMutex::SharedLockGuard guard;
         if (GlobalTestMutex.TryGetSharedLock(guard))
         {
             *SharedLockGuards.GetValue(guard_id) = guard;
@@ -324,7 +324,7 @@ private:
             *GlobalLockGuards.GetValue(guard_id) = GlobalTestMutex.GetLock();
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
-        catch (SmartMutex::DeadlockException& e) // SmartMutex::DeadlockException
+        catch (RecursiveMutex::DeadlockException& e) // RecursiveMutex::DeadlockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
@@ -380,7 +380,7 @@ private:
         try
         {
             EnsureGuardExistence(GlobalLockGuards, guard_id);
-            SmartMutex::LockGuard guard;
+            RecursiveMutex::LockGuard guard;
             if (GlobalTestMutex.TryGetLock(guard))
             {
                 *GlobalLockGuards.GetValue(guard_id) = guard;
@@ -388,7 +388,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
-        catch (SmartMutex::PossibleLivelockException& e) // SmartMutex::PossibleLivelockException
+        catch (RecursiveMutex::PossibleLivelockException& e) // RecursiveMutex::PossibleLivelockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
         }
@@ -399,7 +399,7 @@ private:
     {
         std::string expanded_guard_id = "global-shared-" + guard_id;
         EnsureGuardExistence(GlobalSharedLockGuards, guard_id);
-        SmartMutex::SharedLockGuard guard;
+        RecursiveMutex::SharedLockGuard guard;
         if (GlobalTestMutex.TryGetSharedLock(guard))
         {
             *GlobalSharedLockGuards.GetValue(guard_id) = guard;
@@ -484,9 +484,9 @@ public:
             for (auto command : Commands)
                 ExecuteCommand(command);
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": done, destroying all local guards...");
-            LockGuards.ForEach([](std::string key, SmartMutex::LockGuard * value) { delete value; });
+            LockGuards.ForEach([](std::string key, RecursiveMutex::LockGuard * value) { delete value; });
             LockGuards.Clear();
-            SharedLockGuards.ForEach([](std::string key, SmartMutex::SharedLockGuard * value) { delete value; });
+            SharedLockGuards.ForEach([](std::string key, RecursiveMutex::SharedLockGuard * value) { delete value; });
             SharedLockGuards.Clear();
         });
     }
@@ -518,9 +518,9 @@ int main()
         SetTestStartTime();
         for (auto t : Threads) t->Start();
         for (auto t : Threads) t->Join();
-        GlobalLockGuards.ForEach([](std::string key, SmartMutex::LockGuard * value) { delete value; });
+        GlobalLockGuards.ForEach([](std::string key, RecursiveMutex::LockGuard * value) { delete value; });
         GlobalLockGuards.Clear();
-        GlobalSharedLockGuards.ForEach([](std::string key, SmartMutex::SharedLockGuard * value) { delete value; });
+        GlobalSharedLockGuards.ForEach([](std::string key, RecursiveMutex::SharedLockGuard * value) { delete value; });
         GlobalSharedLockGuards.Clear();
     }
 }

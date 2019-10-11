@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Utilities/Accessor.h"
-#include "Utilities/SmartMutex.h"
+#include "Utilities/RecursiveMutex.h"
 #include "Utilities/MutexContained.h"
 #include "Utilities/Shared.h"
 
