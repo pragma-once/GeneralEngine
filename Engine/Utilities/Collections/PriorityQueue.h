@@ -10,7 +10,7 @@
 #ifdef ENGINE_PRIORITY_QUEUE_USE_MUTEX
     #include "../MutexContained.h"
     #define ENGINE_PRIORITY_QUEUE_CLASS_NAME PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, true>
-    #define ENGINE_PRIORITY_QUEUE_DERIVATION : public MutexContained
+    #define ENGINE_PRIORITY_QUEUE_DERIVATION : public MutexContained<true, false>
 #else
     #define ENGINE_PRIORITY_QUEUE_CLASS_NAME PriorityQueue<ItemsType, PriorityType, LessPriorityFirst, false>
     #define ENGINE_PRIORITY_QUEUE_DERIVATION

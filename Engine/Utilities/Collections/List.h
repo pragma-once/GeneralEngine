@@ -10,7 +10,7 @@
 #ifdef ENGINE_LIST_USE_MUTEX
     #include "../MutexContained.h"
     #define ENGINE_LIST_CLASS_NAME List<ItemsType, true>
-    #define ENGINE_LIST_DERIVATION : public MutexContained
+    #define ENGINE_LIST_DERIVATION : public MutexContained<true, false>
 #else
     #define ENGINE_LIST_CLASS_NAME List<ItemsType, false>
     #define ENGINE_LIST_DERIVATION

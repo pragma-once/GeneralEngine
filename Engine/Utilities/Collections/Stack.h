@@ -10,7 +10,7 @@
 #ifdef ENGINE_STACK_USE_MUTEX
     #include "../MutexContained.h"
     #define ENGINE_STACK_CLASS_NAME Stack<ItemsType, true>
-    #define ENGINE_STACK_DERIVATION : public MutexContained
+    #define ENGINE_STACK_DERIVATION : public MutexContained<true, false>
 #else
     #define ENGINE_STACK_CLASS_NAME Stack<ItemsType, false>
     #define ENGINE_STACK_DERIVATION

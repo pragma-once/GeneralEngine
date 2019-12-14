@@ -10,7 +10,7 @@
 #ifdef ENGINE_QUEUE_USE_MUTEX
     #include "../MutexContained.h"
     #define ENGINE_QUEUE_CLASS_NAME Queue<ItemsType, true>
-    #define ENGINE_QUEUE_DERIVATION : public MutexContained
+    #define ENGINE_QUEUE_DERIVATION : public MutexContained<true, false>
 #else
     #define ENGINE_QUEUE_CLASS_NAME Queue<ItemsType, false>
     #define ENGINE_QUEUE_DERIVATION

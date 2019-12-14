@@ -10,7 +10,7 @@
 #ifdef ENGINE_DICTIONARY_USE_MUTEX
     #include "../MutexContained.h"
     #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, true>
-    #define ENGINE_DICTIONARY_DERIVATION : public MutexContained
+    #define ENGINE_DICTIONARY_DERIVATION : public MutexContained<true, false>
 #else
     #define ENGINE_DICTIONARY_CLASS_NAME Dictionary<KeyType, ValueType, false>
     #define ENGINE_DICTIONARY_DERIVATION
@@ -22,6 +22,7 @@ namespace Engine
     {
         namespace Collections
         {
+            // TODO: Switch to a tree structure (low priority)
             template <typename KeyType, typename ValueType>
             class ENGINE_DICTIONARY_CLASS_NAME final ENGINE_DICTIONARY_DERIVATION
             {

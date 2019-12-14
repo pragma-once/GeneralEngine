@@ -10,6 +10,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 namespace Engine
@@ -18,14 +19,14 @@ namespace Engine
     {
         /// @brief Provides objects that act on set and/or get.
         template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
-        /// @brief Shared mutex that supports recursive locking in a thread.
+        /// @brief Mutex that supports recursive locking in a thread.
         ///
         /// This class is meant for sharing data between different threads
-        /// and is much easier to use than a normal shared mutex.
-        class RecursiveMutex;
+        /// and is much easier to use than a normal mutex.
+        template <bool SupportsSharedLock = true, bool SupportsUpgradableSharedLock = true> class RecursiveMutex;
         /// @brief To be the base class for the classes that use a RecursiveMutex
         ///        and need a LockAndDo function.
-        class MutexContained;
+        template <bool SupportsSharedLock = true, bool SupportsUpgradableSharedLock = true> class MutexContained;
         /// @brief Shared object with automatic mutex locking on set/get.
         /// @tparam AllowManualLocking If true, The class will use a public RecursiveMutex that
         ///         can also be controlled by user.

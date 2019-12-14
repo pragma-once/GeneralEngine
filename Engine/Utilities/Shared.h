@@ -31,7 +31,7 @@ namespace Engine
             /// @brief The mutex used by this shared variable.
             ///
             /// Can be used to perform locks in larger/other program sections.
-            RecursiveMutex Mutex;
+            RecursiveMutex<> Mutex;
 #endif
 
             Shared(Shared<Type, false>&);

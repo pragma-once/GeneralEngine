@@ -7,6 +7,7 @@ namespace Engine
 {
     namespace Utilities
     {
+        template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         class MutexContained
         {
         public:
@@ -14,7 +15,7 @@ namespace Engine
             /// @brief Calls the passed function while locking the object's mutex.
             void LockAndDo(std::function<void()> Process);
         protected:
-            RecursiveMutex Mutex;
+            RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock> Mutex;
         };
     }
 }
