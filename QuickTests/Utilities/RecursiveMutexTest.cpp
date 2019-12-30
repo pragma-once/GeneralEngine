@@ -139,7 +139,7 @@ void StaticTest()
 
 std::mutex PrintingMutex;
 
-#define print_locked(context) PrintingMutex.lock(); (std::cout << context << '\n'); PrintingMutex.unlock()
+#define print_locked(context) { PrintingMutex.lock(); (std::cout << context << '\n'); PrintingMutex.unlock(); }
 
 /// @brief The mutex that is tested by TestThreads.
 RecursiveMutex<> GlobalTestMutex;
