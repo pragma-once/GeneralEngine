@@ -21,30 +21,37 @@ Example tests:
         0.501589: thread-3: locked: local3-0
         0.751795: thread-3: done, destroying all local guards...
 
-- try-lock and try-shared-lock:
+- try-lock, try-shared-lock and try-upgradable-shared-lock:
 
     input:
         c
-        n tl 0 s 200 d
-        n tl 0 s 200 d
-        n tsl 0 s 400 tsl 0 s 250 d
-        n tsl 0 s 400 tsl 0 s 250 d
-        n s 600 tl 0 d
+        n       tl  0 s 200 d
+        n       tl  0 s 200 d
+        n s 100 tsl 0 s 400 tsl 0 s 250 d
+        n s 100 tsl 0 s 400 tsl 0 s 250 d
+        n s 100 tul 0 s 400 tul 0 s 250 d
+        n s 600 tl  0 d
+        n s 600 tul 0 d
         s
 
     possible output:
-        0.000514: thread-0: try-lock successful: local0-0
-        0.001386: thread-1: try-lock failed: local1-0
-        0.001746: thread-2: try-shared-lock failed: local2-shared-0
-        0.003798: thread-3: try-shared-lock failed: local3-shared-0
-        0.200654: thread-0: done, destroying all local guards...
-        0.201500: thread-1: done, destroying all local guards...
-        0.401957: thread-2: try-shared-lock successful: local2-shared-0
-        0.403946: thread-3: try-shared-lock successful: local3-shared-0
-        0.604575: thread-4: try-lock failed: local4-0
-        0.604613: thread-4: done, destroying all local guards...
-        0.652105: thread-2: done, destroying all local guards...
-        0.654063: thread-3: done, destroying all local guards...
+        0.000289: thread-0: try-lock successful: local0-0
+        0.000571: thread-1: try-lock failed: local1-0
+        0.100922: thread-2: try-shared-lock failed: local2-shared-0
+        0.101466: thread-3: try-shared-lock failed: local3-shared-0
+        0.101619: thread-4: try-upgradable-shared-lock failed: local4-upgradable-shared-0
+        0.200371: thread-0: done, destroying all local guards...
+        0.200700: thread-1: done, destroying all local guards...
+        0.501036: thread-2: try-shared-lock successful: local2-shared-0
+        0.501546: thread-3: try-shared-lock successful: local3-shared-0
+        0.501708: thread-4: try-upgradable-shared-lock successful: local4-upgradable-shared-0
+        0.601760: thread-5: try-lock failed: local5-0
+        0.601778: thread-5: done, destroying all local guards...
+        0.601899: thread-6: try-upgradable-shared-lock failed: local6-upgradable-shared-0
+        0.601916: thread-6: done, destroying all local guards...
+        0.751147: thread-2: done, destroying all local guards...
+        0.751621: thread-3: done, destroying all local guards...
+        0.751790: thread-4: done, destroying all local guards..
 
 - invalid operations (example: transition from shared-lock to lock or upgradable-shared-lock):
 
@@ -76,21 +83,22 @@ Example tests:
         c
         n       ul 0 s 200 l 0 d
         n s 100 sl 0 s 400 d
-        n s 500 sl 0 s 400 d
-        n s 600 ul 0 s 200 tl 0 d
+        n s 600 sl 0 s 400 d
+        n s 800 ul 0 s 100 tl 0 s 200 tl 0 d
         s
 
     possible output:
-        0.000344: thread-0: upgradable-shared-lock: local0-upgradable-shared-0
-        0.100764: thread-1: shared-locked: local1-shared-0
-        0.500869: thread-1: done, destroying all local guards...
-        0.500911: thread-0: locked: local0-0
-        0.500921: thread-0: done, destroying all local guards...
-        0.505335: thread-2: shared-locked: local2-shared-0
-        0.605053: thread-3: upgradable-shared-lock: local3-upgradable-shared-0
-        0.805157: thread-3: try-lock failed: local3-0
-        0.805175: thread-3: done, destroying all local guards...
-        0.905437: thread-2: done, destroying all local guards...
+        0.000300: thread-0: upgradable-shared-lock: local0-upgradable-shared-0
+        0.100684: thread-1: shared-locked: local1-shared-0
+        0.500789: thread-1: done, destroying all local guards...
+        0.500833: thread-0: locked: local0-0
+        0.500845: thread-0: done, destroying all local guards...
+        0.600931: thread-2: shared-locked: local2-shared-0
+        0.801160: thread-3: upgradable-shared-lock: local3-upgradable-shared-0
+        0.901273: thread-3: try-lock failed: local3-0
+        1.001035: thread-2: done, destroying all local guards...
+        1.101377: thread-3: try-lock successful: local3-0
+        1.101395: thread-3: done, destroying all local guards...
 
 - transition from lock to shared-lock:
 
