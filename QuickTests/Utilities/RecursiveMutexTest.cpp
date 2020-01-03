@@ -3,7 +3,13 @@ Example tests:
 
 - lock and shared-lock:
 
-    input: c  n l 0 s 250 d    n sl 0 s 250 d    n sl 0 s 250 d    n l 0 s 250 d  s
+    input:
+        c 
+        n l 0 s 250 d
+        n sl 0 s 250 d
+        n sl 0 s 250 d
+        n l 0 s 250 d
+        s
 
     possible output:
         0.000683: thread-0: locked: local0-0
@@ -17,7 +23,14 @@ Example tests:
 
 - try-lock and try-shared-lock:
 
-    input: c  n tl 0 s 200 d    n tl 0 s 200 d    n tsl 0 s 400 tsl 0 s 250 d    n tsl 0 s 400 tsl 0 s 250 d    n s 600 tl 0 d  s
+    input:
+        c
+        n tl 0 s 200 d
+        n tl 0 s 200 d
+        n tsl 0 s 400 tsl 0 s 250 d
+        n tsl 0 s 400 tsl 0 s 250 d
+        n s 600 tl 0 d
+        s
 
     possible output:
         0.000514: thread-0: try-lock successful: local0-0
@@ -33,24 +46,61 @@ Example tests:
         0.652105: thread-2: done, destroying all local guards...
         0.654063: thread-3: done, destroying all local guards...
 
-- dead-lock and live-lock exceptions (transition from shared-lock to lock):
+- invalid operations (example: transition from shared-lock to lock or upgradable-shared-lock):
 
-    input: c  n sl 0 s 400 l 0 s 500 d    n sl 0 s 600 tl 0 s 500 d    n sl 0 s 800 l 0 s 500 d  s
+    input:
+        c
+        n sl 0 s 200 l 0 s 800 d
+        n sl 0 s 400 tl 0 s 800 d
+        n sl 0 s 600 ul 0 s 800 d
+        n sl 0 s 800 tul 0 s 800 d
+        s
 
     possible output:
-        0.000688: thread-0: shared-locked: local0-shared-0
-        0.001943: thread-1: shared-locked: local1-shared-0
-        0.002431: thread-2: shared-locked: local2-shared-0
-        0.602221: thread-1: exception on try-lock attempt, local1-0: Livelock may have occurred: ... .
-        0.802690: thread-2: exception on lock attempt, local2-0: Deadlock occurred: ... .
-        1.102447: thread-1: done, destroying all local guards...
-        1.302917: thread-2: done, destroying all local guards...
-        1.303037: thread-0: locked: local0-0
-        1.803263: thread-0: done, destroying all local guards...
+        0.000366: thread-0: shared-locked: local0-shared-0
+        0.000653: thread-1: shared-locked: local1-shared-0
+        0.001076: thread-2: shared-locked: local2-shared-0
+        0.001311: thread-3: shared-locked: local3-shared-0
+        0.200511: thread-0: exception on lock attempt, local0-0: Invalid operation, possible deadlock: Cannot acquire lock after shared-lock in a single thread. Use upgradable-shared-lock instead, to lock afterwards.
+        0.400782: thread-1: exception on try-lock attempt, local1-0: Invalid operation, possible livelock: A thread is trying to lock after it has shared-locked. Use upgradable-shared-lock instead, to lock afterwards.
+        0.601207: thread-2: exception on upgradable-shared-lock attempt, local2-upgradable-shared-0: Invalid operation: Cannot acquire upgradable-shared-lock after shared-lock in a single thread.
+        0.801438: thread-3: exception on try-upgradable-shared-lock attempt, local3-upgradable-shared-0: Invalid operation: Cannot acquire upgradable-shared-lock after shared-lock in a single thread.
+        1.000614: thread-0: done, destroying all local guards...
+        1.200890: thread-1: done, destroying all local guards...
+        1.401316: thread-2: done, destroying all local guards...
+        1.601545: thread-3: done, destroying all local guards..
+
+- transition from upgradable-shared-lock to lock:
+
+    input:
+        c
+        n       ul 0 s 200 l 0 d
+        n s 100 sl 0 s 400 d
+        n s 500 sl 0 s 400 d
+        n s 600 ul 0 s 200 tl 0 d
+        s
+
+    possible output:
+        0.000344: thread-0: upgradable-shared-lock: local0-upgradable-shared-0
+        0.100764: thread-1: shared-locked: local1-shared-0
+        0.500869: thread-1: done, destroying all local guards...
+        0.500911: thread-0: locked: local0-0
+        0.500921: thread-0: done, destroying all local guards...
+        0.505335: thread-2: shared-locked: local2-shared-0
+        0.605053: thread-3: upgradable-shared-lock: local3-upgradable-shared-0
+        0.805157: thread-3: try-lock failed: local3-0
+        0.805175: thread-3: done, destroying all local guards...
+        0.905437: thread-2: done, destroying all local guards...
 
 - transition from lock to shared-lock:
 
-    input: c  n l 0 s 200 sl 0 u 0 s 200 d    n l 0 s 200 sl 0 u 0 s 200 d    n sl 0 s 250 d    n sl 0 s 300 d  s
+    input:
+        c
+        n l 0 s 200 sl 0 u 0 s 200 d
+        n l 0 s 200 sl 0 u 0 s 200 d
+        n sl 0 s 250 d
+        n sl 0 s 300 d
+        s
 
     possible output:
         0.000703: thread-0: locked: local0-0
@@ -68,32 +118,42 @@ Example tests:
 
 - recursive locking
 
-    input: c  n l 0 l 0 l 1 s 250 u 1 u 0 s 600 l 0 d  n l 0 l 1 s 250 u 0 u 1 d  n s 400 l 0 l 1 s 250 d  n s 600 sl 0 sl 1 s 250 d  s
+    input:
+        c
+        n l 0 l 0 l 1 s 200 u 1 u 0 s 800 l 0 d
+        n l 0 l 1 s 200 u 0 u 1 d
+        n s 400 l 0 l 1 s 250 d
+        n s 600 sl 0 sl 1 s 250 d
+        n s 800 ul 0 ul 1 s 250 d
+        s
 
     possible output:
-        0.000650: thread-0: locked: local0-0
-        0.000700: thread-0: locked: local0-0
-        0.000724: thread-0: locked: local0-1
-        0.250918: thread-0: unlocked: local0-1
-        0.250982: thread-0: unlocked: local0-0
-        0.251032: thread-1: locked: local1-0
-        0.251106: thread-1: locked: local1-1
-        0.501303: thread-1: unlocked: local1-0
-        0.501364: thread-1: unlocked: local1-1
-        0.501463: thread-1: done, destroying all local guards...
-        0.501530: thread-2: locked: local2-0
-        0.501621: thread-2: locked: local2-1
-        0.751798: thread-2: done, destroying all local guards...
-        0.751896: thread-3: shared-locked: local3-shared-0
-        0.751955: thread-3: shared-locked: local3-shared-1
-        1.002077: thread-3: done, destroying all local guards...
-        1.002293: thread-0: locked: local0-0
-        1.002361: thread-0: done, destroying all local guards...
+        0.000373: thread-0: locked: local0-0
+        0.000392: thread-0: locked: local0-0
+        0.000400: thread-0: locked: local0-1
+        0.200491: thread-0: unlocked: local0-1
+        0.200515: thread-0: unlocked: local0-0
+        0.200524: thread-1: locked: local1-0
+        0.200549: thread-1: locked: local1-1
+        0.400636: thread-1: unlocked: local1-0
+        0.400660: thread-1: unlocked: local1-1
+        0.400665: thread-1: done, destroying all local guards...
+        0.401332: thread-2: locked: local2-0
+        0.401355: thread-2: locked: local2-1
+        0.651430: thread-2: done, destroying all local guards...
+        0.651482: thread-3: shared-locked: local3-shared-0
+        0.651504: thread-3: shared-locked: local3-shared-1
+        0.801810: thread-4: upgradable-shared-lock: local4-upgradable-shared-0
+        0.801847: thread-4: upgradable-shared-lock: local4-upgradable-shared-1
+        0.901574: thread-3: done, destroying all local guards...
+        1.051921: thread-4: done, destroying all local guards...
+        1.051987: thread-0: locked: local0-0
+        1.052001: thread-0: done, destroying all local guards...
 
 RecursiveMutexTest tests:
-    print locking:   c  n l 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  s
-    lock exceptions: c  n sl 0 s 200 l 0 s 500 d  n sl 0 s 250 l 0 tl 0 gl 0 gtl 0 d  s
-    dict exceptions: c  n u 0 l 0 u 0 u 0 u 1 su 0 gu 0 gsu 0 d  s
+    print locking:   c  n l 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n sl 0 s 500 d  n ul 0 s 500 d  s
+    lock exceptions: c  n sl 0 l 0 tl 0 ul 0 gl 0 gtl 0 gul 0 d  s
+    dict exceptions: c  n u 0 l 0 u 0 u 0 u 1 su 0 uu 0 gu 0 gsu 0 guu 0 d  s
 
 // ---------------------------------------------------------------- */
 
@@ -406,7 +466,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock failed: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        catch (RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException& e) // RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-upgradable-shared-lock attempt, "
                                                 << expanded_guard_id << ": " << e.what());
@@ -561,7 +621,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock failed: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        catch (RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException& e) // RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-upgradable-shared-lock attempt, "
                                                 << expanded_guard_id << ": " << e.what());
@@ -656,6 +716,8 @@ public:
             LockGuards.Clear();
             SharedLockGuards.ForEach([](std::string key, RecursiveMutex<>::SharedLockGuard * value) { delete value; });
             SharedLockGuards.Clear();
+            UpgradableSharedLockGuards.ForEach([](std::string key, RecursiveMutex<>::UpgradableSharedLockGuard * value) { delete value; });
+            UpgradableSharedLockGuards.Clear();
         });
     }
 
