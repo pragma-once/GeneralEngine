@@ -5,10 +5,10 @@ Example tests:
 
     input:
         c 
-        n l 0 s 250 d
+        n l  0 s 250 d
         n sl 0 s 250 d
         n sl 0 s 250 d
-        n l 0 s 250 d
+        n l  0 s 250 d
         s
 
     possible output:
@@ -57,9 +57,9 @@ Example tests:
 
     input:
         c
-        n sl 0 s 200 l 0 s 800 d
-        n sl 0 s 400 tl 0 s 800 d
-        n sl 0 s 600 ul 0 s 800 d
+        n sl 0 s 200 l   0 s 800 d
+        n sl 0 s 400 tl  0 s 800 d
+        n sl 0 s 600 ul  0 s 800 d
         n sl 0 s 800 tul 0 s 800 d
         s
 
@@ -104,8 +104,8 @@ Example tests:
 
     input:
         c
-        n l 0 s 200 sl 0 u 0 s 200 d
-        n l 0 s 200 sl 0 u 0 s 200 d
+        n l  0 s 200 sl 0 u 0 s 200 d
+        n l  0 s 200 sl 0 u 0 s 200 d
         n sl 0 s 250 d
         n sl 0 s 300 d
         s
@@ -129,8 +129,8 @@ Example tests:
     input:
         c
         n l 0 l 0 l 1 s 200 u 1 u 0 s 800 l 0 d
-        n l 0 l 1 s 200 u 0 u 1 d
-        n s 400 l 0 l 1 s 250 d
+        n     l 0 l 1 s 200 u 0 u 1 d
+        n s 400 l  0 l  1 s 250 d
         n s 600 sl 0 sl 1 s 250 d
         n s 800 ul 0 ul 1 s 250 d
         s
