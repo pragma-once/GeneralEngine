@@ -97,7 +97,7 @@ RecursiveMutexTest tests:
 
 // ---------------------------------------------------------------- */
 
-// TODO: Update the tests to test UpgradableSharedLock
+// TODO: Update the examples based on the new logic
 
 #include "../../Engine/Engine.h"
 #include <chrono>
@@ -175,6 +175,7 @@ std::string GetStrTimeSinceStart()
 
 Collections::Dictionary<std::string, RecursiveMutex<>::LockGuard*> GlobalLockGuards;
 Collections::Dictionary<std::string, RecursiveMutex<>::SharedLockGuard*> GlobalSharedLockGuards;
+Collections::Dictionary<std::string, RecursiveMutex<>::UpgradableSharedLockGuard*> GlobalUpgradableSharedLockGuards;
 
 /// @brief The command types available to use in a TestThread.
 enum CommandType
@@ -184,14 +185,20 @@ enum CommandType
     Unlock,
     SharedLock,
     SharedUnlock,
+    UpgradableSharedLock,
+    UpgradableSharedUnlock,
     GlobalLock,
     GlobalUnlock,
     GlobalSharedLock,
     GlobalSharedUnlock,
+    GlobalUpgradableSharedLock,
+    GlobalUpgradableSharedUnlock,
     TryLock,
     TrySharedLock,
+    TryUpgradableSharedLock,
     GlobalTryLock,
-    GlobalTrySharedLock
+    GlobalTrySharedLock,
+    GlobalTryUpgradableSharedLock
 };
 
 /// @brief Converts a short command name from CLI to CommandType to use in TestThread.
@@ -202,14 +209,20 @@ CommandType NameToCommandType(std::string name)
     else if (name == "u") return Unlock;
     else if (name == "sl") return SharedLock;
     else if (name == "su") return SharedUnlock;
+    else if (name == "ul") return UpgradableSharedLock;
+    else if (name == "uu") return UpgradableSharedUnlock;
     else if (name == "gl") return GlobalLock;
     else if (name == "gu") return GlobalUnlock;
     else if (name == "gsl") return GlobalSharedLock;
     else if (name == "gsu") return GlobalSharedUnlock;
+    else if (name == "gul") return GlobalUpgradableSharedLock;
+    else if (name == "guu") return GlobalUpgradableSharedUnlock;
     else if (name == "tl") return TryLock;
     else if (name == "tsl") return TrySharedLock;
+    else if (name == "tul") return TryUpgradableSharedLock;
     else if (name == "gtl") return GlobalTryLock;
     else if (name == "gtsl") return GlobalTrySharedLock;
+    else if (name == "gtul") return GlobalTryUpgradableSharedLock;
     else throw std::domain_error("Undefined command");
 }
 
@@ -233,6 +246,7 @@ private:
     int ID;
     Collections::Dictionary<std::string, RecursiveMutex<>::LockGuard*> LockGuards;
     Collections::Dictionary<std::string, RecursiveMutex<>::SharedLockGuard*> SharedLockGuards;
+    Collections::Dictionary<std::string, RecursiveMutex<>::UpgradableSharedLockGuard*> UpgradableSharedLockGuards;
     std::vector<Command> Commands;
     std::thread Thread;
 
@@ -272,7 +286,8 @@ private:
         }
         catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by LockGuards
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "LockGuards are created when you lock (l or tl).");
         }
@@ -298,9 +313,45 @@ private:
         }
         catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by SharedLockGuards
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "SharedLockGuards are created when you shared-lock (sl or tsl).");
+        }
+    }
+
+    /// @brief Implementation of commands of type CommandType::UpgradableSharedLock
+    void UpgradableSharedLock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-upgradable-shared-" + guard_id;
+        try
+        {
+            EnsureGuardExistence(UpgradableSharedLockGuards, guard_id);
+            *UpgradableSharedLockGuards.GetValue(guard_id) = GlobalTestMutex.GetUpgradableSharedLock();
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": upgradable-shared-lock: " << expanded_guard_id);
+        }
+        catch (RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException& e)
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on upgradable-shared-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+        }
+    }
+
+    /// @brief Implementation of commands of type CommandType::UpgradableSharedLock
+    void UpgradableSharedUnlock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-upgradable-shared-" + guard_id;
+        try
+        {
+            UpgradableSharedLockGuards.GetValue(guard_id)->Unlock();
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": upgradable-shared-unlocked: " << expanded_guard_id);
+        }
+        catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by UpgradableSharedLockGuards
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on upgradable-shared-unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
+                        "SharedLockGuards are created when you acquire upgradable-shared-lock (ul or tul).");
         }
     }
 
@@ -321,7 +372,8 @@ private:
         }
         catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -339,6 +391,28 @@ private:
         else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
+    /// @brief Implementation of commands of type CommandType::TryUpgradableSharedLock
+    void TryUpgradableSharedLock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "local" + std::to_string(ID) + "-upgradable-shared-" + guard_id;
+        try
+        {
+            EnsureGuardExistence(UpgradableSharedLockGuards, guard_id);
+            RecursiveMutex<>::UpgradableSharedLockGuard guard;
+            if (GlobalTestMutex.TryGetUpgradableSharedLock(guard))
+            {
+                *UpgradableSharedLockGuards.GetValue(guard_id) = guard;
+                print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock successful: " << expanded_guard_id);
+            }
+            else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock failed: " << expanded_guard_id);
+        }
+        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-upgradable-shared-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+        }
+    }
+
     /// @brief Implementation of commands of type CommandType::GlobalLock
     void GlobalLock(std::string guard_id)
     {
@@ -351,7 +425,8 @@ private:
         }
         catch (RecursiveMutex<>::DeadlockException& e) // RecursiveMutex<>::DeadlockException
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -366,7 +441,8 @@ private:
         }
         catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by GlobalLockGuards
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "Global LockGuards are created when you lock globally (gl or gtl).");
         }
@@ -392,9 +468,45 @@ private:
         }
         catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by GlobalSharedLockGuards
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on shared-unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
                         "Global SharedLockGuards are created when you shared-lock globally (gsl or gtsl).");
+        }
+    }
+
+    /// @brief Implementation of commands of type CommandType::GlobalUpgradableSharedLock
+    void GlobalUpgradableSharedLock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "global-upgradable-shared-" + guard_id;
+        try
+        {
+            EnsureGuardExistence(GlobalUpgradableSharedLockGuards, guard_id);
+            *GlobalUpgradableSharedLockGuards.GetValue(guard_id) = GlobalTestMutex.GetUpgradableSharedLock();
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": upgradable-shared-lock: " << expanded_guard_id);
+        }
+        catch (RecursiveMutex<>::UpgradableSharedLockAfterSharedLockException& e)
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on upgradable-shared-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+        }
+    }
+
+    /// @brief Implementation of commands of type CommandType::GlobalUpgradableSharedLock
+    void GlobalUpgradableSharedUnlock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "global-upgradable-shared-" + guard_id;
+        try
+        {
+            GlobalUpgradableSharedLockGuards.GetValue(guard_id)->Unlock();
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": upgradable-shared-unlocked: " << expanded_guard_id);
+        }
+        catch (std::domain_error& e) // std::domain_error("Key not found.") thrown by UpgradableSharedLockGuards
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on upgradable-shared-unlock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": hint: Are you unlocking an existing guard? "
+                        "SharedLockGuards are created when you acquire upgradable-shared-lock (ul or tul).");
         }
     }
 
@@ -415,7 +527,8 @@ private:
         }
         catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
         {
-            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, " << expanded_guard_id << ": " << e.what());
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
         }
     }
 
@@ -433,25 +546,51 @@ private:
         else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-shared-lock failed: " << expanded_guard_id);
     }
 
+    /// @brief Implementation of commands of type CommandType::GlobalTryUpgradableSharedLock
+    void GlobalTryUpgradableSharedLock(std::string guard_id)
+    {
+        std::string expanded_guard_id = "global-upgradable-shared-" + guard_id;
+        try
+        {
+            EnsureGuardExistence(GlobalUpgradableSharedLockGuards, guard_id);
+            RecursiveMutex<>::UpgradableSharedLockGuard guard;
+            if (GlobalTestMutex.TryGetUpgradableSharedLock(guard))
+            {
+                *GlobalUpgradableSharedLockGuards.GetValue(guard_id) = guard;
+                print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock successful: " << expanded_guard_id);
+            }
+            else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-upgradable-shared-lock failed: " << expanded_guard_id);
+        }
+        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        {
+            print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-upgradable-shared-lock attempt, "
+                                                << expanded_guard_id << ": " << e.what());
+        }
+    }
+
     void ExecuteCommand(Command cmd)
     {
         switch (cmd.Type)
         {
             case CommandType::Sleep:               std::this_thread::sleep_for(cmd.SleepDuration * 1ms); break;
             // ------------------------------------
-            case CommandType::Lock:                Lock(cmd.GuardId);               break;
-            case CommandType::Unlock:              Unlock(cmd.GuardId);             break;
-            case CommandType::SharedLock:          SharedLock(cmd.GuardId);         break;
-            case CommandType::SharedUnlock:        SharedUnlock(cmd.GuardId);       break;
-            case CommandType::GlobalLock:          GlobalLock(cmd.GuardId);         break;
-            case CommandType::GlobalUnlock:        GlobalUnlock(cmd.GuardId);       break;
-            case CommandType::GlobalSharedLock:    GlobalSharedLock(cmd.GuardId);   break;
-            case CommandType::GlobalSharedUnlock:  GlobalSharedUnlock(cmd.GuardId); break;
+            case CommandType::Lock:                          Lock(cmd.GuardId);                          break;
+            case CommandType::Unlock:                        Unlock(cmd.GuardId);                        break;
+            case CommandType::SharedLock:                    SharedLock(cmd.GuardId);                    break;
+            case CommandType::SharedUnlock:                  SharedUnlock(cmd.GuardId);                  break;
+            case CommandType::UpgradableSharedLock:          UpgradableSharedLock(cmd.GuardId);          break;
+            case CommandType::GlobalLock:                    GlobalLock(cmd.GuardId);                    break;
+            case CommandType::GlobalUnlock:                  GlobalUnlock(cmd.GuardId);                  break;
+            case CommandType::GlobalSharedLock:              GlobalSharedLock(cmd.GuardId);              break;
+            case CommandType::GlobalSharedUnlock:            GlobalSharedUnlock(cmd.GuardId);            break;
+            case CommandType::GlobalUpgradableSharedLock:    GlobalUpgradableSharedLock(cmd.GuardId);    break;
             // ------------------------------------
-            case CommandType::TryLock:             TryLock(cmd.GuardId);             break;
-            case CommandType::TrySharedLock:       TrySharedLock(cmd.GuardId);       break;
-            case CommandType::GlobalTryLock:       GlobalTryLock(cmd.GuardId);       break;
-            case CommandType::GlobalTrySharedLock: GlobalTrySharedLock(cmd.GuardId); break;
+            case CommandType::TryLock:                       TryLock(cmd.GuardId);                       break;
+            case CommandType::TrySharedLock:                 TrySharedLock(cmd.GuardId);                 break;
+            case CommandType::TryUpgradableSharedLock:       TryUpgradableSharedLock(cmd.GuardId);       break;
+            case CommandType::GlobalTryLock:                 GlobalTryLock(cmd.GuardId);                 break;
+            case CommandType::GlobalTrySharedLock:           GlobalTrySharedLock(cmd.GuardId);           break;
+            case CommandType::GlobalTryUpgradableSharedLock: GlobalTryUpgradableSharedLock(cmd.GuardId); break;
         }
     }
 
@@ -470,11 +609,15 @@ public:
             print("  s <milliseconds>           => Sleep");
             print("  <mutex_command> <guard_id> => Mutex commands");
             print("Local guard mutex commands:");
-            print("  l:  Lock,    u: Unlock, sl:  SharedLock,    su: SharedUnlock");
-            print("  tl: TryLock,            tsl: TrySharedLock");
+            print("  l:  Lock, u: Unlock,      sl:  SharedLock, su: SharedUnlock");
+            print("  ul: UpgradableSharedLock, uu: UpgradableSharedUnlock");
+            print("  tl: TryLock,              tsl: TrySharedLock");
+            print("  tul: TryUpgradableSharedLock");
             print("Global guard mutex commands");
-            print("  gl:  Lock,    gu: Unlock, gsl:  SharedLock,    gsu: SharedUnlock");
-            print("  gtl: TryLock,             gtsl: TrySharedLock");
+            print("  gl:  Lock, gu: Unlock,     gsl:  SharedLock, gsu: SharedUnlock");
+            print("  gul: UpgradableSharedLock, guu: UpgradableSharedUnlock");
+            print("  gtl: TryLock,              gtsl: TrySharedLock");
+            print("  gtul: TryUpgradableSharedLock");
             print("Enter a command to add to thread " << ID << " or d (or q or e) to finish:");
 
             input(str);
