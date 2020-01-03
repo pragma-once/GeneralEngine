@@ -214,14 +214,16 @@ namespace Engine
 
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>::DeadlockException::DeadlockException() : InvalidOperation(
-            "Deadlock occurred: "
-            "Cannot acquire lock after shared-lock in a single thread."
+            "Invalid operation, possible deadlock: "
+            "Cannot acquire lock after shared-lock in a single thread. "
+            "Use upgradable-shared-lock instead, to lock afterwards."
         ) {}
 
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>::PossibleLivelockException::PossibleLivelockException() : InvalidOperation(
-            "Livelock may have occurred: "
-            "A thread is trying to lock after it has shared-locked."
+            "Invalid operation, possible livelock: "
+            "A thread is trying to lock after it has shared-locked. "
+            "Use upgradable-shared-lock instead, to lock afterwards."
         ) {}
 
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
@@ -517,8 +519,8 @@ namespace Engine
                 {
                     SharedOwnersRef->Remove(std::this_thread::get_id());
                     m.unlock();
-                    ConditionVariable.notify_one(); // worst case: single lock waiting
-                                                    // all waiting cases: single lock
+                    ConditionVariable.notify_all(); // worst case: single lock waiting after upgradable-shared-lock while other locks wait
+                                                    // other waiting cases: single lock
                     return true;
                 }
                 return false;
