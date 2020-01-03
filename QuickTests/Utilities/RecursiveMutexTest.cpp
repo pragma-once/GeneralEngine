@@ -157,8 +157,6 @@ RecursiveMutexTest tests:
 
 // ---------------------------------------------------------------- */
 
-// TODO: Update the examples based on the new logic
-
 #include "../../Engine/Engine.h"
 #include <chrono>
 #include <iostream>
@@ -639,11 +637,13 @@ private:
             case CommandType::SharedLock:                    SharedLock(cmd.GuardId);                    break;
             case CommandType::SharedUnlock:                  SharedUnlock(cmd.GuardId);                  break;
             case CommandType::UpgradableSharedLock:          UpgradableSharedLock(cmd.GuardId);          break;
+            case CommandType::UpgradableSharedUnlock:        UpgradableSharedUnlock(cmd.GuardId);        break;
             case CommandType::GlobalLock:                    GlobalLock(cmd.GuardId);                    break;
             case CommandType::GlobalUnlock:                  GlobalUnlock(cmd.GuardId);                  break;
             case CommandType::GlobalSharedLock:              GlobalSharedLock(cmd.GuardId);              break;
             case CommandType::GlobalSharedUnlock:            GlobalSharedUnlock(cmd.GuardId);            break;
             case CommandType::GlobalUpgradableSharedLock:    GlobalUpgradableSharedLock(cmd.GuardId);    break;
+            case CommandType::GlobalUpgradableSharedUnlock:  GlobalUpgradableSharedUnlock(cmd.GuardId);  break;
             // ------------------------------------
             case CommandType::TryLock:                       TryLock(cmd.GuardId);                       break;
             case CommandType::TrySharedLock:                 TrySharedLock(cmd.GuardId);                 break;
