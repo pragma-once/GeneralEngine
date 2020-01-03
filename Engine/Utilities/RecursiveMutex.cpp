@@ -226,7 +226,7 @@ namespace Engine
 
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>
-            ::UpgradableSharedLockAfterSharedLock::UpgradableSharedLockAfterSharedLock() : InvalidOperation(
+            ::UpgradableSharedLockAfterSharedLockException::UpgradableSharedLockAfterSharedLockException() : InvalidOperation(
                 "Invalid operation: "
                 "Cannot acquire upgradable-shared-lock after shared-lock in a single thread."
         ) {}
@@ -557,7 +557,7 @@ namespace Engine
                 }
 
                 if (SharedOwnersRef->Contains(std::this_thread::get_id()))
-                    throw UpgradableSharedLockAfterSharedLock();
+                    throw UpgradableSharedLockAfterSharedLockException();
 
                 ConditionVariable.wait(m, [&] { return !HasUpgradableOwner && !HasOwner; });
                 UpgradableOwner = std::this_thread::get_id();
@@ -585,7 +585,7 @@ namespace Engine
                     return LockedByOtherThreads;
 
                 if (SharedOwnersRef->Contains(std::this_thread::get_id()))
-                    throw UpgradableSharedLockAfterSharedLock();
+                    throw UpgradableSharedLockAfterSharedLockException();
 
                 UpgradableOwner = std::this_thread::get_id();
                 HasUpgradableOwner = true;

@@ -95,11 +95,11 @@ namespace Engine
                 PossibleLivelockException();
             };
 
-            class UpgradableSharedLockAfterSharedLock : public InvalidOperation
+            class UpgradableSharedLockAfterSharedLockException : public InvalidOperation
             {
                 friend RecursiveMutex;
             private:
-                UpgradableSharedLockAfterSharedLock();
+                UpgradableSharedLockAfterSharedLockException();
             };
 
             RecursiveMutex();
