@@ -519,8 +519,13 @@ namespace Engine
                 {
                     SharedOwnersRef->Remove(std::this_thread::get_id());
                     m.unlock();
-                    ConditionVariable.notify_all(); // worst case: single lock waiting after upgradable-shared-lock while other locks wait
-                                                    // other waiting cases: single lock
+                    if constexpr (SupportsUpgradableSharedLock)
+                        ConditionVariable.notify_all(); // worst case: single lock waiting after upgradable-shared-lock
+                                                        //             while other locks wait (and cannot lock)
+                                                        // other waiting cases: single lock
+                    else
+                        ConditionVariable.notify_one(); // worst case: single lock
+                                                        // all waiting cases: single lock
                     return true;
                 }
                 return false;
