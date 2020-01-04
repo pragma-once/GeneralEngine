@@ -628,8 +628,8 @@ namespace Engine
                     HasUpgradableOwner = false;
                     m.unlock();
                     ConditionVariable.notify_one(); // worst case: single lock waiting
-                                                    // all waiting case: single lock
-                                                    //                   single upgradable-shared-lock
+                                                    // all waiting cases: single lock
+                                                    //                    single upgradable-shared-lock
                     return true;
                 }
                 return false;
