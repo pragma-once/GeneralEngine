@@ -42,7 +42,7 @@ namespace Engine
             /// @brief Gets the module priority.
             ///
             /// Priority specifies modules execution order
-            int GetPriority();
+            int GetPriority(); // TODO: Rename to Execution Chunk?
             // @brief Returns whether the module can be executed asynchronously.
             bool IsAsync();
 
