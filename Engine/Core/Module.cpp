@@ -4,10 +4,10 @@ namespace Engine
 {
     namespace Core
     {
-        Module::Module(std::int_fast8_t Priority) : Priority(Priority >= -128 ?
-                                                        (Priority <= 127 ? Priority : 127)
-                                                        : -128),
-                                                    isEnabled(true), loop(nullptr) {}
+        Module::Module(std::int_fast8_t ExecutionChunk) : ExecutionChunk(ExecutionChunk >= -128 ?
+                                                            (ExecutionChunk <= 127 ? ExecutionChunk : 127)
+                                                            : -128),
+                                                        isEnabled(true), loop(nullptr) {}
 
         Module::~Module() {}
 
@@ -41,9 +41,9 @@ namespace Engine
             return loop != nullptr && isEnabled && loop.Get()->isRunning;
         }
 
-        int Module::GetPriority()
+        int Module::GetExecutionChunk()
         {
-            return Priority;
+            return ExecutionChunk;
         }
 
         ExecutionType Module::GetExecutionType()

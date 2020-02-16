@@ -20,7 +20,7 @@ class PromptModule : public Engine::Core::Module
 public:
     std::string Name;
 
-    PromptModule(std::string Name, int Priority) : Module(Priority)
+    PromptModule(std::string Name, int ExecutionChunk) : Module(ExecutionChunk)
     {
         this->Name = Name;
     }
@@ -59,7 +59,7 @@ class TestModule : public Engine::Core::Module
 public:
     std::string Name;
 
-    TestModule(std::string Name, int Priority) : Module(Priority)
+    TestModule(std::string Name, int ExecutionChunk) : Module(ExecutionChunk)
     {
         this->Name = Name;
     }
@@ -100,7 +100,7 @@ class SchedulerModule : public Engine::Core::Module
 public:
     std::string Name;
 
-    SchedulerModule(std::string Name, int Priority) : Module(Priority)
+    SchedulerModule(std::string Name, int ExecutionChunk) : Module(ExecutionChunk)
     {
         this->Name = Name;
     }
@@ -133,18 +133,18 @@ public:
 void Prompt(Engine::Core::Loop& loop)
 {
     print("");
-    print("add Name Priority       => Add a TestModule");
-    print("ADD Name Priority Index => Add a TestModule");
-    print("adp Name Priority       => Add a PromptModule");
-    print("ADP Name Priority Index => Add a PromptModule");
-    print("ads Name Priority       => Add a SchedulerModule");
-    print("ADS Name Priority Index => Add a SchedulerModule");
-    print("sch Name Time           => Schedule (BoundedAsync)");
-    print("scs Name Time           => Schedule (SingleThreaded)");
-    print("scf Name Time           => Schedule (FreeAsync)");
-    print("rem Name                => Remove a Module by Name");
-    print("a   Name                => Enable a Module by Name");
-    print("d   Name                => Disable a Module by Name");
+    print("add Name ExecutionChunk       => Add a TestModule");
+    print("ADD Name ExecutionChunk Index => Add a TestModule");
+    print("adp Name ExecutionChunk       => Add a PromptModule");
+    print("ADP Name ExecutionChunk Index => Add a PromptModule");
+    print("ads Name ExecutionChunk       => Add a SchedulerModule");
+    print("ADS Name ExecutionChunk Index => Add a SchedulerModule");
+    print("sch Name Time                 => Schedule (BoundedAsync)");
+    print("scs Name Time                 => Schedule (SingleThreaded)");
+    print("scf Name Time                 => Schedule (FreeAsync)");
+    print("rem Name                      => Remove a Module by Name");
+    print("a   Name                      => Enable a Module by Name");
+    print("d   Name                      => Disable a Module by Name");
     print("");
     print("ex  => Throw a known exception");
     print("uex => Throw an unknown exception");

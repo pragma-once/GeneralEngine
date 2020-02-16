@@ -53,7 +53,7 @@ namespace Engine
         enum ExecutionType : std::int_fast8_t {
             /// @brief Wait for and block all BoundedAsync processes to execute.
             ///        May be used for core modules that really need this.
-            ///        TRY NOT TO use this for 0-priority modules
+            ///        TRY NOT TO use this for modules with ExecutionChunk=0
             ///        as it will be wasting more time on updates.
             SingleThreaded = -1,
             /// @brief Are executed inside the loop in separate threads.

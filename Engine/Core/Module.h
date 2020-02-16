@@ -11,13 +11,13 @@ namespace Engine
         {
             friend Loop;
         public:
-            /// In the derived class, use this function to set the module priority
+            /// In the derived class, use this function to set the module's ExecutionChunk
             /// to specify the execution order, using a constructor written like:
             ///
-            ///     MyModule(...) : Module(MyPriority) {...}
+            ///     MyModule(...) : Module(ChunkNumber) {...}
             ///
-            /// @param Priority Specifies modules execution order
-            Module(std::int_fast8_t Priority = 0);
+            /// @param ExecutionChunk Specifies modules' execution order
+            Module(std::int_fast8_t ExecutionChunk = 0);
 
             virtual ~Module();
 
@@ -39,10 +39,10 @@ namespace Engine
             ///
             /// Running means that the OnUpdate is being called.
             bool IsRunning();
-            /// @brief Gets the module priority.
+            /// @brief Gets the module's priority in a loop cycle.
             ///
-            /// Priority specifies modules execution order
-            int GetPriority(); // TODO: Rename to Execution Chunk?
+            /// This determines modules' execution order.
+            int GetExecutionChunk();
             // @brief Returns whether the module can be executed asynchronously.
             bool IsAsync();
 
@@ -93,7 +93,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before modules with ExecutionChunk=0.
             ///
             /// The exceptions thrown by the Task will be handled by this module
             ///
@@ -108,7 +108,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before modules with ExecutionChunk=0.
             ///
             /// The exceptions thrown by the Task will be handled by this module
             ///
@@ -123,7 +123,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before modules with ExecutionChunk=0.
             ///
             /// The exceptions thrown by the Task will be handled by this module
             ///
@@ -136,7 +136,7 @@ namespace Engine
                 std::function<void()> Task
             );
         private:
-            const std::int_fast8_t Priority;
+            const std::int_fast8_t ExecutionChunk;
 
             Utilities::Shared<bool> isEnabled;
             Utilities::Shared<Loop*> loop;

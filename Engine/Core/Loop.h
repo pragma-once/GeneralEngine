@@ -33,7 +33,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before Chunk-0 Modules.
             ///
             /// @param Task The function that will be called.
             /// @param ExceptionHandler The function that will be called to handle exceptions thrown by Task.
@@ -48,7 +48,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before Chunk-0 Modules.
             ///
             /// @param Task The function that will be called.
             /// @param ExceptionHandler The function that will be called to handle exceptions thrown by Task.
@@ -63,7 +63,7 @@ namespace Engine
             /// @brief Schedules to call a function.
             ///
             /// Will not call if the Loop is stopped before the call.
-            /// Is executed right before 0-Priority Modules.
+            /// Is executed right before Chunk-0 Modules.
             ///
             /// @param Task The function that will be called.
             /// @param ExceptionHandler The function that will be called to handle exceptions thrown by Task.
@@ -76,8 +76,8 @@ namespace Engine
                 std::function<void(std::exception&)> ExceptionHandler = nullptr
             );
         private:
-            int ZeroPriorityModulesStartIndex;
-            int ZeroPriorityModulesEndIndex;
+            int Chunk0ModulesStartIndex;
+            int Chunk0ModulesEndIndex;
 
             Utilities::Shared<bool, true> isRunning;
             Utilities::Shared<std::chrono::time_point<std::chrono::steady_clock>> StartTime;

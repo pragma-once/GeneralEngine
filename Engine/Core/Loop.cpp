@@ -5,7 +5,7 @@ namespace Engine
 {
     namespace Core
     {
-        Loop::Loop() : ZeroPriorityModulesStartIndex(0), ZeroPriorityModulesEndIndex(0),
+        Loop::Loop() : Chunk0ModulesStartIndex(0), Chunk0ModulesEndIndex(0),
                                  isRunning(false),
                                  StartTime(std::chrono::time_point<std::chrono::steady_clock>()),
                                  Time(0), TimeDiff(0), TimeAsFloat(0), TimeDiffAsFloat(0),
@@ -20,37 +20,37 @@ namespace Engine
                         throw std::invalid_argument("The module is already added to the list.");
 
                     // Decide where to place the module in the list
-                    if (Item->GetPriority() == 0) // 0 priority is more common
+                    if (Item->GetExecutionChunk() == 0) // chunk 0 is more common
                     {
-                        if (Index > ZeroPriorityModulesEndIndex)
-                            Index = ZeroPriorityModulesEndIndex;
-                        else if (Index < ZeroPriorityModulesStartIndex)
-                            Index = ZeroPriorityModulesStartIndex;
+                        if (Index > Chunk0ModulesEndIndex)
+                            Index = Chunk0ModulesEndIndex;
+                        else if (Index < Chunk0ModulesStartIndex)
+                            Index = Chunk0ModulesStartIndex;
 
-                        ZeroPriorityModulesEndIndex++;
+                        Chunk0ModulesEndIndex++;
                     }
                     else // binary search
                     {
-                        int s = Item->GetPriority() < 0 ? 0 : ZeroPriorityModulesEndIndex;
-                        int e = Item->GetPriority() < 0 ? ZeroPriorityModulesStartIndex : Parent->GetCount();
+                        int s = Item->GetExecutionChunk() < 0 ? 0 : Chunk0ModulesEndIndex;
+                        int e = Item->GetExecutionChunk() < 0 ? Chunk0ModulesStartIndex : Parent->GetCount();
 
                         if (Index < s || Index > e
-                            || (Index != s && Parent->GetItem(Index - 1)->GetPriority() > Item->GetPriority())
-                            || (Index != e && Item->GetPriority() > Parent->GetItem(Index)->GetPriority()))
+                            || (Index != s && Parent->GetItem(Index - 1)->GetExecutionChunk() > Item->GetExecutionChunk())
+                            || (Index != e && Item->GetExecutionChunk() > Parent->GetItem(Index)->GetExecutionChunk()))
                         {
                             while (s < e)
                             {
                                 int c = (s + e) / 2;
 
-                                if (c > s && Parent->GetItem(c - 1)->GetPriority() > Item->GetPriority())
+                                if (c > s && Parent->GetItem(c - 1)->GetExecutionChunk() > Item->GetExecutionChunk())
                                     e = c - 1;
-                                else if (Item->GetPriority() > Parent->GetItem(c)->GetPriority())
+                                else if (Item->GetExecutionChunk() > Parent->GetItem(c)->GetExecutionChunk())
                                     s = c + 1;
                                 else if (c > Index)
                                     e = c;
                                 else if (c < Index)
                                     if (c == s)
-                                        if (Parent->GetItem(c)->GetPriority() <= Item->GetPriority())
+                                        if (Parent->GetItem(c)->GetExecutionChunk() <= Item->GetExecutionChunk())
                                             s = e;
                                         else
                                             e = s;
@@ -63,10 +63,10 @@ namespace Engine
                             Index = s;
                         }
 
-                        if (Item->GetPriority() < 0)
+                        if (Item->GetExecutionChunk() < 0)
                         {
-                            ZeroPriorityModulesStartIndex++;
-                            ZeroPriorityModulesEndIndex++;
+                            Chunk0ModulesStartIndex++;
+                            Chunk0ModulesEndIndex++;
                         }
                     }
 
@@ -82,14 +82,14 @@ namespace Engine
                 {
                     try
                     {
-                        if ((Index == 0 || Parent->GetItem(Index - 1)->GetPriority() <= Value->GetPriority())
-                            && (Index == Parent->GetCount() - 1 || Value->GetPriority() <= Parent->GetItem(Index + 1)->GetPriority()))
+                        if ((Index == 0 || Parent->GetItem(Index - 1)->GetExecutionChunk() <= Value->GetExecutionChunk())
+                            && (Index == Parent->GetCount() - 1 || Value->GetExecutionChunk() <= Parent->GetItem(Index + 1)->GetExecutionChunk()))
                         {
                             Parent->SetItem(Index, Value);
                             if (isRunning)
                                 ToEditModules.Push(std::tuple(Replace, Index, Value));
                         }
-                        else throw std::invalid_argument("Module's priority doesn't match the index.");
+                        else throw std::invalid_argument("Module's ExecutionChunk doesn't match the index.");
                     }
                     catch (std::exception& e) { throw e; } // Out of range Index
                 },
@@ -99,16 +99,16 @@ namespace Engine
                 {
                     try
                     {
-                        int Priority = Parent->GetItem(Index)->GetPriority();
+                        int ExecutionChunk = Parent->GetItem(Index)->GetExecutionChunk();
 
                         Parent->RemoveByIndex(Index);
                         if (isRunning)
                             ToEditModules.Push(std::tuple(Remove, Index, nullptr));
 
-                        if (Priority <= 0)
-                            ZeroPriorityModulesEndIndex--;
-                        if (Priority < 0)
-                            ZeroPriorityModulesStartIndex--;
+                        if (ExecutionChunk <= 0)
+                            Chunk0ModulesEndIndex--;
+                        if (ExecutionChunk < 0)
+                            Chunk0ModulesStartIndex--;
                     }
                     catch (std::exception& e) { throw e; } // Out of range Index
                 },
@@ -119,8 +119,8 @@ namespace Engine
                     Parent->Clear();
                     if (isRunning)
                         ToEditModules.Push(std::tuple(Clear, -1, nullptr));
-                    ZeroPriorityModulesStartIndex = 0;
-                    ZeroPriorityModulesEndIndex = 0;
+                    Chunk0ModulesStartIndex = 0;
+                    Chunk0ModulesEndIndex = 0;
                 }
             )
         {
@@ -171,7 +171,7 @@ namespace Engine
                 working,
                 /// @brief Waiting for the main thread to continue, set by each thread
                 passing,
-                /// @brief Current priority done, set by each thread
+                /// @brief Current ExecutionChunk done, set by each thread
                 done,
                 /// @brief Used to detect bugs
                 error
@@ -184,7 +184,7 @@ namespace Engine
             std::condition_variable condition;
             std::mutex condition_mutex;
 
-            Utilities::Shared<int> CurrentPriority = -128; // Only set by the main thread
+            Utilities::Shared<int> CurrentExecutionChunk = -128; // Only set by the main thread
             Utilities::Shared<int, true> ModuleIndex = 0;
             Utilities::Shared<bool> ShouldTerminate = false;
 
@@ -208,7 +208,7 @@ namespace Engine
                         }
                         thread_states.SetItem(thread_index, thread_state::working);
                         condition_guard.unlock();
-                        if (CurrentPriority == 0)
+                        if (CurrentExecutionChunk == 0)
                         {
                             ScheduledJob job;
                             bool done_for_now = false;
@@ -250,7 +250,7 @@ namespace Engine
                             bool done_for_now = false;
                             auto guard = ModuleIndex.Mutex.GetLock();
                             while (ModuleIndex < UpdatingModules.GetCount()
-                                && CurrentPriority == UpdatingModules.GetItem(ModuleIndex)->GetPriority())
+                                && CurrentExecutionChunk == UpdatingModules.GetItem(ModuleIndex)->GetExecutionChunk())
                             {
                                 if (!UpdatingModules.GetItem(ModuleIndex)->isEnabled)
                                 {
@@ -383,26 +383,26 @@ namespace Engine
                 TimeAsFloat = (float)Time;
                 TimeDiffAsFloat = (float)TimeDiff;
 
-                CurrentPriority = -128;
+                CurrentExecutionChunk = -128;
                 ModuleIndex = 0;
 
                 while (true)
                 {
                     // Set ModuleIndex
                     if (ModuleIndex >= UpdatingModules.GetCount())
-                        if (CurrentPriority <= 0)
-                            CurrentPriority = 0;
+                        if (CurrentExecutionChunk <= 0)
+                            CurrentExecutionChunk = 0;
                         else break;
-                    else if (CurrentPriority < UpdatingModules.GetItem(ModuleIndex)->GetPriority())
-                        if (CurrentPriority <= 0 && UpdatingModules.GetItem(ModuleIndex)->GetPriority() > 0)
-                            CurrentPriority = 0;
-                        else CurrentPriority = UpdatingModules.GetItem(ModuleIndex)->GetPriority();
+                    else if (CurrentExecutionChunk < UpdatingModules.GetItem(ModuleIndex)->GetExecutionChunk())
+                        if (CurrentExecutionChunk <= 0 && UpdatingModules.GetItem(ModuleIndex)->GetExecutionChunk() > 0)
+                            CurrentExecutionChunk = 0;
+                        else CurrentExecutionChunk = UpdatingModules.GetItem(ModuleIndex)->GetExecutionChunk();
                     //  Normal process
-                    if (CurrentPriority == 0)
+                    if (CurrentExecutionChunk == 0)
                     {
                         ScheduledJob job;
                         bool pass_to_pool = false;
-                        bool priority_done = false;
+                        bool chunk_done = false;
                         auto guard = ModuleIndex.Mutex.GetLock();
                         while (!Schedules.IsEmpty())
                         {
@@ -426,27 +426,27 @@ namespace Engine
                             guard.Unlock();
                             if (pass_to_pool)
                             {
-                                priority_done = pool_process() == thread_state::done;
-                                if (priority_done) break;
+                                chunk_done = pool_process() == thread_state::done;
+                                if (chunk_done) break;
                                 pass_to_pool = false;
                             }
                             if (job.Task != nullptr) ExecuteScheduledJob(job);
                             guard = ModuleIndex.Mutex.GetLock();
                         }
-                        if (priority_done)
+                        if (chunk_done)
                         {
-                            // 0-priority is done now.
-                            CurrentPriority = CurrentPriority + 1;
+                            // chunk-0 is done now.
+                            CurrentExecutionChunk = CurrentExecutionChunk + 1;
                             continue;
                         }
                     }
                     {
                         Module * module;
                         bool pass_to_pool = false;
-                        bool priority_done = false;
+                        bool chunk_done = false;
                         auto guard = ModuleIndex.Mutex.GetLock();
                         while (ModuleIndex < UpdatingModules.GetCount()
-                            && CurrentPriority == UpdatingModules.GetItem(ModuleIndex)->GetPriority())
+                            && CurrentExecutionChunk == UpdatingModules.GetItem(ModuleIndex)->GetExecutionChunk())
                         {
                             if (!UpdatingModules.GetItem(ModuleIndex)->isEnabled)
                             {
@@ -473,15 +473,15 @@ namespace Engine
                             guard.Unlock();
                             if (pass_to_pool)
                             {
-                                priority_done = pool_process() == thread_state::done;
-                                if (priority_done) break;
+                                chunk_done = pool_process() == thread_state::done;
+                                if (chunk_done) break;
                                 pass_to_pool = false;
                             }
                             if (module != nullptr) ExecuteUpdate(module);
                             guard = ModuleIndex.Mutex.GetLock();
                         }
                     }
-                    CurrentPriority = CurrentPriority + 1;
+                    CurrentExecutionChunk = CurrentExecutionChunk + 1;
                 }
             }
 
