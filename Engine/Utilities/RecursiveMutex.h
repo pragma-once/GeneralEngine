@@ -6,6 +6,45 @@ namespace Engine
 {
     namespace Utilities
     {
+        namespace RecursiveMutexExceptions
+        {
+            class InvalidOperation : public std::runtime_error
+            {
+                friend LockAfterSharedLockException;
+                friend TryLockAfterSharedLockException;
+                friend UpgradableSharedLockAfterSharedLockException;
+            private:
+                InvalidOperation(const char*);
+            };
+
+            class LockAfterSharedLockException : public InvalidOperation
+            {
+                friend RecursiveMutex<false, false>;
+                friend RecursiveMutex<true, false>;
+                friend RecursiveMutex<true, true>;
+            private:
+                LockAfterSharedLockException();
+            };
+
+            class TryLockAfterSharedLockException : public InvalidOperation
+            {
+                friend RecursiveMutex<false, false>;
+                friend RecursiveMutex<true, false>;
+                friend RecursiveMutex<true, true>;
+            private:
+                TryLockAfterSharedLockException();
+            };
+
+            class UpgradableSharedLockAfterSharedLockException : public InvalidOperation
+            {
+                friend RecursiveMutex<false, false>;
+                friend RecursiveMutex<true, false>;
+                friend RecursiveMutex<true, true>;
+            private:
+                UpgradableSharedLockAfterSharedLockException();
+            };
+        }
+
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         class RecursiveMutex final
         {
@@ -72,35 +111,15 @@ namespace Engine
             friend SharedLockGuard;
             friend UpgradableSharedLockGuard;
 
-            // TODO: Same exception classes for all template parameters
+            // Exceptions
 
-            class InvalidOperation : public std::runtime_error
-            {
-                friend RecursiveMutex;
-            private:
-                InvalidOperation(const char*);
-            };
+            typedef RecursiveMutexExceptions::InvalidOperation InvalidOperation;
 
-            class DeadlockException : public InvalidOperation
-            {
-                friend RecursiveMutex;
-            private:
-                DeadlockException();
-            };
+            typedef RecursiveMutexExceptions::LockAfterSharedLockException LockAfterSharedLockException;
 
-            class PossibleLivelockException : public InvalidOperation
-            {
-                friend RecursiveMutex;
-            private:
-                PossibleLivelockException();
-            };
+            typedef RecursiveMutexExceptions::TryLockAfterSharedLockException TryLockAfterSharedLockException;
 
-            class UpgradableSharedLockAfterSharedLockException : public InvalidOperation
-            {
-                friend RecursiveMutex;
-            private:
-                UpgradableSharedLockAfterSharedLockException();
-            };
+            typedef RecursiveMutexExceptions::UpgradableSharedLockAfterSharedLockException UpgradableSharedLockAfterSharedLockException;
 
             RecursiveMutex();
             ~RecursiveMutex();

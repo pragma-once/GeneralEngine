@@ -19,6 +19,14 @@ namespace Engine
     {
         /// @brief Provides objects that act on set and/or get.
         template <typename Type, bool SetAllowed = true, bool GetAllowed = true> class Accessor;
+
+        namespace RecursiveMutexExceptions
+        {
+            class InvalidOperation;
+            class LockAfterSharedLockException;
+            class TryLockAfterSharedLockException;
+            class UpgradableSharedLockAfterSharedLockException;
+        }
         /// @brief Mutex that supports recursive locking in a thread.
         ///
         /// This class is meant for sharing data between different threads

@@ -335,7 +335,7 @@ private:
             *LockGuards.GetValue(guard_id) = GlobalTestMutex.GetLock();
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::DeadlockException& e) // RecursiveMutex<>::DeadlockException
+        catch (RecursiveMutex<>::LockAfterSharedLockException& e) // RecursiveMutex<>::DeadlockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, " << expanded_guard_id << ": " << e.what());
         }
@@ -436,7 +436,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        catch (RecursiveMutex<>::TryLockAfterSharedLockException& e) // RecursiveMutex<>::PossibleLivelockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, "
                                                 << expanded_guard_id << ": " << e.what());
@@ -489,7 +489,7 @@ private:
             *GlobalLockGuards.GetValue(guard_id) = GlobalTestMutex.GetLock();
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": locked: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::DeadlockException& e) // RecursiveMutex<>::DeadlockException
+        catch (RecursiveMutex<>::LockAfterSharedLockException& e) // RecursiveMutex<>::DeadlockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on lock attempt, "
                                                 << expanded_guard_id << ": " << e.what());
@@ -591,7 +591,7 @@ private:
             }
             else print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": try-lock failed: " << expanded_guard_id);
         }
-        catch (RecursiveMutex<>::PossibleLivelockException& e) // RecursiveMutex<>::PossibleLivelockException
+        catch (RecursiveMutex<>::TryLockAfterSharedLockException& e) // RecursiveMutex<>::PossibleLivelockException
         {
             print_locked(GetStrTimeSinceStart() << ": thread-" << ID << ": exception on try-lock attempt, "
                                                 << expanded_guard_id << ": " << e.what());

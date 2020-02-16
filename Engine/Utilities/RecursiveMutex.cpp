@@ -208,27 +208,21 @@ namespace Engine
 
 // -------- EXCEPTIONS -------- //
 
-        template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
-        RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>
-            ::InvalidOperation::InvalidOperation(const char * str) : std::runtime_error(str) {}
+        RecursiveMutexExceptions::InvalidOperation::InvalidOperation(const char * str) : std::runtime_error(str) {}
 
-        template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
-        RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>::DeadlockException::DeadlockException() : InvalidOperation(
+        RecursiveMutexExceptions::LockAfterSharedLockException::LockAfterSharedLockException() : InvalidOperation(
             "Invalid operation, possible deadlock: "
             "Cannot acquire lock after shared-lock in a single thread. "
             "Use upgradable-shared-lock instead, to lock afterwards."
         ) {}
 
-        template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
-        RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>::PossibleLivelockException::PossibleLivelockException() : InvalidOperation(
+        RecursiveMutexExceptions::TryLockAfterSharedLockException::TryLockAfterSharedLockException() : InvalidOperation(
             "Invalid operation, possible livelock: "
-            "A thread is trying to lock after it has shared-locked. "
+            "Cannot try to acquire lock after shared-lock in a single thread. "
             "Use upgradable-shared-lock instead, to lock afterwards."
         ) {}
 
-        template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
-        RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>
-            ::UpgradableSharedLockAfterSharedLockException::UpgradableSharedLockAfterSharedLockException() : InvalidOperation(
+        RecursiveMutexExceptions::UpgradableSharedLockAfterSharedLockException::UpgradableSharedLockAfterSharedLockException() : InvalidOperation(
                 "Invalid operation: "
                 "Cannot acquire upgradable-shared-lock after shared-lock in a single thread."
         ) {}
@@ -342,7 +336,7 @@ namespace Engine
 
             if constexpr (SupportsSharedLock)
                 if (SharedOwnersRef->Contains(std::this_thread::get_id()))
-                    throw DeadlockException();
+                    throw LockAfterSharedLockException();
 
             if constexpr (SupportsUpgradableSharedLock)
             {
@@ -388,7 +382,7 @@ namespace Engine
             if constexpr (SupportsSharedLock)
             {
                 if (SharedOwnersRef->Contains(std::this_thread::get_id()))
-                    throw PossibleLivelockException();
+                    throw TryLockAfterSharedLockException();
 
                 if (SharedOwnersRef->GetCount() > 0)
                     return LockedByOtherThreads;
