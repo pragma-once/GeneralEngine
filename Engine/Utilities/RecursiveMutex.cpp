@@ -528,7 +528,6 @@ namespace Engine
         }
 
         // UpgradableSharedLock - behind the scenes
-        // TODO: Review
 
         template <bool SupportsSharedLock, bool SupportsUpgradableSharedLock>
         void RecursiveMutex<SupportsSharedLock, SupportsUpgradableSharedLock>::UpgradableSharedLockByGuard()
