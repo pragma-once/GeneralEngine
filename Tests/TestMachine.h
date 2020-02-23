@@ -4,10 +4,11 @@
 #include <condition_variable>
 #include <functional>
 #include <initializer_list>
-#include <iostream>
 #include <mutex>
 #include <queue>
+#include <shared_mutex>
 #include <string>
+#include <thread>
 #include <variant>
 #include <vector>
 
@@ -19,22 +20,24 @@ namespace Testing
         TestMachine();
         ~TestMachine();
 
+        struct Line
+        {
+        public:
+            double Timestamp;
+            std::string Content;
+            Line(double Timestamp, std::string Content);
+        };
+
         class TestResult
         {
         public:
-            class Line
-            {
-            public:
-                double Timestamp;
-                std::string Content;
-            };
             std::vector<Line> Lines;
             std::string GetAllLines();
             std::string GetAllLinesDuring(double DurationStart, double DurationEnd);
         };
 
-        TestResult Test(std::string Input);
-        void RunInCLI();
+        TestResult Test(std::string Input, bool RestartProcess = true);
+        void RunInCLI(bool RestartProcess = true);
     protected:
         int ReadInt(std::string Hint);
         long ReadLong(std::string Hint);
@@ -52,25 +55,45 @@ namespace Testing
         /// and provide output only using InternalIO WriteLines.
         virtual void Process() = 0;
     private:
-        class TerminateException;
+        class TerminateException {};
 
         std::mutex Mutex;
         std::condition_variable ConditionVariable;
+        /// NOTIFY ConditionVariable ON MODIFICATION
         bool WaitingToRead;
+        /// NOTIFY ConditionVariable ON MODIFICATION
+        int ReadCount;
+        /// NOTIFY ConditionVariable ON MODIFICATION
+        bool IsProcessRunning;
+        /// NOTIFY ConditionVariable ON MODIFICATION
+        /// Used on Read functions
+        bool ShouldTerminate;
         bool IsTesting;
 
         std::string LastHint;
+        /// Newlines should be inserted
         std::queue<char> ReadQueue;
-        std::queue<std::pair<double, std::string>> WriteQueue;
+        /// No newline at the end of the lines
+        std::vector<Line> WriteQueue;
 
+        std::thread * ProcessThread;
+
+        std::shared_mutex TimeMutex;
         std::chrono::time_point<std::chrono::steady_clock> StartTime;
 
-        void Write(std::variant<int, long, float, double, char, std::string>);
+        static std::string ToString(std::variant<int, long, float, double, char, std::string>);
 
-        void Start();
+        /// Locks the Mutex
+        void Start(bool ClearInput = true);
+        /// Locks the Mutex
         void Terminate();
 
+        /// Doesn't lock the Mutex
         void ResetStartTime();
+        /// Doesn't lock the Mutex
         double GetTime();
+
+        /// Locks the Mutex
+        void InputLine(std::string);
     };
 }
