@@ -229,7 +229,7 @@ namespace Engine
             // Values: GuardCount
             typename std::conditional<
                 SupportsSharedLock,
-                Collections::Dictionary<std::thread::id, int, false>*,
+                Collections::Dictionary<std::thread::id, int, false>*, // TODO: use map instead?
                 Empty
             >::type SharedOwnersRef;
 
