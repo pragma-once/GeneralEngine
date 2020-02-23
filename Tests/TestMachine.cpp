@@ -116,16 +116,18 @@ namespace Testing
         ResetStartTime();
 
         guard.lock();
+        int c = ReadCount - 1;
         while (IsProcessRunning)
         {
             ConditionVariable.wait(guard, [&]() {
-                return WaitingToRead || !WriteQueue.empty() || !IsProcessRunning;
+                return (WaitingToRead && c != ReadCount) || !WriteQueue.empty() || !IsProcessRunning;
             });
             for (auto line : WriteQueue)
                 std::cout << std::to_string(line.Timestamp) << ": " << line.Content << '\n';
             WriteQueue.clear();
-            if (WaitingToRead)
+            if (WaitingToRead && c != ReadCount)
             {
+                c = ReadCount;
                 std::cout << std::to_string(GetTime()) << ": " << LastHint << " > ";
                 std::string input;
                 std::getline(std::cin, input);
@@ -169,9 +171,10 @@ namespace Testing
         while (std::isspace(ReadQueue.front))
             ReadQueue.pop();
 
-        if (ReadQueue.empty())
+        while (ReadQueue.empty())
         {
             WaitingToRead = true;
+            ReadCount++;
             guard.unlock();
             ConditionVariable.notify_all();
             guard.lock();
@@ -181,11 +184,15 @@ namespace Testing
             });
 
             WaitingToRead = false;
+            ReadCount++;
             if (ShouldTerminate)
                 throw TerminateException();
             guard.unlock();
             ConditionVariable.notify_all();
             guard.lock();
+
+            while (std::isspace(ReadQueue.front))
+                ReadQueue.pop();
         }
 
         std::string result = "";
@@ -198,9 +205,6 @@ namespace Testing
             result += front;
         }
 
-        ReadCount++;
-        guard.unlock();
-        ConditionVariable.notify_all();
         return result;
     }
 
@@ -213,6 +217,7 @@ namespace Testing
         if (ReadQueue.empty())
         {
             WaitingToRead = true;
+            ReadCount++;
             guard.unlock();
             ConditionVariable.notify_all();
             guard.lock();
@@ -222,6 +227,7 @@ namespace Testing
             });
 
             WaitingToRead = false;
+            ReadCount++;
             if (ShouldTerminate)
                 throw TerminateException();
             guard.unlock();
@@ -239,9 +245,6 @@ namespace Testing
             result += front;
         }
 
-        ReadCount++;
-        guard.unlock();
-        ConditionVariable.notify_all();
         return result;
     }
 

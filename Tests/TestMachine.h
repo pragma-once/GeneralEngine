@@ -60,6 +60,8 @@ namespace Testing
         std::mutex Mutex;
         std::condition_variable ConditionVariable;
         /// NOTIFY ConditionVariable ON MODIFICATION
+        /// SHOULD INCREASE ReadCount WHEN SETTING THIS (TWICE ON POPPING FROM ReadQueue)
+        /// Set to true when there's no input to pop from ReadQueue
         bool WaitingToRead;
         /// NOTIFY ConditionVariable ON MODIFICATION
         int ReadCount;
